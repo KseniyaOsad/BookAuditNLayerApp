@@ -9,6 +9,7 @@ namespace BookAuditNLayer.GeneralClassLibrary.Enums
         ListIsEmpty = 1,
         SearchReturnedNothing = 2,
         IncorrectId = 3,
-        NotFound = 4
+        NotFound = 4,
+        FieldIsIncorrect = 5
     }
 }

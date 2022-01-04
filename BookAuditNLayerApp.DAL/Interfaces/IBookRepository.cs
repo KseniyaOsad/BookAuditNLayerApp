@@ -24,6 +24,6 @@ namespace BookAuditNLayerApp.DAL.Interfaces
 
         bool IsBookIdExists(int bookId);
 
-        void CreateBook(T book);
+        int CreateBook(T book);
     }
 }

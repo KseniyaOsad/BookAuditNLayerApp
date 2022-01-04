@@ -33,10 +33,11 @@ namespace BookAuditNLayerApp.DAL.Repositories
             _context.SaveChanges();
         }
 
-        public void CreateBook(Book book)
+        public int CreateBook(Book book)
         {
             _context.Add(book);
             _context.SaveChanges();
+            return book.Id;
         }
 
         public List<Book> FilterBooks(int authorId)

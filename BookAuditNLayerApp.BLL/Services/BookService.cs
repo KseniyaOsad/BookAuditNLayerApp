@@ -100,25 +100,32 @@ namespace BookAuditNLayerApp.BLL.Services
         {
             if (bookId == null || bookId <= 0)
             {
-                throw new ValidationException("Id is incorrect", ErrorList.IncorrectId );
+                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId );
             }
-            Book book = Database.Book.GetBookById((int)bookId);
-            if (book == null)
+            try
             {
-                throw new ValidationException("Book doesn't found", ErrorList.NotFound);
+                Book book = Database.Book.GetBookById((int)bookId);
+                if (book == null)
+                {
+                    throw new ValidationException("Книга не найдена", ErrorList.NotFound);
+                }
+                return book;
             }
-            return book;
+            catch (Exception e)
+            {
+                throw new ValidationException(e.Message, ErrorList.NotFound);
+            }
         }
 
         public void ChangeBookReservation(int? bookId, bool oldReservationValue)
         {
             if (bookId == null || bookId < 1)
             {
-                throw new ValidationException("Id is incorrect", ErrorList.IncorrectId );
+                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId );
             }
             else if (!Database.Book.IsBookIdExists((int)bookId))
             {
-                throw new ValidationException("Book doesn't found", ErrorList.NotFound);
+                throw new ValidationException("Книга не найдена", ErrorList.NotFound);
             }
             Database.Book.ChangeBookReservation((int)bookId, !oldReservationValue);
         }
@@ -127,18 +134,26 @@ namespace BookAuditNLayerApp.BLL.Services
         {
             if (bookId == null || bookId < 1)
             {
-                throw new ValidationException("Id is incorrect", ErrorList.IncorrectId);
+                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId);
             }
             else if (!Database.Book.IsBookIdExists((int)bookId))
             {
-                throw new ValidationException("Book doesn't found", ErrorList.NotFound);
+                throw new ValidationException("Книга не найдена", ErrorList.NotFound);
             }
             Database.Book.ChangeBookArchievation((int)bookId, !oldArchievationValue);
         }
 
-        public void CreateBook(Book book)
+        public int CreateBook(Book book)
         {
-            Database.Book.CreateBook(book);
+            if (book.Name == null || book.Name.Trim() == "")
+            {
+                throw new ValidationException("Поле 'Имя' заполнено неверно", ErrorList.FieldIsIncorrect);
+            }
+            else if (book.Description == null || book.Description.Trim() == "")
+            {
+                throw new ValidationException("Поле 'Описание' заполнено неверно", ErrorList.FieldIsIncorrect);
+            }
+            return Database.Book.CreateBook(book);
         }
     }
 }

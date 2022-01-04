@@ -29,5 +29,10 @@ namespace BookAuditNLayerApp.DAL.Repositories
         {
             return _context.Author.OrderBy(a=>a.Name).ToList();
         }
+
+        public bool IsAuthorIdExists(int authorId)
+        {
+            return _context.Author.Any(b => b.Id == authorId);
+        }
     }
 }

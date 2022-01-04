@@ -10,5 +10,8 @@ namespace BookAuditNLayerApp.BLL.Interfaces
 
         int CreateAuthor(T author);
         // Returns Id.
+
+        bool IsAuthorIdExists(int? authorId);
+
     }
 }

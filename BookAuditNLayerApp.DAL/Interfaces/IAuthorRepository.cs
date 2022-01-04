@@ -12,5 +12,8 @@ namespace BookAuditNLayerApp.DAL.Interfaces
 
         int CreateAuthor(T author);
         // Return id.
+
+        bool IsAuthorIdExists(int authorId);
+
     }
 }

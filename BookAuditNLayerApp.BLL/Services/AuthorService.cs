@@ -31,6 +31,21 @@ namespace BookAuditNLayerApp.BLL.Services
             }
             return authors;
         }
-       
+
+        public bool IsAuthorIdExists(int? authorId)
+        {
+            if (authorId == null || authorId <= 0)
+            {
+                throw new ValidationException("AuthorId указан неправильно", ErrorList.IncorrectId);
+            }
+            try
+            {
+                return Database.Author.IsAuthorIdExists((int)authorId);
+            }
+            catch (Exception e)
+            {
+                throw new ValidationException(e.Message, ErrorList.NotFound);
+            }
+        }
     }
 }

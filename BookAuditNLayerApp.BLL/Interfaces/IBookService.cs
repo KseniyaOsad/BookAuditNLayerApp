@@ -16,6 +16,6 @@ namespace BookAuditNLayerApp.BLL.Interfaces
 
         void ChangeBookArchievation(int? bookId, bool oldArchievationValue);
 
-        void CreateBook(T book);
+        int CreateBook(T book);
     }
 }
