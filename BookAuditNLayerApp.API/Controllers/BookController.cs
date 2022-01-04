@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using BookAuditNLayerApp.BLL.Interfaces;
-using BookAuditNLayerApp.BLL.DTO;
+
 using BookAuditNLayer.GeneralClassLibrary.Entities;
 
 namespace BookAuditNLayerApp.WEB.Controllers

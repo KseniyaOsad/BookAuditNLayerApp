@@ -1,6 +1,5 @@
 ﻿using BookAuditNLayer.GeneralClassLibrary.Entities;
 using BookAuditNLayer.GeneralClassLibrary.Enums;
-using BookAuditNLayerApp.BLL.DTO;
 using BookAuditNLayerApp.BLL.Infrastructure;
 using BookAuditNLayerApp.BLL.Interfaces;
 using BookAuditNLayerApp.DAL.Interfaces;
