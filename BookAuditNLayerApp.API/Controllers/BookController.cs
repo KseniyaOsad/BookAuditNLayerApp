@@ -26,6 +26,7 @@ namespace BookAuditNLayerApp.WEB.Controllers
             _authorService = iAuthor;
         }
 
+
         // GET: api/Book/GetAllBooks
         [HttpGet]
         public IActionResult GetAllBooks()
@@ -45,7 +46,7 @@ namespace BookAuditNLayerApp.WEB.Controllers
         }
 
         // GET: api/Book/GetBooksWithFilters
-        [HttpGet]
+        [HttpGet("{authorId}/{name}/{reservation}/{inArchieve}")]
         public IActionResult GetBooksWithFilters(int? authorId, string name, int? reservation, int? inArchieve)
         {
             try
