@@ -8,19 +8,13 @@ namespace BookAuditNLayerApp.BLL.Interfaces
     {
         List<T> GetAllBooks();
 
-        List<T> FilterBooks(string bookName);
+        public List<T> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
 
-        List<T> FilterBooks(int authorId);
+        T GetBookById(int? bookId);
 
-        List<T> FilterBooks(int authorId, string bookName);
+        void ChangeBookReservation(int? bookId, bool oldReservationValue);
 
-        T GetBookById(int bookId);
-
-        void ChangeBookReservation(int bookId, bool newReservationValue);
-
-        void ChangeBookArchievation(int bookId, bool newArchievationValue);
-
-        bool IsBookIdExists(int bookId);
+        void ChangeBookArchievation(int? bookId, bool oldArchievationValue);
 
         void CreateBook(T book);
     }

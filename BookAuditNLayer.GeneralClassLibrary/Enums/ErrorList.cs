@@ -6,6 +6,9 @@ namespace BookAuditNLayer.GeneralClassLibrary.Enums
 {
     public enum ErrorList
     {
-        ListIsEmpty = 1
+        ListIsEmpty = 1,
+        SearchReturnedNothing = 2,
+        IncorrectId = 3,
+        NotFound = 4
     }
 }
