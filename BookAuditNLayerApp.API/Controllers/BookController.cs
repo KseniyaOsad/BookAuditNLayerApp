@@ -101,5 +101,52 @@ namespace BookAuditNLayerApp.WEB.Controllers
             }
 
         }
+
+        // PUT:  api/Book/UpdateReservation/[id]
+        [HttpPut("{id}")]
+        public IActionResult UpdateReservation(int Id, [Bind("Id,Reserve")] Book book)
+        {
+            try
+            {
+                if (Id == book.Id )
+                {
+                    _bookService.ChangeBookReservation(Id, book.Reserve);
+                    return Ok(_bookService.GetBookById(Id));
+                }
+                else
+                {
+                    return NotFound("Id не совпадают");
+                }
+
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        // PUT:  api/Book/UpdateArchievation/[id]
+        [HttpPut("{id}")]
+        public IActionResult UpdateArchievation(int Id, [Bind("Id,InArchive")] Book book)
+        {
+            try
+            {
+                if (Id == book.Id)
+                {
+                    _bookService.ChangeBookArchievation(Id, book.InArchive);
+                    return Ok(_bookService.GetBookById(Id));
+                }
+                else
+                {
+                    return NotFound("Id не совпадают");
+                }
+
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+
+        }
     }
 }

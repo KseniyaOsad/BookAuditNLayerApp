@@ -12,9 +12,9 @@ namespace BookAuditNLayerApp.BLL.Interfaces
 
         T GetBookById(int? bookId);
 
-        void ChangeBookReservation(int? bookId, bool oldReservationValue);
+        void ChangeBookReservation(int? bookId, bool newReservationValue);
 
-        void ChangeBookArchievation(int? bookId, bool oldArchievationValue);
+        void ChangeBookArchievation(int? bookId, bool newArchievationValue);
 
         int CreateBook(T book);
     }

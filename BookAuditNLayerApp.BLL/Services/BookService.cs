@@ -117,7 +117,7 @@ namespace BookAuditNLayerApp.BLL.Services
             }
         }
 
-        public void ChangeBookReservation(int? bookId, bool oldReservationValue)
+        public void ChangeBookReservation(int? bookId, bool newReservationValue)
         {
             if (bookId == null || bookId < 1)
             {
@@ -127,10 +127,10 @@ namespace BookAuditNLayerApp.BLL.Services
             {
                 throw new ValidationException("Книга не найдена", ErrorList.NotFound);
             }
-            Database.Book.ChangeBookReservation((int)bookId, !oldReservationValue);
+            Database.Book.ChangeBookReservation((int)bookId, newReservationValue);
         }
 
-        public void ChangeBookArchievation(int? bookId, bool oldArchievationValue)
+        public void ChangeBookArchievation(int? bookId, bool newArchievationValue)
         {
             if (bookId == null || bookId < 1)
             {
@@ -140,7 +140,7 @@ namespace BookAuditNLayerApp.BLL.Services
             {
                 throw new ValidationException("Книга не найдена", ErrorList.NotFound);
             }
-            Database.Book.ChangeBookArchievation((int)bookId, !oldArchievationValue);
+            Database.Book.ChangeBookArchievation((int)bookId, newArchievationValue);
         }
 
         public int CreateBook(Book book)
