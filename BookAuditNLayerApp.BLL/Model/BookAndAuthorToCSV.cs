@@ -8,18 +8,20 @@ namespace BookAuditNLayerApp.BLL.Model
     {
         public int Id { get; set; }
 
+        private string _title;
+
         public string Title { 
             
-            get{ return Title; } 
+            get{ return _title; } 
             
             set{
                 if (value.Contains(','))
                 {
-                    Title = String.Format("\"{0}\"", value);
+                    _title = String.Format("\"{0}\"", value);
                 }
                 else
                 {
-                    Title = value;
+                    _title = value;
                 }
             } 
         }
@@ -28,7 +30,8 @@ namespace BookAuditNLayerApp.BLL.Model
 
         public override string ToString()
         {
-            return new StringBuilder(Id.ToString()).Append(",").Append(Title).Append(",").Append(AuthorName).Append("/n").ToString();
+             
+            return new StringBuilder(Id.ToString()).Append(",").Append(Title).Append(",").Append(AuthorName).Append("\n").ToString();
         }
     }
 }

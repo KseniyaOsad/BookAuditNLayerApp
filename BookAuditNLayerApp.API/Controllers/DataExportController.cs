@@ -25,7 +25,10 @@ namespace BookAuditNLayerApp.WEB.Controllers
         public DataExportController(IHostingEnvironment hostEnvironment, IDataExportService iData)
         {
             _dataExport = iData;
-            _path = Path.Combine(hostEnvironment.WebRootPath, "csvFiles/");
+            //string pt = hostEnvironment.ContentRootPath;
+            //string pt = "C:/Users/theks/Desktop/C/BookAuditNLayerApp/BookAuditNLayerApp.API";
+
+            _path = "C:/Users/theks/Desktop/C/BookAuditNLayerApp/BookAuditNLayerApp.API/Data/csvFiles/";
             // It doesn't work 
         }
 

@@ -1,4 +1,5 @@
-﻿using BookAuditNLayer.GeneralClassLibrary.Enums;
+﻿using BookAuditNLayer.GeneralClassLibrary.Entities;
+using BookAuditNLayer.GeneralClassLibrary.Enums;
 using BookAuditNLayerApp.BLL.Infrastructure;
 using BookAuditNLayerApp.BLL.Interfaces;
 using BookAuditNLayerApp.BLL.Model;
@@ -22,21 +23,21 @@ namespace BookAuditNLayerApp.BLL.Services
 
         public void WriteCsv(string path, string filename)
         {
-            if (Database.Book.GetAllBooks().Any())
+            List<Book> books = Database.Book.GetAllBooks();
+            if (books.Any())
             {
                 StreamWriter sw = new StreamWriter(path + filename, false);
                 StringBuilder allTextToWrite = new StringBuilder();
-                allTextToWrite.Append(Database.Book.GetAllBooks()
-                    .Select(
-                        b => new BookAndAuthorToCSV()
-                        {
-                            Id = b.Id,
-                            Title = b.Name,
-                            AuthorName = b.Author.Name
-                        }.ToString()
-                    ).ToList());
-
-                sw.Write(allTextToWrite);
+                books.Select(
+                        b => allTextToWrite.Append(
+                            new BookAndAuthorToCSV()
+                            {
+                                Id = b.Id,
+                                Title = b.Name,
+                                AuthorName = b.Author.Name
+                            }.ToString())
+                        ).ToList();
+                sw.Write(allTextToWrite.ToString());
                 sw.Close();
             }
             else
