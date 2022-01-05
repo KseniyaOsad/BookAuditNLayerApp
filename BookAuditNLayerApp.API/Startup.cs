@@ -41,6 +41,7 @@ namespace BookAuditNLayerApp.API
                 options.UseSqlServer(Configuration.GetConnectionString("BookContext")));
             services.AddTransient<IBookService<Book>, BookService>();
             services.AddTransient<IAuthorService<Author>, AuthorService>();
+            services.AddTransient<IDataExportService, DataExportService>();
             services.AddTransient<IUnitOfWork, EFUnitOfWork>(setviceProvider =>
             {
                 var context = setviceProvider.GetRequiredService<BookContext>();
