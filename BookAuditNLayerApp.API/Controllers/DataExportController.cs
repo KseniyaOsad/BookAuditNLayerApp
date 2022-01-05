@@ -25,11 +25,18 @@ namespace BookAuditNLayerApp.WEB.Controllers
         public DataExportController(IHostingEnvironment hostEnvironment, IDataExportService iData)
         {
             _dataExport = iData;
-            //string pt = hostEnvironment.ContentRootPath;
-            //string pt = "C:/Users/theks/Desktop/C/BookAuditNLayerApp/BookAuditNLayerApp.API";
+            _path = (hostEnvironment.ContentRootPath + "/Data/csvFiles/").Replace("\\", @"\");
+        }
 
-            _path = "C:/Users/theks/Desktop/C/BookAuditNLayerApp/BookAuditNLayerApp.API/Data/csvFiles/";
-            // It doesn't work 
+        public FileResult TestDownload()
+        {
+            HttpContext.Response.ContentType = "application/pdf";
+            FileContentResult result = new FileContentResult(System.IO.File.ReadAllBytes("YOUR PATH TO PDF"), "application/pdf")
+            {
+                FileDownloadName = "test.pdf"
+            };
+
+            return result;
         }
 
         // GET: api/DataExport/GetFile
@@ -39,7 +46,10 @@ namespace BookAuditNLayerApp.WEB.Controllers
             try
             {
                 _dataExport.WriteCsv(_path, _fileName);
-               return Ok();
+               return new FileContentResult(System.IO.File.ReadAllBytes(_path+ _fileName), "application/csv")
+               {
+                   FileDownloadName = _fileName
+               };
             }
             catch (ValidationException e)
             {
