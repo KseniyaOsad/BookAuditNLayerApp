@@ -11,8 +11,8 @@ namespace BookAuditNLayerApp.DAL.Repositories
     public class EFUnitOfWork : IUnitOfWork
     {
         private BookContext _db;
-        private BookRepository _bookRepository;
-        private AuthorRepository _authorRepository;
+        private Lazy<BookRepository> _bookRepository;
+        private Lazy<AuthorRepository> _authorRepository;
         private bool _disposed = false;
 
         public EFUnitOfWork(BookContext context)
@@ -25,8 +25,8 @@ namespace BookAuditNLayerApp.DAL.Repositories
             get
             {
                 if (_bookRepository == null)
-                    _bookRepository = new BookRepository(_db);
-                return _bookRepository;
+                    _bookRepository = new Lazy<BookRepository>(()=> new BookRepository(_db));
+                return _bookRepository.Value;
             }
         }
 
@@ -35,8 +35,8 @@ namespace BookAuditNLayerApp.DAL.Repositories
             get
             {
                 if (_authorRepository == null)
-                    _authorRepository = new AuthorRepository(_db);
-                return _authorRepository;
+                    _authorRepository = new Lazy<AuthorRepository>(()=>new AuthorRepository(_db));
+                return _authorRepository.Value;
             }
         }
 
@@ -55,7 +55,7 @@ namespace BookAuditNLayerApp.DAL.Repositories
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this); // I need it?
         }
     }
 }
