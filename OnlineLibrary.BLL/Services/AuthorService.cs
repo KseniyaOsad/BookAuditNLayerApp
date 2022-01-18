@@ -5,68 +5,50 @@ using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 
 namespace OnlineLibrary.BLL.Services
 {
     public class AuthorService : IAuthorService<Author>
     {
-        private readonly IDataExportService _dataExportService;
+        private readonly IUnitOfWork unitOfWork;
 
-        IUnitOfWork Database { get; set; }
-        public AuthorService(IUnitOfWork uow, IDataExportService _dataExportService)
+        public AuthorService(IUnitOfWork uow)
         {
-            Database = uow;
-            this._dataExportService = _dataExportService;
+            unitOfWork = uow;
         }
 
         public int CreateAuthor(Author author)
         {
-            Database.Author.CreateAuthor(author);
-            Database.Save();
+            if (author.Name == null || author.Name.Trim() == "")
+                throw new ValidationException("Поле указано неверно", ErrorList.FieldIsIncorrect);
+            unitOfWork.Author.CreateAuthor(author);
+            unitOfWork.Save();
             return author.Id;
         }
 
-        public List<Author> GetAllAuthors(IDataExportService dataExportService)
+        public List<Author> GetAllAuthors()
         {
-            var isSame = dataExportService == _dataExportService;
-
-            List<Author> authors = Database.Author.GetAllAuthors();
-            if (authors.Count == 0 || authors == null)
+            List<Author> authors = unitOfWork.Author.GetAllAuthors();
+            if (!authors.Any())
             {
                 throw new ValidationException("Авторов не существует", ErrorList.ListIsEmpty);
             }
             return authors;
         }
 
-        public bool IsAuthorIdExists(int? authorId)
+        public bool IsAuthorIdExists(params int[] authorId)
         {
-            if (authorId == null || authorId <= 0)
-            {
-                throw new ValidationException("AuthorId указан неправильно", ErrorList.IncorrectId);
-            }
-            try
-            {
-                return Database.Author.IsAuthorIdExists((int)authorId);
-            }
-            catch (Exception e)
-            {
-                throw new ValidationException(e.Message, ErrorList.NotFound);
-            }
-        }
-
-        public bool IsAuthorsExists(List<int> authorsId)
-        {
-            if (!authorsId.Any())
+            if (!authorId.Any())
             {
                 throw new ValidationException("Авторы не указаны", ErrorList.FieldIsIncorrect);
             }
+
             try
             {
-                foreach (var author in authorsId)
+                foreach (var author in authorId)
                 {
-                    if (!Database.Author.IsAuthorIdExists(author))
+                    if (!unitOfWork.Author.IsAuthorIdExists(author))
                         throw new ValidationException($"Автор {author} не найден", ErrorList.NotFound);
                 }
                 return true;
@@ -79,8 +61,10 @@ namespace OnlineLibrary.BLL.Services
 
         public List<Author> GetAuthorsByIdList(List<int> authorsId)
         {
-            IsAuthorsExists(authorsId);
-            return Database.Author.GetAuthorsByIdList(authorsId);
+            List<Author> authors = unitOfWork.Author.GetAuthorsByIdList(authorsId);
+            if (authors == null || !authors.Any())
+                throw new ValidationException($"Авторы не найдены", ErrorList.NotFound);
+            return authors;
         }
     }
 }

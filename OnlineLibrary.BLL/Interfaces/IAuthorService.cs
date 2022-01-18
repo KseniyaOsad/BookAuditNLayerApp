@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IAuthorService<T> where T : class
     {
-        List<T> GetAllAuthors(IDataExportService dataExportService);
+        List<T> GetAllAuthors();
 
         int CreateAuthor(T author);
         // Returns Id.
 
-        bool IsAuthorIdExists(int? authorId);
-
-        bool IsAuthorsExists(List<int> authorsId);
+        bool IsAuthorIdExists(params int[] authorId);
 
         List<T> GetAuthorsByIdList(List<int> authorsId);
 

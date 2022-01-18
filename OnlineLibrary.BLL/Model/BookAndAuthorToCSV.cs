@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace OnlineLibrary.BLL.Model
@@ -10,11 +9,13 @@ namespace OnlineLibrary.BLL.Model
 
         private string _title;
 
-        public string Title { 
-            
-            get{ return _title; } 
-            
-            set{
+        public string Title
+        {
+
+            get { return _title; }
+
+            set
+            {
                 if (value.Contains(','))
                 {
                     _title = String.Format("\"{0}\"", value);
@@ -23,14 +24,14 @@ namespace OnlineLibrary.BLL.Model
                 {
                     _title = value;
                 }
-            } 
+            }
         }
 
         public string AuthorName { get; set; }
 
         public override string ToString()
         {
-             
+
             return new StringBuilder(Id.ToString()).Append(",").Append(Title).Append(",").Append(AuthorName).Append("\n").ToString();
         }
     }

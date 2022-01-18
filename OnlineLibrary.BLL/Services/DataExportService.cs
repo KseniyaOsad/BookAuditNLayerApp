@@ -14,17 +14,17 @@ namespace OnlineLibrary.BLL.Services
 {
     public class DataExportService : IDataExportService
     {
-        IUnitOfWork Database { get; set; }
+        private readonly IUnitOfWork unitOfWork;
 
         public DataExportService(IUnitOfWork uow)
         {
-            Database = uow;
+            unitOfWork = uow;
         }
 
         public void WriteCsv(string path, string filename)
         {
-            List<Book> books = Database.Book.GetAllBooks();
-            if (books.Any())
+            List<Book> books = unitOfWork.Book.GetAllBooks();
+            if (books != null || books.Any())
             {
                 StreamWriter sw = new StreamWriter(path + filename, false);
                 StringBuilder allTextToWrite = new StringBuilder();
@@ -35,7 +35,7 @@ namespace OnlineLibrary.BLL.Services
                             {
                                 Id = b.Id,
                                 Title = b.Name,
-                                AuthorName = String.Join(" & ", b.Authors.Select(a=>a.Name).ToArray()) 
+                                AuthorName = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray())
                             }.ToString())
                         ).ToList();
                 sw.Write(allTextToWrite.ToString());

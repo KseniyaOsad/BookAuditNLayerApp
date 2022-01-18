@@ -6,21 +6,21 @@ using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace OnlineLibrary.BLL.Services
 {
     public class BookService : IBookService<Book>
     {
-        IUnitOfWork Database { get; set; }
+        private readonly IUnitOfWork unitOfWork;
+
         public BookService(IUnitOfWork uow)
         {
-            Database = uow;
+            unitOfWork = uow;
         }
 
         public List<Book> GetAllBooks()
         {
-            List<Book> books = Database.Book.GetAllBooks();
+            List<Book> books = unitOfWork.Book.GetAllBooks();
             if (books.Count == 0 || books == null)
             {
                 throw new ValidationException("Книг нет", ErrorList.ListIsEmpty);
@@ -50,22 +50,22 @@ namespace OnlineLibrary.BLL.Services
             // Проверяем первый случай когда заполнены поля "имя" и "номер автора".
             if ((authorId != null) && !String.IsNullOrEmpty(name))
             {
-                books = Database.Book.FilterBooks((int)authorId, name);
+                books = unitOfWork.Book.FilterBooks((int)authorId, name);
             }
             // Заполнен только автор книги.
             else if (authorId != null)
             {
-                books = Database.Book.FilterBooks((int)authorId);
+                books = unitOfWork.Book.FilterBooks((int)authorId);
             }
             // Заполнено только название книги.
             else if (!String.IsNullOrEmpty(name))
             {
-                books = Database.Book.FilterBooks(name);
+                books = unitOfWork.Book.FilterBooks(name);
             }
             // Поля фильтрации пустые, получаем весь список.
             else
             {
-                books = Database.Book.GetAllBooks();
+                books = unitOfWork.Book.GetAllBooks();
             }
 
             // Выбраны поля резервации и архивации.
@@ -100,11 +100,11 @@ namespace OnlineLibrary.BLL.Services
         {
             if (bookId == null || bookId <= 0)
             {
-                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId );
+                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId);
             }
             try
             {
-                Book book = Database.Book.GetBookById((int)bookId);
+                Book book = unitOfWork.Book.GetBookById((int)bookId);
                 if (book == null)
                 {
                     throw new ValidationException("Книга не найдена", ErrorList.NotFound);
@@ -121,14 +121,14 @@ namespace OnlineLibrary.BLL.Services
         {
             if (bookId == null || bookId < 1)
             {
-                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId );
+                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId);
             }
-            else if (!Database.Book.IsBookIdExists((int)bookId))
+            else if (!unitOfWork.Book.IsBookIdExists((int)bookId))
             {
                 throw new ValidationException("Книга не найдена", ErrorList.NotFound);
             }
-            Database.Book.ChangeBookReservation((int)bookId, newReservationValue);
-            Database.Save();
+            unitOfWork.Book.ChangeBookReservation((int)bookId, newReservationValue);
+            unitOfWork.Save();
         }
 
         public void ChangeBookArchievation(int? bookId, bool newArchievationValue)
@@ -137,12 +137,12 @@ namespace OnlineLibrary.BLL.Services
             {
                 throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId);
             }
-            else if (!Database.Book.IsBookIdExists((int)bookId))
+            else if (!unitOfWork.Book.IsBookIdExists((int)bookId))
             {
                 throw new ValidationException("Книга не найдена", ErrorList.NotFound);
             }
-            Database.Book.ChangeBookArchievation((int)bookId, newArchievationValue);
-            Database.Save();
+            unitOfWork.Book.ChangeBookArchievation((int)bookId, newArchievationValue);
+            unitOfWork.Save();
         }
 
         public int CreateBook(Book book)
@@ -155,8 +155,8 @@ namespace OnlineLibrary.BLL.Services
             {
                 throw new ValidationException("Поле 'Описание' заполнено неверно", ErrorList.FieldIsIncorrect);
             }
-            Database.Book.CreateBook(book);
-            Database.Save();
+            unitOfWork.Book.CreateBook(book);
+            unitOfWork.Save();
             return book.Id;
         }
     }

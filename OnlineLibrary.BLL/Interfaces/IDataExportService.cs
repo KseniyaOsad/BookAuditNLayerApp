@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OnlineLibrary.BLL.Interfaces
+﻿namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IDataExportService
     {
