@@ -35,10 +35,6 @@ namespace OnlineLibrary.API.Controllers
                     FileDownloadName = _fileName
                 };
             }
-            catch (ValidationException e)
-            {
-                return NotFound(e.Message);
-            }
             catch (Exception e)
             {
                 return NotFound(e.Message);

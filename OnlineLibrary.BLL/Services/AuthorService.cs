@@ -20,8 +20,7 @@ namespace OnlineLibrary.BLL.Services
 
         public int CreateAuthor(Author author)
         {
-            if (author.Name == null || author.Name.Trim() == "")
-                throw new ValidationException("Поле указано неверно", ErrorList.FieldIsIncorrect);
+            ExceptionHelper.Check<Exception>(author.Name == null || author.Name.Trim() == "", "Поле указано неверно");
             unitOfWork.Author.CreateAuthor(author);
             unitOfWork.Save();
             return author.Id;
@@ -30,26 +29,19 @@ namespace OnlineLibrary.BLL.Services
         public List<Author> GetAllAuthors()
         {
             List<Author> authors = unitOfWork.Author.GetAllAuthors();
-            if (!authors.Any())
-            {
-                throw new ValidationException("Авторов не существует", ErrorList.ListIsEmpty);
-            }
+            ExceptionHelper.Check<Exception>(!authors.Any(), "Авторов не существует");
             return authors;
         }
 
         public bool IsAuthorIdExists(params int[] authorId)
         {
-            if (!authorId.Any())
-            {
-                throw new ValidationException("Авторы не указаны", ErrorList.FieldIsIncorrect);
-            }
+            ExceptionHelper.Check<Exception>(authorId == null || !authorId.Any(), "Авторы не указаны");
 
             try
             {
                 foreach (var author in authorId)
                 {
-                    if (!unitOfWork.Author.IsAuthorIdExists(author))
-                        throw new ValidationException($"Автор {author} не найден", ErrorList.NotFound);
+                    ExceptionHelper.Check<Exception>(!unitOfWork.Author.IsAuthorIdExists(author), $"Автор {author} не найден");
                 }
                 return true;
             }
@@ -62,8 +54,7 @@ namespace OnlineLibrary.BLL.Services
         public List<Author> GetAuthorsByIdList(List<int> authorsId)
         {
             List<Author> authors = unitOfWork.Author.GetAuthorsByIdList(authorsId);
-            if (authors == null || !authors.Any())
-                throw new ValidationException($"Авторы не найдены", ErrorList.NotFound);
+            ExceptionHelper.Check<Exception>(authors == null || !authors.Any(), "Авторы не найдены");
             return authors;
         }
     }

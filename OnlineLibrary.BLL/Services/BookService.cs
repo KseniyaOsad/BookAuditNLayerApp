@@ -21,10 +21,7 @@ namespace OnlineLibrary.BLL.Services
         public List<Book> GetAllBooks()
         {
             List<Book> books = unitOfWork.Book.GetAllBooks();
-            if (books.Count == 0 || books == null)
-            {
-                throw new ValidationException("Книг нет", ErrorList.ListIsEmpty);
-            }
+            ExceptionHelper.Check<Exception>(books == null || books.Any(), "Книг нет");
             return books;
         }
 
@@ -88,73 +85,39 @@ namespace OnlineLibrary.BLL.Services
                 books = books.Where(b => b.InArchive == archievation).ToList();
             }
             // Если проверка выше не прошла, значит поля резервации и архивации не выбраны.
-            if (books.Count == 0 || books == null)
-            {
-                throw new ValidationException("Книг по данному запросу нет", ErrorList.SearchReturnedNothing);
-            }
+            ExceptionHelper.Check<Exception>(books == null || books.Any(), "Книг по данному запросу нет");
             return books;
         }
 
 
         public Book GetBookById(int? bookId)
         {
-            if (bookId == null || bookId <= 0)
-            {
-                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId);
-            }
-            try
-            {
-                Book book = unitOfWork.Book.GetBookById((int)bookId);
-                if (book == null)
-                {
-                    throw new ValidationException("Книга не найдена", ErrorList.NotFound);
-                }
-                return book;
-            }
-            catch (Exception e)
-            {
-                throw new ValidationException(e.Message, ErrorList.NotFound);
-            }
+            ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
+            Book book = unitOfWork.Book.GetBookById((int)bookId);
+            ExceptionHelper.Check<Exception>(book == null, "Книга не найдена");
+            return book;
         }
 
         public void ChangeBookReservation(int? bookId, bool newReservationValue)
         {
-            if (bookId == null || bookId < 1)
-            {
-                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId);
-            }
-            else if (!unitOfWork.Book.IsBookIdExists((int)bookId))
-            {
-                throw new ValidationException("Книга не найдена", ErrorList.NotFound);
-            }
+            ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
+            ExceptionHelper.Check<Exception>(!unitOfWork.Book.IsBookIdExists((int)bookId), "Книга не найдена");
             unitOfWork.Book.ChangeBookReservation((int)bookId, newReservationValue);
             unitOfWork.Save();
         }
 
         public void ChangeBookArchievation(int? bookId, bool newArchievationValue)
         {
-            if (bookId == null || bookId < 1)
-            {
-                throw new ValidationException("Id указан неправильно", ErrorList.IncorrectId);
-            }
-            else if (!unitOfWork.Book.IsBookIdExists((int)bookId))
-            {
-                throw new ValidationException("Книга не найдена", ErrorList.NotFound);
-            }
+            ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
+            ExceptionHelper.Check<Exception>(!unitOfWork.Book.IsBookIdExists((int)bookId), "Книга не найдена");
             unitOfWork.Book.ChangeBookArchievation((int)bookId, newArchievationValue);
             unitOfWork.Save();
         }
 
         public int CreateBook(Book book)
         {
-            if (book.Name == null || book.Name.Trim() == "")
-            {
-                throw new ValidationException("Поле 'Имя' заполнено неверно", ErrorList.FieldIsIncorrect);
-            }
-            else if (book.Description == null || book.Description.Trim() == "")
-            {
-                throw new ValidationException("Поле 'Описание' заполнено неверно", ErrorList.FieldIsIncorrect);
-            }
+            ExceptionHelper.Check<Exception>(book.Name == null || book.Name.Trim() == "", "Поле 'Имя' заполнено неверно");
+            ExceptionHelper.Check<Exception>(book.Description == null || book.Description.Trim() == "", "Поле 'Описание' заполнено неверно");
             unitOfWork.Book.CreateBook(book);
             unitOfWork.Save();
             return book.Id;

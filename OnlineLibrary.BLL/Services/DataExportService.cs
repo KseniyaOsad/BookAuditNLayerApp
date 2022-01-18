@@ -24,9 +24,10 @@ namespace OnlineLibrary.BLL.Services
         public void WriteCsv(string path, string filename)
         {
             List<Book> books = unitOfWork.Book.GetAllBooks();
-            if (books != null || books.Any())
+            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
+
+            using (StreamWriter sw = new StreamWriter(path + filename, false))
             {
-                StreamWriter sw = new StreamWriter(path + filename, false);
                 StringBuilder allTextToWrite = new StringBuilder();
                 books.
                     Select(
@@ -40,11 +41,7 @@ namespace OnlineLibrary.BLL.Services
                         ).ToList();
                 sw.Write(allTextToWrite.ToString());
                 sw.Close();
-            }
-            else
-            {
-                throw new ValidationException("Книг нет", ErrorList.ListIsEmpty);
-            }
+            } 
         }
     }
 }

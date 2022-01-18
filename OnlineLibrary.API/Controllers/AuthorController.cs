@@ -27,7 +27,7 @@ namespace OnlineLibrary.API.Controllers
             try
             {
                 int? id = _authorService.CreateAuthor(author);
-                if (id == null || id == 0) throw new ValidationException("Id is null", ErrorList.IncorrectId);
+                ExceptionHelper.Check<Exception>(id == null || id == 0, "Id указан неправильно");
                 return Ok(id);
             }
             catch (Exception e)
@@ -44,10 +44,10 @@ namespace OnlineLibrary.API.Controllers
             try
             {
                 List<Author> authors = _authorService.GetAllAuthors();
-                if (authors == null || !authors.Any()) throw new ValidationException("Авторов нет", ErrorList.ListIsEmpty);
+                ExceptionHelper.Check<Exception>(authors == null || !authors.Any(), "Авторов нет");
                 return Ok(authors);
             }
-            catch (ValidationException e)
+            catch (Exception e)
             {
                 return NotFound(e.Message);
             }

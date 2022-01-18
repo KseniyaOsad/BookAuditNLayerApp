@@ -37,12 +37,8 @@ namespace OnlineLibrary.API.Controllers
             try
             {
                 List<Book> books = _bookService.GetAllBooks();
-                if (books == null || !books.Any()) throw new ValidationException("Книг нет", ErrorList.ListIsEmpty);
+                ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
                 return Ok(books);
-            }
-            catch (ValidationException e)
-            {
-                return NotFound(e.Message);
             }
             catch (Exception e)
             {
@@ -57,10 +53,10 @@ namespace OnlineLibrary.API.Controllers
             try
             {
                 List<Book> books = _bookService.FilterBooks(authorId, name, reservation, inArchieve);
-                if (books == null || !books.Any()) throw new ValidationException("Книг нет", ErrorList.ListIsEmpty);
+                ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
                 return Ok(books);
             }
-            catch (ValidationException e)
+            catch (Exception e)
             {
                 return NotFound(e.Message);
             }
@@ -73,12 +69,8 @@ namespace OnlineLibrary.API.Controllers
             try
             {
                 Book book = _bookService.GetBookById(id);
-                if (book == null) throw new ValidationException("Книги нет", ErrorList.NotFound);
+                ExceptionHelper.Check<Exception>(book == null, "Книги нет");
                 return Ok(book);
-            }
-            catch (ValidationException e)
-            {
-                return NotFound(e.Message);
             }
             catch (Exception e)
             {
@@ -95,9 +87,9 @@ namespace OnlineLibrary.API.Controllers
             {
                 // необходимо добавление создания связи
                 List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
-                if (authors == null || !authors.Any()) throw new ValidationException("Авторов нет", ErrorList.ListIsEmpty);
+                ExceptionHelper.Check<Exception>(authors == null || !authors.Any(), "Авторов нет");
                 int? id = _bookService.CreateBook(ParseCreateBookModel.CreateBookToBook(cBook, authors));
-                if (id == null || id == 0) throw new Exception("Книга не была создана");
+                ExceptionHelper.Check<Exception>(id == null || id == 0, "Книга не была создана");
                 return Ok(id);
 
             }
@@ -114,18 +106,11 @@ namespace OnlineLibrary.API.Controllers
         {
             try
             {
-                if (Id == book.Id)
-                {
-                    _bookService.ChangeBookReservation(Id, book.Reserve);
-                    Book b = _bookService.GetBookById(Id);
-                    if (b == null) throw new ValidationException("Книги нет", ErrorList.NotFound);
-                    return Ok(b);
-                }
-                else
-                {
-                    return NotFound("Id не совпадают");
-                }
-
+                ExceptionHelper.Check<Exception>(Id != book.Id, "Id не совпадают");
+                _bookService.ChangeBookReservation(Id, book.Reserve);
+                Book b = _bookService.GetBookById(Id);
+                ExceptionHelper.Check<Exception>(b == null, "Книги нет");
+                return Ok(b);
             }
             catch (Exception e)
             {
@@ -139,18 +124,11 @@ namespace OnlineLibrary.API.Controllers
         {
             try
             {
-                if (Id == book.Id)
-                {
-                    _bookService.ChangeBookArchievation(Id, book.InArchive);
-                    Book b = _bookService.GetBookById(Id);
-                    if (b == null) throw new ValidationException("Книги нет", ErrorList.NotFound);
-                    return Ok(b);
-                }
-                else
-                {
-                    return NotFound("Id не совпадают");
-                }
-
+                ExceptionHelper.Check<Exception>(Id != book.Id, "Id не совпадают");
+                _bookService.ChangeBookArchievation(Id, book.InArchive);
+                Book b = _bookService.GetBookById(Id);
+                ExceptionHelper.Check<Exception>(b == null, "Книги нет");
+                return Ok(b);
             }
             catch (Exception e)
             {

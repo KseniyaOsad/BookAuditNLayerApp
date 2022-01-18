@@ -11,8 +11,7 @@ namespace OnlineLibrary.API.Helper
     {
         public static Book CreateBookToBook(CreateBook createBook, List<Author> authors)
         {
-            if (createBook.Genre == null || !Enum.IsDefined(typeof(Genre), createBook.Genre))
-                throw new ValidationException("Даного жарна не существует", ErrorList.FieldIsIncorrect);
+            ExceptionHelper.Check<Exception>(createBook.Genre == null || !Enum.IsDefined(typeof(Genre), createBook.Genre), "Даного жарна не существует");
             return new Book()
             {
                 Name = createBook.Name,
