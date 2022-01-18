@@ -1,8 +1,5 @@
 ﻿using OnlineLibrary.Common.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OnlineLibrary.DAL.EF
 {
@@ -28,6 +25,4 @@ namespace OnlineLibrary.DAL.EF
                 .WithMany(p => p.Books);
         }
     }
-
-  
 }

@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.Entities;
 using OnlineLibrary.BLL.Infrastructure;
-using OnlineLibrary.BLL.Model;
 using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Helper;
+using OnlineLibrary.Common.Enums;
 
-namespace OnlineLibrary.WEB.Controllers
+namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -36,13 +36,15 @@ namespace OnlineLibrary.WEB.Controllers
         {
             try
             {
-                return Ok(_bookService.GetAllBooks());
+                List<Book> books = _bookService.GetAllBooks();
+                if (books == null || !books.Any()) throw new ValidationException("Книг нет", ErrorList.ListIsEmpty);
+                return Ok(books);
             }
             catch (ValidationException e)
             {
                 return NotFound(e.Message);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return NotFound(e.Message);
             }
@@ -54,7 +56,9 @@ namespace OnlineLibrary.WEB.Controllers
         {
             try
             {
-                return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve));
+                List<Book> books = _bookService.FilterBooks(authorId, name, reservation, inArchieve);
+                if (books == null || !books.Any()) throw new ValidationException("Книг нет", ErrorList.ListIsEmpty);
+                return Ok(books);
             }
             catch (ValidationException e)
             {
@@ -68,13 +72,15 @@ namespace OnlineLibrary.WEB.Controllers
         {
             try
             {
-                return Ok(_bookService.GetBookById(id));
+                Book book = _bookService.GetBookById(id);
+                if (book == null) throw new ValidationException("Книги нет", ErrorList.NotFound);
+                return Ok(book);
             }
             catch (ValidationException e)
             {
                 return NotFound(e.Message);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return NotFound(e.Message);
             }
@@ -83,13 +89,15 @@ namespace OnlineLibrary.WEB.Controllers
 
         // POST:  api/Book/Create
         [HttpPost]
-        public IActionResult Create([Bind("Name,Description,Genre,Authors")] CreateBook cBook)
+        public IActionResult Create([FromBody] CreateBook cBook)
         {
             try
             {
                 // необходимо добавление создания связи
                 List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
-                int id = _bookService.CreateBook(ParseCreateBookModel.CreateBookToBook(cBook, authors));
+                if (authors == null || !authors.Any()) throw new ValidationException("Авторов нет", ErrorList.ListIsEmpty);
+                int? id = _bookService.CreateBook(ParseCreateBookModel.CreateBookToBook(cBook, authors));
+                if (id == null || id == 0) throw new Exception("Книга не была создана");
                 return Ok(id);
 
             }
@@ -102,14 +110,16 @@ namespace OnlineLibrary.WEB.Controllers
 
         // PUT:  api/Book/UpdateReservation/[id]
         [HttpPut("{id}")]
-        public IActionResult UpdateReservation(int Id, [Bind("Id,Reserve")] Book book)
+        public IActionResult UpdateReservation(int Id, [FromBody] Book book)
         {
             try
             {
-                if (Id == book.Id )
+                if (Id == book.Id)
                 {
                     _bookService.ChangeBookReservation(Id, book.Reserve);
-                    return Ok(_bookService.GetBookById(Id));
+                    Book b = _bookService.GetBookById(Id);
+                    if (b == null) throw new ValidationException("Книги нет", ErrorList.NotFound);
+                    return Ok(b);
                 }
                 else
                 {
@@ -125,14 +135,16 @@ namespace OnlineLibrary.WEB.Controllers
 
         // PUT:  api/Book/UpdateArchievation/[id]
         [HttpPut("{id}")]
-        public IActionResult UpdateArchievation(int Id, [Bind("Id,InArchive")] Book book)
+        public IActionResult UpdateArchievation(int Id, [FromBody] Book book)
         {
             try
             {
                 if (Id == book.Id)
                 {
                     _bookService.ChangeBookArchievation(Id, book.InArchive);
-                    return Ok(_bookService.GetBookById(Id));
+                    Book b = _bookService.GetBookById(Id);
+                    if (b == null) throw new ValidationException("Книги нет", ErrorList.NotFound);
+                    return Ok(b);
                 }
                 else
                 {

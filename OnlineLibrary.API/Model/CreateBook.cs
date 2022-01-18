@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace OnlineLibrary.API.Model
 {
@@ -11,7 +8,7 @@ namespace OnlineLibrary.API.Model
 
         public string Description { get; set; }
 
-        public int Genre { get; set; }
+        public int? Genre { get; set; }
 
         public List<int> Tags { get; set; }
 

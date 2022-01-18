@@ -5,21 +5,19 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using OnlineLibrary.Common.Enums;
 
-namespace OnlineLibrary.WEB.Controllers
+namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class AuthorController : Controller
     {
         private readonly IAuthorService<Author> _authorService;
-        private readonly IDataExportService id;
 
-        public AuthorController(IAuthorService<Author> iAuthor, IDataExportService id)
+        public AuthorController(IAuthorService<Author> iAuthor)
         {
             _authorService = iAuthor;
-            this.id = id;
         }
 
         // POST:  api/Author/Create
@@ -28,7 +26,8 @@ namespace OnlineLibrary.WEB.Controllers
         {
             try
             {
-                int id = _authorService.CreateAuthor(author);
+                int? id = _authorService.CreateAuthor(author);
+                if (id == null || id == 0) throw new ValidationException("Id is null", ErrorList.IncorrectId);
                 return Ok(id);
             }
             catch (Exception e)
@@ -38,13 +37,15 @@ namespace OnlineLibrary.WEB.Controllers
 
         }
 
-
         // GET: api/Author/GetAllAuthors
         [HttpGet]
         public IActionResult GetAllAuthors()
         {
-            try { 
-                return Ok(_authorService.GetAllAuthors(id));
+            try
+            {
+                List<Author> authors = _authorService.GetAllAuthors();
+                if (authors == null || !authors.Any()) throw new ValidationException("Авторов нет", ErrorList.ListIsEmpty);
+                return Ok(authors);
             }
             catch (ValidationException e)
             {

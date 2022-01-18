@@ -1,12 +1,9 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineLibrary.Common.Entities;
 using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace OnlineLibrary.DAL.Repositories
 {
@@ -28,7 +25,7 @@ namespace OnlineLibrary.DAL.Repositories
         {
             return _context.Author
                 .Include(a => a.Books)
-                .OrderBy(a=>a.Name).ToList();
+                .OrderBy(a => a.Name).ToList();
         }
 
         public List<Author> GetAuthorsByIdList(List<int> authorsId)

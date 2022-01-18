@@ -4,8 +4,6 @@ using OnlineLibrary.Common.Entities;
 using OnlineLibrary.Common.Enums;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OnlineLibrary.API.Helper
 {
@@ -13,14 +11,15 @@ namespace OnlineLibrary.API.Helper
     {
         public static Book CreateBookToBook(CreateBook createBook, List<Author> authors)
         {
-            if (!Enum.IsDefined(typeof(Genre), createBook.Genre))
+            if (createBook.Genre == null || !Enum.IsDefined(typeof(Genre), createBook.Genre))
                 throw new ValidationException("Даного жарна не существует", ErrorList.FieldIsIncorrect);
-            return new Book() {
+            return new Book()
+            {
                 Name = createBook.Name,
                 Description = createBook.Description,
                 Reserve = false,
                 InArchive = false,
-                Genre = (Genre)createBook.Genre,
+                Genre = (Genre)(int)createBook.Genre,
                 RegistrationDate = DateTime.Now,
                 Authors = authors
             };
