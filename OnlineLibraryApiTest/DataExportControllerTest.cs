@@ -11,9 +11,10 @@ namespace OnlineLibraryApiTest
     [TestClass]
     public class DataExportControllerTest
     {
-
         private DataExportController dataExportController;
+
         private Mock<IDataExportService> mockDataExportService = new Mock<IDataExportService>();
+
         private Mock<IWebHostEnvironment> mockHostingEnvironment = new Mock<IWebHostEnvironment>();
 
         [TestMethod]

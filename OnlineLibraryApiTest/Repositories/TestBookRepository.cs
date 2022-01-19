@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace OnlineLibraryApiTest.Repositories
 {
-    class TestBookRepository : IBookRepository<Book>
+    class TestBookRepository : IBookRepository
     {
         public void ChangeBookArchievation(int bookId, bool newArchievationValue)
         {
@@ -15,7 +15,7 @@ namespace OnlineLibraryApiTest.Repositories
         {
         }
 
-        public void CreateBook(Book book)
+        public void InsertBook(Book book)
         {
         }
 

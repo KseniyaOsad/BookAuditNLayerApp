@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace OnlineLibraryApiTest.Repositories
 {
-    public class TestAuthorRepository : IAuthorRepository<Author>
+    public class TestAuthorRepository : IAuthorRepository
     {
-        public void CreateAuthor(Author author)
+        public void InsertAuthor(Author author)
         {
         }
 
