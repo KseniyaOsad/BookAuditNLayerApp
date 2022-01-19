@@ -1,5 +1,4 @@
-﻿using OnlineLibrary.BLL.Infrastructure;
-using OnlineLibrary.BLL.Interfaces;
+﻿using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -21,7 +20,6 @@ namespace OnlineLibrary.API.Controllers
             _dataExport = iData;
             _path = hostEnvironment.ContentRootPath + @"\Data\csvFiles\";
         }
-
 
         // GET: api/DataExport/GetFile
         [HttpGet]

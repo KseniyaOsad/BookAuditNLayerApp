@@ -1,11 +1,8 @@
 ﻿using OnlineLibrary.Common.Entities;
-using OnlineLibrary.BLL.Infrastructure;
 using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using OnlineLibrary.Common.Enums;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -13,9 +10,9 @@ namespace OnlineLibrary.API.Controllers
     [ApiController]
     public class AuthorController : Controller
     {
-        private readonly IAuthorService<Author> _authorService;
+        private readonly IAuthorService _authorService;
 
-        public AuthorController(IAuthorService<Author> iAuthor)
+        public AuthorController(IAuthorService iAuthor)
         {
             _authorService = iAuthor;
         }
@@ -26,15 +23,13 @@ namespace OnlineLibrary.API.Controllers
         {
             try
             {
-                int? id = _authorService.CreateAuthor(author);
-                ExceptionHelper.Check<Exception>(id == null || id == 0, "Id указан неправильно");
+                int id = _authorService.CreateAuthor(author);
                 return Ok(id);
             }
             catch (Exception e)
             {
                 return NotFound(e.Message);
             }
-
         }
 
         // GET: api/Author/GetAllAuthors
@@ -44,7 +39,6 @@ namespace OnlineLibrary.API.Controllers
             try
             {
                 List<Author> authors = _authorService.GetAllAuthors();
-                ExceptionHelper.Check<Exception>(authors == null || !authors.Any(), "Авторов нет");
                 return Ok(authors);
             }
             catch (Exception e)

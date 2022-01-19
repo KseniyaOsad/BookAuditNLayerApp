@@ -1,17 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.Entities;
-using OnlineLibrary.BLL.Infrastructure;
+using OnlineLibrary.Common.Helpers;
 using OnlineLibrary.API.Model;
-using OnlineLibrary.API.Helper;
-using OnlineLibrary.Common.Enums;
+using AutoMapper;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -19,16 +12,15 @@ namespace OnlineLibrary.API.Controllers
     [ApiController]
     public class BookController : Controller
     {
-        private readonly IBookService<Book> _bookService;
+        private readonly IBookService _bookService;
 
-        private readonly IAuthorService<Author> _authorService;
+        private readonly IAuthorService _authorService;
 
-        public BookController(IBookService<Book> iBook, IAuthorService<Author> iAuthor)
+        public BookController(IBookService iBook, IAuthorService iAuthor)
         {
             _bookService = iBook;
             _authorService = iAuthor;
         }
-
 
         // GET: api/Book/GetAllBooks
         [HttpGet]
@@ -36,9 +28,7 @@ namespace OnlineLibrary.API.Controllers
         {
             try
             {
-                List<Book> books = _bookService.GetAllBooks();
-                ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
-                return Ok(books);
+                return Ok(_bookService.GetAllBooks());
             }
             catch (Exception e)
             {
@@ -52,9 +42,7 @@ namespace OnlineLibrary.API.Controllers
         {
             try
             {
-                List<Book> books = _bookService.FilterBooks(authorId, name, reservation, inArchieve);
-                ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
-                return Ok(books);
+                return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve));
             }
             catch (Exception e)
             {
@@ -68,9 +56,7 @@ namespace OnlineLibrary.API.Controllers
         {
             try
             {
-                Book book = _bookService.GetBookById(id);
-                ExceptionHelper.Check<Exception>(book == null, "Книги нет");
-                return Ok(book);
+                return Ok(_bookService.GetBookById(id));
             }
             catch (Exception e)
             {
@@ -84,19 +70,22 @@ namespace OnlineLibrary.API.Controllers
         {
             try
             {
-                // необходимо добавление создания связи
-                List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
-                ExceptionHelper.Check<Exception>(authors == null || !authors.Any(), "Авторов нет");
-                int? id = _bookService.CreateBook(ParseCreateBookModel.CreateBookToBook(cBook, authors));
-                ExceptionHelper.Check<Exception>(id == null || id == 0, "Книга не была создана");
-                return Ok(id);
-
+                // необходимо настроить добавление с тегами!
+                ExceptionHelper.Check<Exception>(cBook.Genre == null || !Enum.IsDefined(typeof(Genre), cBook.Genre), "Даного жарна не существует");
+                // Config mapper.
+                var config = new MapperConfiguration(cfg => cfg.CreateMap<CreateBook, Book>()
+                .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => Enum.Parse(typeof(Genre), src.Genre.ToString()) ))
+                .ForMember(dest => dest.Authors, opt => opt.MapFrom(src => _authorService.GetAuthorsByIdList(src.Authors)))
+                );
+                var mapper = new Mapper(config);
+                // Use mapper.
+                Book book = mapper.Map<CreateBook, Book>(cBook);
+                return Ok(_bookService.CreateBook(book));
             }
             catch (Exception e)
             {
                 return NotFound(e.Message);
             }
-
         }
 
         // PUT:  api/Book/UpdateReservation/[id]
@@ -108,7 +97,6 @@ namespace OnlineLibrary.API.Controllers
                 ExceptionHelper.Check<Exception>(Id != book.Id, "Id не совпадают");
                 _bookService.ChangeBookReservation(Id, book.Reserve);
                 Book b = _bookService.GetBookById(Id);
-                ExceptionHelper.Check<Exception>(b == null, "Книги нет");
                 return Ok(b);
             }
             catch (Exception e)
@@ -126,14 +114,19 @@ namespace OnlineLibrary.API.Controllers
                 ExceptionHelper.Check<Exception>(Id != book.Id, "Id не совпадают");
                 _bookService.ChangeBookArchievation(Id, book.InArchive);
                 Book b = _bookService.GetBookById(Id);
-                ExceptionHelper.Check<Exception>(b == null, "Книги нет");
                 return Ok(b);
             }
             catch (Exception e)
             {
                 return NotFound(e.Message);
             }
+        }
 
+        // GET: api/Book/GetAllGenres
+        [HttpGet]
+        public IActionResult GetAllGenres()
+        {
+             return Ok(Enum.GetNames(typeof(Genre)));
         }
     }
 }
