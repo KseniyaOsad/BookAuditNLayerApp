@@ -33,9 +33,5 @@ namespace OnlineLibrary.DAL.Repositories
             return _context.Author.Where(a => authorsId.Contains(a.Id)).ToList();
         }
 
-        public bool IsAuthorIdExists(int authorId)
-        {
-            return _context.Author.Any(b => b.Id == authorId);
-        }
     }
 }

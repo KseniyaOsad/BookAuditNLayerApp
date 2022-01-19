@@ -18,4 +18,8 @@
     <ProjectReference Include="..\OnlineLibrary.API\OnlineLibrary.API.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
+
 </Project>

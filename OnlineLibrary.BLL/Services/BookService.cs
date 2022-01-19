@@ -21,7 +21,7 @@ namespace OnlineLibrary.BLL.Services
         public List<Book> GetAllBooks()
         {
             List<Book> books = unitOfWork.Book.GetAllBooks();
-            ExceptionHelper.Check<Exception>(books == null || books.Any(), "Книг нет");
+            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
             return books;
         }
 

@@ -33,24 +33,6 @@ namespace OnlineLibrary.BLL.Services
             return authors;
         }
 
-        public bool IsAuthorIdExists(params int[] authorId)
-        {
-            ExceptionHelper.Check<Exception>(authorId == null || !authorId.Any(), "Авторы не указаны");
-
-            try
-            {
-                foreach (var author in authorId)
-                {
-                    ExceptionHelper.Check<Exception>(!unitOfWork.Author.IsAuthorIdExists(author), $"Автор {author} не найден");
-                }
-                return true;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
         public List<Author> GetAuthorsByIdList(List<int> authorsId)
         {
             List<Author> authors = unitOfWork.Author.GetAuthorsByIdList(authorsId);

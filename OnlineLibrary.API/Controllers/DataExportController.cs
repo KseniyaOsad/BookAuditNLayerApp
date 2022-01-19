@@ -19,7 +19,7 @@ namespace OnlineLibrary.API.Controllers
         public DataExportController(IWebHostEnvironment hostEnvironment, IDataExportService iData)
         {
             _dataExport = iData;
-            _path = (hostEnvironment.ContentRootPath + @"\Data\csvFiles\");
+            _path = hostEnvironment.ContentRootPath + @"\Data\csvFiles\";
         }
 
 

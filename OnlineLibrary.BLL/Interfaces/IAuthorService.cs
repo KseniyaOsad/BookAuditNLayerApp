@@ -9,8 +9,6 @@ namespace OnlineLibrary.BLL.Interfaces
         int CreateAuthor(T author);
         // Returns Id.
 
-        bool IsAuthorIdExists(params int[] authorId);
-
         List<T> GetAuthorsByIdList(List<int> authorsId);
 
     }

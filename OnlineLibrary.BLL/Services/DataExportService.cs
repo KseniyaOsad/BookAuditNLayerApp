@@ -25,23 +25,31 @@ namespace OnlineLibrary.BLL.Services
         {
             List<Book> books = unitOfWork.Book.GetAllBooks();
             ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
-
-            using (StreamWriter sw = new StreamWriter(path + filename, false))
+            ExceptionHelper.Check<Exception>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "Путь пуст");
+            try
             {
-                StringBuilder allTextToWrite = new StringBuilder();
-                books.
-                    Select(
-                        b => allTextToWrite.Append(
-                            new BookAndAuthorToCSV()
-                            {
-                                Id = b.Id,
-                                Title = b.Name,
-                                AuthorName = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray())
-                            }.ToString())
-                        ).ToList();
-                sw.Write(allTextToWrite.ToString());
-                sw.Close();
-            } 
+                using (StreamWriter sw = new StreamWriter(path + filename, false))
+                {
+                    StringBuilder allTextToWrite = new StringBuilder();
+                    books.
+                        Select(
+                            b => allTextToWrite.Append(
+                                new BookAndAuthorToCSV()
+                                {
+                                    Id = b.Id,
+                                    Title = b.Name,
+                                    AuthorName = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray())
+                                }.ToString())
+                            ).ToList();
+                    sw.Write(allTextToWrite.ToString());
+                    sw.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Не удалось записать файл", ex);
+            }
+           
         }
     }
 }

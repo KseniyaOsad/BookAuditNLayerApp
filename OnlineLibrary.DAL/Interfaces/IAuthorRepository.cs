@@ -8,8 +8,6 @@ namespace OnlineLibrary.DAL.Interfaces
 
         void CreateAuthor(T author);
 
-        bool IsAuthorIdExists(int authorId);
-
         List<T> GetAuthorsByIdList(List<int> authorsId);
 
     }
