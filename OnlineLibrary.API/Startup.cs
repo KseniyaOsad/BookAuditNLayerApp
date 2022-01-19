@@ -11,6 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using OnlineLibrary.Common.Validators;
 
 namespace OnlineLibrary.API
 {
@@ -26,20 +29,26 @@ namespace OnlineLibrary.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddNewtonsoftJson(OptionsBuilderConfigurationExtensions =>
+            services.AddControllers()
+                .AddFluentValidation()
+                .AddNewtonsoftJson(OptionsBuilderConfigurationExtensions =>
             {
                 OptionsBuilderConfigurationExtensions.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
             services.AddDbContext<BookContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("BookContext")));
-            services.AddTransient<IBookService<Book>, BookService>();
-            services.AddTransient<IAuthorService<Author>, AuthorService>();
+            services.AddTransient<IBookService, BookService>();
+            services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<IDataExportService, DataExportService>();
             services.AddTransient<IUnitOfWork, EFUnitOfWork>(setviceProvider =>
             {
                 var context = setviceProvider.GetRequiredService<BookContext>();
                 return new EFUnitOfWork(context);
             });
+
+            // Validators.
+            services.AddTransient<IValidator<Book>, BookValidator>();
+            services.AddTransient<IValidator<Author>, AuthorValidator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.API.Model
 {
@@ -13,6 +14,12 @@ namespace OnlineLibrary.API.Model
         public List<int> Tags { get; set; }
 
         public List<int> Authors { get; set; }
+
+        public bool Reserve { get; set; } = false;
+
+        public bool InArchive { get; set; } = false;
+
+        public DateTime RegistrationDate { get; set; } = DateTime.Now;
 
     }
 }
