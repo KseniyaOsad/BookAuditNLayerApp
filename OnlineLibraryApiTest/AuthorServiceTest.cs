@@ -96,6 +96,7 @@ namespace OnlineLibraryApiTest
         public void Create_Author_OK(string name)
         {
             Author author = new Author() { Name = name };
+            mockUnitOfWork.Setup(x => x.Author.CreateAuthor(It.IsAny<Author>()));
             authorService = new AuthorService(mockUnitOfWork.Object);
             int? id = authorService.CreateAuthor(author);
 

@@ -40,7 +40,9 @@ namespace OnlineLibrary.BLL.Services
                     && (inArchieve == null || inArchieve < 0 || inArchieve > 1)
                  )
             {
-                return GetAllBooks();
+                List<Book> allBooks =  GetAllBooks();
+                ExceptionHelper.Check<Exception>(allBooks == null || !allBooks.Any(), "Книг нет");
+                return allBooks;
             }
 
             List<Book> books;
@@ -65,6 +67,8 @@ namespace OnlineLibrary.BLL.Services
                 books = unitOfWork.Book.GetAllBooks();
             }
 
+            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг по данному запросу нет");
+
             // Выбраны поля резервации и архивации.
             if (inReserve >= 0 && inReserve <= 1 && inArchieve >= 0 && inArchieve <= 1)
             {
@@ -85,7 +89,7 @@ namespace OnlineLibrary.BLL.Services
                 books = books.Where(b => b.InArchive == archievation).ToList();
             }
             // Если проверка выше не прошла, значит поля резервации и архивации не выбраны.
-            ExceptionHelper.Check<Exception>(books == null || books.Any(), "Книг по данному запросу нет");
+            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг по данному запросу нет");
             return books;
         }
 
@@ -116,6 +120,7 @@ namespace OnlineLibrary.BLL.Services
 
         public int CreateBook(Book book)
         {
+            ExceptionHelper.Check<Exception>(book == null, "Книги нет");
             ExceptionHelper.Check<Exception>(book.Name == null || book.Name.Trim() == "", "Поле 'Имя' заполнено неверно");
             ExceptionHelper.Check<Exception>(book.Description == null || book.Description.Trim() == "", "Поле 'Описание' заполнено неверно");
             unitOfWork.Book.CreateBook(book);
