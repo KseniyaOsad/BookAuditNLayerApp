@@ -1,19 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using OnlineLibrary.Common.Entities;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.BLL.Interfaces
 {
-    public interface IBookService<T> where T : class
+    public interface IBookService
     {
-        List<T> GetAllBooks();
+        List<Book> GetAllBooks();
 
-        public List<T> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
+        public List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
 
-        T GetBookById(int? bookId);
+        Book GetBookById(int? bookId);
 
         void ChangeBookReservation(int? bookId, bool newReservationValue);
 
         void ChangeBookArchievation(int? bookId, bool newArchievationValue);
 
-        int CreateBook(T book);
+        int CreateBook(Book book);
     }
 }

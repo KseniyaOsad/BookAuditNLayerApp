@@ -1,6 +1,5 @@
 ﻿using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Enums;
-using OnlineLibrary.BLL.Infrastructure;
+using OnlineLibrary.Common.Helpers;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.BLL.Model;
 using OnlineLibrary.DAL.Interfaces;
@@ -23,7 +22,7 @@ namespace OnlineLibrary.BLL.Services
 
         public void WriteCsv(string path, string filename)
         {
-            List<Book> books = unitOfWork.Book.GetAllBooks();
+            List<Book> books = unitOfWork.BookRepository.GetAllBooks();
             ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
             ExceptionHelper.Check<Exception>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "Путь пуст");
             try
@@ -49,7 +48,6 @@ namespace OnlineLibrary.BLL.Services
             {
                 throw new Exception("Не удалось записать файл", ex);
             }
-           
         }
     }
 }

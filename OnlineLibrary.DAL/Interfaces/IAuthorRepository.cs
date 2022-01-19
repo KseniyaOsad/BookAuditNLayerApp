@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using OnlineLibrary.Common.Entities;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.DAL.Interfaces
 {
-    public interface IAuthorRepository<T> where T : class
+    public interface IAuthorRepository
     {
-        List<T> GetAllAuthors();
+        List<Author> GetAllAuthors();
 
-        void CreateAuthor(T author);
+        void InsertAuthor(Author author);
 
-        List<T> GetAuthorsByIdList(List<int> authorsId);
+        List<Author> GetAuthorsByIdList(List<int> authorsId);
 
     }
 }

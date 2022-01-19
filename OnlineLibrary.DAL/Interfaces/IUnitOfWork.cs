@@ -7,8 +7,8 @@ namespace OnlineLibrary.DAL.Interfaces
     {
         void Save();
 
-        IBookRepository<Book> Book { get; }
+        IBookRepository BookRepository { get; }
 
-        IAuthorRepository<Author> Author { get; }
+        IAuthorRepository AuthorRepository { get; }
     }
 }

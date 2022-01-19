@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using OnlineLibrary.Common.Entities;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.BLL.Interfaces
 {
-    public interface IAuthorService<T> where T : class
+    public interface IAuthorService
     {
-        List<T> GetAllAuthors();
+        List<Author> GetAllAuthors();
 
-        int CreateAuthor(T author);
+        int CreateAuthor(Author author);
         // Returns Id.
 
-        List<T> GetAuthorsByIdList(List<int> authorsId);
+        List<Author> GetAuthorsByIdList(List<int> authorsId);
 
     }
 }

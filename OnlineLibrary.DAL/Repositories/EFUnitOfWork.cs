@@ -19,7 +19,7 @@ namespace OnlineLibrary.DAL.Repositories
             _authorRepository = new Lazy<AuthorRepository>(() => new AuthorRepository(_db));
         }
 
-        public IBookRepository<Book> Book
+        public IBookRepository BookRepository
         {
             get
             {
@@ -27,7 +27,7 @@ namespace OnlineLibrary.DAL.Repositories
             }
         }
 
-        public IAuthorRepository<Author> Author
+        public IAuthorRepository AuthorRepository
         {
             get
             {

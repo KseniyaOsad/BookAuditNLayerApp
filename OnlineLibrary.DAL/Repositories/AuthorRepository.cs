@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace OnlineLibrary.DAL.Repositories
 {
-    public class AuthorRepository : IAuthorRepository<Author>
+    public class AuthorRepository : IAuthorRepository
     {
         BookContext _context;
 
@@ -16,7 +16,7 @@ namespace OnlineLibrary.DAL.Repositories
             _context = context;
         }
 
-        public void CreateAuthor(Author author)
+        public void InsertAuthor(Author author)
         {
             _context.Add(author);
         }

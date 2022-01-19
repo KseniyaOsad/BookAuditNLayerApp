@@ -1,27 +1,29 @@
 ﻿using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Enums;
-using OnlineLibrary.BLL.Infrastructure;
+using OnlineLibrary.Common.Helpers;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OnlineLibrary.Common.Validators;
 
 namespace OnlineLibrary.BLL.Services
 {
-    public class BookService : IBookService<Book>
+    public class BookService : IBookService
     {
         private readonly IUnitOfWork unitOfWork;
 
+        private readonly BookValidator bookValidator;
+        
         public BookService(IUnitOfWork uow)
         {
             unitOfWork = uow;
+            bookValidator = new BookValidator();
         }
 
         public List<Book> GetAllBooks()
         {
-            List<Book> books = unitOfWork.Book.GetAllBooks();
-            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
+            List<Book> books = unitOfWork.BookRepository.GetAllBooks();
             return books;
         }
 
@@ -49,22 +51,22 @@ namespace OnlineLibrary.BLL.Services
             // Проверяем первый случай когда заполнены поля "имя" и "номер автора".
             if ((authorId != null) && !String.IsNullOrEmpty(name))
             {
-                books = unitOfWork.Book.FilterBooks((int)authorId, name);
+                books = unitOfWork.BookRepository.FilterBooks((int)authorId, name);
             }
             // Заполнен только автор книги.
             else if (authorId != null)
             {
-                books = unitOfWork.Book.FilterBooks((int)authorId);
+                books = unitOfWork.BookRepository.FilterBooks((int)authorId);
             }
             // Заполнено только название книги.
             else if (!String.IsNullOrEmpty(name))
             {
-                books = unitOfWork.Book.FilterBooks(name);
+                books = unitOfWork.BookRepository.FilterBooks(name);
             }
             // Поля фильтрации пустые, получаем весь список.
             else
             {
-                books = unitOfWork.Book.GetAllBooks();
+                books = unitOfWork.BookRepository.GetAllBooks();
             }
 
             ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг по данному запросу нет");
@@ -97,7 +99,7 @@ namespace OnlineLibrary.BLL.Services
         public Book GetBookById(int? bookId)
         {
             ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
-            Book book = unitOfWork.Book.GetBookById((int)bookId);
+            Book book = unitOfWork.BookRepository.GetBookById((int)bookId);
             ExceptionHelper.Check<Exception>(book == null, "Книга не найдена");
             return book;
         }
@@ -105,26 +107,27 @@ namespace OnlineLibrary.BLL.Services
         public void ChangeBookReservation(int? bookId, bool newReservationValue)
         {
             ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
-            ExceptionHelper.Check<Exception>(!unitOfWork.Book.IsBookIdExists((int)bookId), "Книга не найдена");
-            unitOfWork.Book.ChangeBookReservation((int)bookId, newReservationValue);
+            ExceptionHelper.Check<Exception>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Книга не найдена");
+            unitOfWork.BookRepository.ChangeBookReservation((int)bookId, newReservationValue);
             unitOfWork.Save();
         }
 
         public void ChangeBookArchievation(int? bookId, bool newArchievationValue)
         {
             ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
-            ExceptionHelper.Check<Exception>(!unitOfWork.Book.IsBookIdExists((int)bookId), "Книга не найдена");
-            unitOfWork.Book.ChangeBookArchievation((int)bookId, newArchievationValue);
+            ExceptionHelper.Check<Exception>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Книга не найдена");
+            unitOfWork.BookRepository.ChangeBookArchievation((int)bookId, newArchievationValue);
             unitOfWork.Save();
         }
 
         public int CreateBook(Book book)
         {
             ExceptionHelper.Check<Exception>(book == null, "Книги нет");
-            ExceptionHelper.Check<Exception>(book.Name == null || book.Name.Trim() == "", "Поле 'Имя' заполнено неверно");
-            ExceptionHelper.Check<Exception>(book.Description == null || book.Description.Trim() == "", "Поле 'Описание' заполнено неверно");
-            unitOfWork.Book.CreateBook(book);
+            var results = bookValidator.Validate(book);
+            ExceptionHelper.Check<Exception>(!results.IsValid, "Поля заполнены неверно");
+            unitOfWork.BookRepository.InsertBook(book);
             unitOfWork.Save();
+            ExceptionHelper.Check<Exception>(book.Id == 0, "Книга не была создана");
             return book.Id;
         }
     }

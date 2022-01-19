@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using OnlineLibrary.Common.Entities;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.DAL.Interfaces
 {
-    public interface IBookRepository<T> where T : class
+    public interface IBookRepository
     {
-        List<T> GetAllBooks();
+        List<Book> GetAllBooks();
 
-        List<T> FilterBooks(string bookName);
+        List<Book> FilterBooks(string bookName);
 
-        List<T> FilterBooks(int authorId);
+        List<Book> FilterBooks(int authorId);
 
-        List<T> FilterBooks(int authorId, string bookName);
+        List<Book> FilterBooks(int authorId, string bookName);
 
-        T GetBookById(int bookId);
+        Book GetBookById(int bookId);
 
         void ChangeBookReservation(int bookId, bool newReservationValue);
 
@@ -20,6 +21,6 @@ namespace OnlineLibrary.DAL.Interfaces
 
         bool IsBookIdExists(int bookId);
 
-        void CreateBook(T book);
+        void InsertBook(Book book);
     }
 }

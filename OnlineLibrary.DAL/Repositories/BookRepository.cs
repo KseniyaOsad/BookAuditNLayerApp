@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace OnlineLibrary.DAL.Repositories
 {
-    public class BookRepository : IBookRepository<Book>
+    public class BookRepository : IBookRepository
     {
         BookContext _context;
 
@@ -28,7 +28,7 @@ namespace OnlineLibrary.DAL.Repositories
             book.Reserve = newReservationValue;
         }
 
-        public void CreateBook(Book book)
+        public void InsertBook(Book book)
         {
             _context.Add(book);
         }
