@@ -5,20 +5,16 @@ using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OnlineLibrary.Common.Validators;
 
 namespace OnlineLibrary.BLL.Services
 {
     public class BookService : IBookService
     {
         private readonly IUnitOfWork unitOfWork;
-
-        private readonly BookValidator bookValidator;
         
         public BookService(IUnitOfWork uow)
         {
             unitOfWork = uow;
-            bookValidator = new BookValidator();
         }
 
         public List<Book> GetAllBooks()
@@ -123,8 +119,6 @@ namespace OnlineLibrary.BLL.Services
         public int CreateBook(Book book)
         {
             ExceptionHelper.Check<Exception>(book == null, "Книги нет");
-            var results = bookValidator.Validate(book);
-            ExceptionHelper.Check<Exception>(!results.IsValid, "Поля заполнены неверно");
             unitOfWork.BookRepository.InsertBook(book);
             unitOfWork.Save();
             ExceptionHelper.Check<Exception>(book.Id == 0, "Книга не была создана");

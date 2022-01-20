@@ -23,8 +23,6 @@ namespace OnlineLibrary.BLL.Services
 
         public int CreateAuthor(Author author)
         {
-            var results = authorValidator.Validate(author);
-            ExceptionHelper.Check<Exception>(!results.IsValid, "Поля заполнены неверно");
             unitOfWork.AuthorRepository.InsertAuthor(author);
             unitOfWork.Save();
             ExceptionHelper.Check<Exception>(author.Id == 0, "Автор не был создан");

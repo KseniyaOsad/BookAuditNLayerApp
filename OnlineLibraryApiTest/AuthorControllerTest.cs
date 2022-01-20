@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation.TestHelper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.API.Controllers;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.Validators;
 using System.Collections.Generic;
 
 namespace OnlineLibraryApiTest
@@ -15,18 +17,23 @@ namespace OnlineLibraryApiTest
 
         private Mock<IAuthorService> mockAuthorService = new Mock<IAuthorService>();
 
+        private AuthorValidator authorValidator;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            authorValidator = new AuthorValidator();
+        }
+
         [TestMethod]
         [DataRow("")]
         [DataRow("  ")]
         [DataRow(null)]
-        public void Create_Author_FieldIsIncorrect(string name)
+        public void Validate_Author_FieldIsIncorrect(string name)
         {
             Author author = new Author() { Name = name };
-            mockAuthorService.Setup(x => x.CreateAuthor(author)).Returns(0);
-            authorController = new AuthorController(mockAuthorService.Object);
-            var result = authorController.Create(author);
-            mockAuthorService.Verify(x => x.CreateAuthor(author), Times.Once);
-
+            var result = authorValidator.TestValidate(author);
+            result.ShouldHaveValidationErrorFor(x => x.Name);
         }
 
         [TestMethod]

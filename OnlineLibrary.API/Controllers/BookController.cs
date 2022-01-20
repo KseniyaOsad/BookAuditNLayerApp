@@ -5,6 +5,7 @@ using OnlineLibrary.Common.Entities;
 using OnlineLibrary.Common.Helpers;
 using OnlineLibrary.API.Model;
 using AutoMapper;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -16,10 +17,13 @@ namespace OnlineLibrary.API.Controllers
 
         private readonly IAuthorService _authorService;
 
-        public BookController(IBookService iBook, IAuthorService iAuthor)
+        private readonly IMapper _mapper;
+
+        public BookController(IBookService iBook, IAuthorService iAuthor, IMapper mapper)
         {
             _bookService = iBook;
             _authorService = iAuthor;
+            _mapper = mapper;
         }
 
         // GET: api/Book/GetAllBooks
@@ -71,15 +75,10 @@ namespace OnlineLibrary.API.Controllers
             try
             {
                 // необходимо настроить добавление с тегами!
-                ExceptionHelper.Check<Exception>(cBook.Genre == null || !Enum.IsDefined(typeof(Genre), cBook.Genre), "Даного жарна не существует");
-                // Config mapper.
-                var config = new MapperConfiguration(cfg => cfg.CreateMap<CreateBook, Book>()
-                .ForMember(dest => dest.Genre, opt => opt.MapFrom(src => Enum.Parse(typeof(Genre), src.Genre.ToString()) ))
-                .ForMember(dest => dest.Authors, opt => opt.MapFrom(src => _authorService.GetAuthorsByIdList(src.Authors)))
-                );
-                var mapper = new Mapper(config);
-                // Use mapper.
-                Book book = mapper.Map<CreateBook, Book>(cBook);
+                List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
+
+                Book book = _mapper.Map<CreateBook, Book>(cBook);
+                book.Authors = authors;
                 return Ok(_bookService.CreateBook(book));
             }
             catch (Exception e)

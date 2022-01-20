@@ -11,9 +11,9 @@ namespace OnlineLibrary.Common.Entities
 
         public string Description { get; set; }
 
-        public bool Reserve { get; set; }
+        public bool Reserve { get; set; } = false;
 
-        public bool InArchive { get; set; }
+        public bool InArchive { get; set; } = false;
 
         public Genre Genre { get; set; }
 
@@ -21,6 +21,6 @@ namespace OnlineLibrary.Common.Entities
 
         public List<Tag> Tags { get; set; }
 
-        public DateTime RegistrationDate { get; set; }
+        public DateTime RegistrationDate { get; set; } = DateTime.Now;
     }
 }

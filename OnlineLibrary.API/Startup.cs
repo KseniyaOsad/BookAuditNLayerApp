@@ -14,6 +14,10 @@ using Newtonsoft.Json;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using OnlineLibrary.Common.Validators;
+using OnlineLibrary.API.Model;
+using OnlineLibrary.API.Validator;
+using AutoMapper;
+using OnlineLibrary.API.Mapper;
 
 namespace OnlineLibrary.API
 {
@@ -29,6 +33,16 @@ namespace OnlineLibrary.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+                
+            });
+            IMapper mapper = mappingConfig.CreateMapper();
+            services.AddSingleton(mapper);
+
+            //services.AddAutoMapper(typeof(MappingProfile));
+
             services.AddControllers()
                 .AddFluentValidation()
                 .AddNewtonsoftJson(OptionsBuilderConfigurationExtensions =>
@@ -47,7 +61,7 @@ namespace OnlineLibrary.API
             });
 
             // Validators.
-            services.AddTransient<IValidator<Book>, BookValidator>();
+            services.AddTransient<IValidator<CreateBook>, CreateBookValidator>();
             services.AddTransient<IValidator<Author>, AuthorValidator>();
         }
 

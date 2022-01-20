@@ -10,7 +10,6 @@ namespace OnlineLibrary.Common.Validators
     {
         public AuthorValidator()
         {
-            RuleFor(x => x.Id).NotNull();
             RuleFor(x => x.Name).NotEmpty();
         }
     }

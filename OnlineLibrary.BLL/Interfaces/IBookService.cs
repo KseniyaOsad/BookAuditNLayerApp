@@ -7,7 +7,7 @@ namespace OnlineLibrary.BLL.Interfaces
     {
         List<Book> GetAllBooks();
 
-        public List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
+        List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
 
         Book GetBookById(int? bookId);
 
