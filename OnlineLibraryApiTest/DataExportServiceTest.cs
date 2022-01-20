@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.DAL.Interfaces;
 using OnlineLibraryApiTest.Repositories;
 using System;
@@ -35,7 +36,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() {  });
             dataExportService = new DataExportService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<Exception>(() => dataExportService.WriteCsv("", ""), "Expected Exception");
+            Assert.ThrowsException<OLException>(() => dataExportService.WriteCsv("", ""), "Expected Exception");
             mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
         }
 
@@ -49,7 +50,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() { new Book() });
             dataExportService = new DataExportService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<Exception>(() => dataExportService.WriteCsv(path, filename), "Expected Exception");
+            Assert.ThrowsException<OLException>(() => dataExportService.WriteCsv(path, filename), "Expected Exception");
             mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
         }
 
