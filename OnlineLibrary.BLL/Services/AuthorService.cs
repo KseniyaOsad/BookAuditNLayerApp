@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OnlineLibrary.Common.Validators;
+using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Exceptions.Enum;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -25,7 +27,7 @@ namespace OnlineLibrary.BLL.Services
         {
             unitOfWork.AuthorRepository.InsertAuthor(author);
             unitOfWork.Save();
-            ExceptionHelper.Check<Exception>(author.Id == 0, "Автор не был создан");
+            ExceptionHelper.Check<OLException>(author.Id == 0, "Автор не был создан", ExceptionType.BadRequest);
             return author.Id;
         }
 
@@ -38,7 +40,7 @@ namespace OnlineLibrary.BLL.Services
         public List<Author> GetAuthorsByIdList(List<int> authorsId)
         {
             List<Author> authors = unitOfWork.AuthorRepository.GetAuthorsByIdList(authorsId);
-            ExceptionHelper.Check<Exception>(authors == null || !authors.Any(), "Авторы не найдены");
+            ExceptionHelper.Check<OLException>(authors == null || !authors.Any(), "Авторы не найдены", ExceptionType.NotFound);
             return authors;
         }
     }

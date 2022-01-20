@@ -5,6 +5,8 @@ using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Exceptions.Enum;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -39,7 +41,7 @@ namespace OnlineLibrary.BLL.Services
                  )
             {
                 List<Book> allBooks =  GetAllBooks();
-                ExceptionHelper.Check<Exception>(allBooks == null || !allBooks.Any(), "Книг нет");
+                ExceptionHelper.Check<OLException>(allBooks == null || !allBooks.Any(), "Книг нет", ExceptionType.NotFound);
                 return allBooks;
             }
 
@@ -65,7 +67,7 @@ namespace OnlineLibrary.BLL.Services
                 books = unitOfWork.BookRepository.GetAllBooks();
             }
 
-            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг по данному запросу нет");
+            ExceptionHelper.Check<OLException>(books == null || !books.Any(), "Книг по данному запросу нет", ExceptionType.NotFound);
 
             // Выбраны поля резервации и архивации.
             if (inReserve >= 0 && inReserve <= 1 && inArchieve >= 0 && inArchieve <= 1)
@@ -87,41 +89,41 @@ namespace OnlineLibrary.BLL.Services
                 books = books.Where(b => b.InArchive == archievation).ToList();
             }
             // Если проверка выше не прошла, значит поля резервации и архивации не выбраны.
-            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг по данному запросу нет");
+            ExceptionHelper.Check<OLException>(books == null || !books.Any(), "Книг по данному запросу нет", ExceptionType.NotFound);
             return books;
         }
 
 
         public Book GetBookById(int? bookId)
         {
-            ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
+            ExceptionHelper.Check<OLException>(bookId == null || bookId <= 0, "Id указан неправильно", ExceptionType.BadRequest);
             Book book = unitOfWork.BookRepository.GetBookById((int)bookId);
-            ExceptionHelper.Check<Exception>(book == null, "Книга не найдена");
+            ExceptionHelper.Check<OLException>(book == null, "Книга не найдена", ExceptionType.NotFound);
             return book;
         }
 
         public void ChangeBookReservation(int? bookId, bool newReservationValue)
         {
-            ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
-            ExceptionHelper.Check<Exception>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Книга не найдена");
+            ExceptionHelper.Check<OLException>(bookId == null || bookId <= 0, "Id указан неправильно", ExceptionType.BadRequest);
+            ExceptionHelper.Check<OLException>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Книга не найдена", ExceptionType.NotFound);
             unitOfWork.BookRepository.ChangeBookReservation((int)bookId, newReservationValue);
             unitOfWork.Save();
         }
 
         public void ChangeBookArchievation(int? bookId, bool newArchievationValue)
         {
-            ExceptionHelper.Check<Exception>(bookId == null || bookId <= 0, "Id указан неправильно");
-            ExceptionHelper.Check<Exception>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Книга не найдена");
+            ExceptionHelper.Check<OLException>(bookId == null || bookId <= 0, "Id указан неправильно", ExceptionType.BadRequest);
+            ExceptionHelper.Check<OLException>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Книга не найдена", ExceptionType.NotFound);
             unitOfWork.BookRepository.ChangeBookArchievation((int)bookId, newArchievationValue);
             unitOfWork.Save();
         }
 
         public int CreateBook(Book book)
         {
-            ExceptionHelper.Check<Exception>(book == null, "Книги нет");
+            ExceptionHelper.Check<OLException>(book == null, "Книги нет", ExceptionType.BadRequest);
             unitOfWork.BookRepository.InsertBook(book);
             unitOfWork.Save();
-            ExceptionHelper.Check<Exception>(book.Id == 0, "Книга не была создана");
+            ExceptionHelper.Check<OLException>(book.Id == 0, "Книга не была создана", ExceptionType.InternalServerError);
             return book.Id;
         }
     }

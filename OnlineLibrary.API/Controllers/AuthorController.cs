@@ -1,9 +1,7 @@
 ﻿using OnlineLibrary.Common.Entities;
 using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using OnlineLibrary.Common.Helpers;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -22,30 +20,16 @@ namespace OnlineLibrary.API.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] Author author)
         {
-            try
-            {
-                int id = _authorService.CreateAuthor(author);
-                return Ok(id);
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            int id = _authorService.CreateAuthor(author);
+            return Ok(id);
         }
 
         // GET: api/Author/GetAllAuthors
         [HttpGet]
         public IActionResult GetAllAuthors()
         {
-            try
-            {
-                List<Author> authors = _authorService.GetAllAuthors();
-                return Ok(authors);
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            List<Author> authors = _authorService.GetAllAuthors();
+            return Ok(authors);
         }
     }
 }

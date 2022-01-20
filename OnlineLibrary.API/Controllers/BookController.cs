@@ -6,6 +6,8 @@ using OnlineLibrary.Common.Helpers;
 using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
+using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Exceptions.Enum;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -30,102 +32,60 @@ namespace OnlineLibrary.API.Controllers
         [HttpGet]
         public IActionResult GetAllBooks()
         {
-            try
-            {
-                return Ok(_bookService.GetAllBooks());
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            return Ok(_bookService.GetAllBooks());
         }
 
         // GET: api/Book/GetBooksWithFilters
         [HttpGet("{authorId}/{name}/{reservation}/{inArchieve}")]
         public IActionResult GetBooksWithFilters(int? authorId, string name, int? reservation, int? inArchieve)
         {
-            try
-            {
-                return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve));
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve));
         }
 
         // GET: api/Book/GetBookById/[id]
         [HttpGet("{id}")]
         public IActionResult GetBookById(int? id)
         {
-            try
-            {
-                return Ok(_bookService.GetBookById(id));
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            return Ok(_bookService.GetBookById(id));
         }
 
         // POST:  api/Book/Create
         [HttpPost]
         public IActionResult Create([FromBody] CreateBook cBook)
         {
-            try
-            {
-                // необходимо настроить добавление с тегами!
-                List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
+            // необходимо настроить добавление с тегами!
+            List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
 
-                Book book = _mapper.Map<CreateBook, Book>(cBook);
-                book.Authors = authors;
-                return Ok(_bookService.CreateBook(book));
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            Book book = _mapper.Map<CreateBook, Book>(cBook);
+            book.Authors = authors;
+            return Ok(_bookService.CreateBook(book));
         }
 
         // PUT:  api/Book/UpdateReservation/[id]
         [HttpPut("{id}")]
         public IActionResult UpdateReservation(int Id, [FromBody] Book book)
         {
-            try
-            {
-                ExceptionHelper.Check<Exception>(Id != book.Id, "Id не совпадают");
-                _bookService.ChangeBookReservation(Id, book.Reserve);
-                Book b = _bookService.GetBookById(Id);
-                return Ok(b);
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            ExceptionHelper.Check<OLException>(Id != book.Id, "Id не совпадают", ExceptionType.BadRequest);
+            _bookService.ChangeBookReservation(Id, book.Reserve);
+            Book b = _bookService.GetBookById(Id);
+            return Ok(b);
         }
 
         // PUT:  api/Book/UpdateArchievation/[id]
         [HttpPut("{id}")]
         public IActionResult UpdateArchievation(int Id, [FromBody] Book book)
         {
-            try
-            {
-                ExceptionHelper.Check<Exception>(Id != book.Id, "Id не совпадают");
-                _bookService.ChangeBookArchievation(Id, book.InArchive);
-                Book b = _bookService.GetBookById(Id);
-                return Ok(b);
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            ExceptionHelper.Check<OLException>(Id != book.Id, "Id не совпадают", ExceptionType.BadRequest);
+            _bookService.ChangeBookArchievation(Id, book.InArchive);
+            Book b = _bookService.GetBookById(Id);
+            return Ok(b);
         }
 
         // GET: api/Book/GetAllGenres
         [HttpGet]
         public IActionResult GetAllGenres()
         {
-             return Ok(Enum.GetNames(typeof(Genre)));
+            return Ok(Enum.GetNames(typeof(Genre)));
         }
     }
 }

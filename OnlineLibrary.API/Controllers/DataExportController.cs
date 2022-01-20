@@ -1,7 +1,6 @@
 ﻿using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using System;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -25,18 +24,11 @@ namespace OnlineLibrary.API.Controllers
         [HttpGet]
         public IActionResult GetFile()
         {
-            try
+            _dataExport.WriteCsv(_path, _fileName);
+            return new FileContentResult(System.IO.File.ReadAllBytes(_path + _fileName), "application/csv")
             {
-                _dataExport.WriteCsv(_path, _fileName);
-                return new FileContentResult(System.IO.File.ReadAllBytes(_path + _fileName), "application/csv")
-                {
-                    FileDownloadName = _fileName
-                };
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+                FileDownloadName = _fileName
+            };
         }
     }
 }
