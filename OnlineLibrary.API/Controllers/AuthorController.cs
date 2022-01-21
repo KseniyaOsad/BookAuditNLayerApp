@@ -8,7 +8,7 @@ namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [TypeFilter(typeof(OLExceptionFilter))]
+    [TypeFilter(typeof(GenericExceptionFilter))]
     public class AuthorController : Controller
     {
         private readonly IAuthorService _authorService;

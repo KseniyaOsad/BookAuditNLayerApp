@@ -7,7 +7,7 @@ namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [TypeFilter(typeof(OLExceptionFilter))]
+    [TypeFilter(typeof(GenericExceptionFilter))]
     public class DataExportController : Controller
     {
         private readonly IDataExportService _dataExport;

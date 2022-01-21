@@ -15,7 +15,7 @@ namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [TypeFilter(typeof(OLExceptionFilter))]
+    [TypeFilter(typeof(GenericExceptionFilter))]
     public class BookController : Controller
     {
         private readonly IBookService _bookService;
