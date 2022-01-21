@@ -10,5 +10,9 @@ namespace OnlineLibrary.Common.Exceptions
         {
             Property = prop;
         }
+        public override string ToString()
+        {
+            return $"Message: {this.Message}, Status Code: {this.Property}" ;
+        }
     }
 }
