@@ -10,6 +10,11 @@ namespace OnlineLibrary.Common.Exceptions
         {
             Property = prop;
         }
+
+        protected OLException(string message) : base(message)
+        {
+        }
+
         public override string ToString()
         {
             return $"Message: {this.Message}, Status Code: {this.Property}" ;
