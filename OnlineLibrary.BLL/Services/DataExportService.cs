@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using OnlineLibrary.Common.Exceptions.Enum;
+using OnlineLibrary.Common.Exceptions;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -23,8 +25,8 @@ namespace OnlineLibrary.BLL.Services
         public void WriteCsv(string path, string filename)
         {
             List<Book> books = unitOfWork.BookRepository.GetAllBooks();
-            ExceptionHelper.Check<Exception>(books == null || !books.Any(), "Книг нет");
-            ExceptionHelper.Check<Exception>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "Путь пуст");
+            ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "Books don't exist");
+            ExceptionHelper.Check<OLInternalServerError>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty");
             try
             {
                 using (StreamWriter sw = new StreamWriter(path + filename, false))
@@ -46,7 +48,7 @@ namespace OnlineLibrary.BLL.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Не удалось записать файл", ex);
+                throw new OLInternalServerError("Failed to write file: " + ex.ToString());
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation.TestHelper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -33,12 +34,22 @@ namespace OnlineLibraryApiTest
         }
 
         [TestMethod]
+        public void UpdatePatch_Book()
+        {
+            mockBookService.Setup(x => x.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()));
+            bookController = new BookController(mockBookService.Object, mockAuthorService.Object, mockMapper.Object);
+            bookController.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
+            mockBookService.Verify(x => x.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), Times.Once);
+            mockBookService.Verify(x => x.GetBookById(It.IsAny<int>()), Times.Once);
+        }
+
+        [TestMethod]
         [DataRow(null, "   ", -2)]
         [DataRow("", null, 0)]
-        [DataRow("  ", null, "dvkd")]
-        public void Validate_Book_FieldIsIncorrect(string name, string descr, Genre genre)
+        [DataRow("  ", null, 90)]
+        public void Validate_CreateBook_FieldIsIncorrect(string name, string descr, Genre genre)
         {
-            CreateBook book = new CreateBook() { Name = name, Description = descr, Genre = (Genre)genre, Authors = new List<int> { 2} };
+            CreateBook book = new CreateBook() { Name = name, Description = descr, Genre = genre, Authors = new List<int> { 2} };
             var result = bookValidator.TestValidate(book);
             result.ShouldHaveValidationErrorFor(x => x.Name);
             result.ShouldHaveValidationErrorFor(x => x.Description);
@@ -57,6 +68,7 @@ namespace OnlineLibraryApiTest
 
             mockAuthorService.Setup(x => x.GetAuthorsByIdList(ints));
             mockBookService.Setup(x => x.CreateBook(It.IsAny<Book>()));
+            mockMapper.Setup(x => x.Map<CreateBook, Book>(It.IsAny<CreateBook>())).Returns(new Book());
             bookController = new BookController(mockBookService.Object, mockAuthorService.Object, mockMapper.Object);
 
             bookController.Create(cBook);
@@ -155,7 +167,8 @@ namespace OnlineLibraryApiTest
         public void Create_Book_Ok(string name, string descr, Genre genre, int[] authors)
         {
             CreateBook cBook = new CreateBook() { Name = name, Description = descr, Genre = genre, Authors = authors.ToList() };
-
+            
+            mockMapper.Setup(x => x.Map<CreateBook, Book>(It.IsAny<CreateBook>())).Returns(new Book());
             mockAuthorService.Setup(x => x.GetAuthorsByIdList(It.IsAny<List<int>>())).Returns(new List<Author>() { new Author() });
             mockBookService.Setup(x => x.CreateBook(It.IsAny<Book>())).Returns(1);
             bookController = new BookController(mockBookService.Object, mockAuthorService.Object, mockMapper.Object);

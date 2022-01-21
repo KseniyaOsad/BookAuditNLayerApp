@@ -1,11 +1,14 @@
 ﻿using FluentValidation;
-using OnlineLibrary.API.Model;
+using OnlineLibrary.Common.Entities;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace OnlineLibrary.API.Validator
+namespace OnlineLibrary.Common.Validators
 {
-    public class CreateBookValidator : AbstractValidator<CreateBook>
+    public class BookValidator : AbstractValidator<Book>
     {
-        public CreateBookValidator()
+        public BookValidator()
         {
             RuleFor(x => x.Name).NotEmpty();
             RuleFor(x => x.Description).NotEmpty();

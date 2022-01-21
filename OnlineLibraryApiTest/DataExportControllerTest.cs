@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.API.Controllers;
 using OnlineLibrary.BLL.Interfaces;
+using System;
 
 namespace OnlineLibraryApiTest
 {
@@ -16,18 +17,6 @@ namespace OnlineLibraryApiTest
         private Mock<IDataExportService> mockDataExportService = new Mock<IDataExportService>();
 
         private Mock<IWebHostEnvironment> mockHostingEnvironment = new Mock<IWebHostEnvironment>();
-
-        [TestMethod]
-        public void Get_File_ListIsEmpty()
-        {
-            dataExportController = new DataExportController(mockHostingEnvironment.Object, mockDataExportService.Object);
-
-            var result = dataExportController.GetFile();
-            var badResult = result as NotFoundObjectResult;
-
-            Assert.IsNotNull(badResult);
-            Assert.AreEqual(404, badResult.StatusCode);
-        }
 
         [TestMethod]
         public void Get_File_OK()
