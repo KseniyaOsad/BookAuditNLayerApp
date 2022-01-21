@@ -9,6 +9,7 @@ using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.Common.Exceptions.Enum;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Validators;
+using FluentValidation;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -16,12 +17,12 @@ namespace OnlineLibrary.BLL.Services
     {
         private readonly IUnitOfWork unitOfWork;
 
-        private readonly BookValidator bookValidator;
+        private readonly IValidator<Book> bookValidator;
 
-        public BookService(IUnitOfWork uow)
+        public BookService(IUnitOfWork uow, IValidator<Book> validator )
         {
             unitOfWork = uow;
-            bookValidator = new BookValidator();
+            bookValidator = validator;
         }
 
         public List<Book> GetAllBooks()
