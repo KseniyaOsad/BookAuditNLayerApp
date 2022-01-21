@@ -32,11 +32,11 @@ namespace OnlineLibraryApiTest
         }
 
         [TestMethod]
-        public void UpdatePatch_Book_NotFind()
+        public void UpdatePatch_Book_NotFound()
         {
             mockUnitOfWork.Setup(x => x.BookRepository.GetBookById(It.IsAny<int>())).Returns(value: null);
             bookService = new BookService(mockUnitOfWork.Object);
-            Assert.ThrowsException<OLException>(() => bookService.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(() => bookService.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), "Expected exception");
             mockUnitOfWork.Verify(x => x.Save(), Times.Never);
         }
 
@@ -76,7 +76,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() { });
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(()=>bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(()=>bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
         }
 
@@ -89,7 +89,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks((int)authorId)).Returns(new List<Book>() { });
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks((int)authorId), Times.Once);
         }
 
@@ -102,7 +102,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(name)).Returns(new List<Book>() { });
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(name.Trim()), Times.Once);
         }
 
@@ -115,7 +115,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks((int)authorId, name)).Returns(new List<Book>() { });
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks((int)authorId, name.Trim()), Times.Once);
         }
 
@@ -164,7 +164,7 @@ namespace OnlineLibraryApiTest
         public void Get_BookById_IdIsIncorrect(int? id)
         {
             bookService = new BookService(mockUnitOfWork.Object);
-            Assert.ThrowsException<OLException>(() => bookService.GetBookById(id), "Expected exception");
+            Assert.ThrowsException<OLBadRequest>(() => bookService.GetBookById(id), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.GetBookById(It.IsAny<int>()), Times.Never);
         }
 
@@ -176,7 +176,7 @@ namespace OnlineLibraryApiTest
         {
             mockUnitOfWork.Setup(x => x.BookRepository.GetBookById((int)id)).Returns(value: null);
             bookService = new BookService(mockUnitOfWork.Object);
-            Assert.ThrowsException<OLException>(() => bookService.GetBookById(id), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(() => bookService.GetBookById(id), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.GetBookById((int)id), Times.Once);
         }
 
@@ -203,7 +203,7 @@ namespace OnlineLibraryApiTest
         {
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => bookService.ChangeBookReservation(id, true), "Expected exception");
+            Assert.ThrowsException<OLBadRequest>(() => bookService.ChangeBookReservation(id, true), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookReservation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         }
 
@@ -216,7 +216,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.IsBookIdExists(It.IsAny<int>())).Returns(false);
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => bookService.ChangeBookReservation(id, true), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(() => bookService.ChangeBookReservation(id, true), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookReservation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         }
 
@@ -242,7 +242,7 @@ namespace OnlineLibraryApiTest
         {
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => bookService.ChangeBookArchievation(id, true), "Expected exception");
+            Assert.ThrowsException<OLBadRequest>(() => bookService.ChangeBookArchievation(id, true), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookArchievation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         }
 
@@ -255,7 +255,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.IsBookIdExists(It.IsAny<int>())).Returns(false);
             bookService = new BookService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => bookService.ChangeBookArchievation(id, true), "Expected exception");
+            Assert.ThrowsException<OLNotFound>(() => bookService.ChangeBookArchievation(id, true), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookArchievation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         }
 
@@ -281,7 +281,7 @@ namespace OnlineLibraryApiTest
         {
             bookService = new BookService(mockUnitOfWork.Object);
             Book book = new Book() { Name = name, Description = description};
-            Assert.ThrowsException<OLException>(() => bookService.CreateBook(book), "Expected exception");
+            Assert.ThrowsException<OLInternalServerError>(() => bookService.CreateBook(book), "Expected exception");
             mockUnitOfWork.Verify(x => x.BookRepository.InsertBook(It.IsAny<Book>()), Times.Never);
         }
 

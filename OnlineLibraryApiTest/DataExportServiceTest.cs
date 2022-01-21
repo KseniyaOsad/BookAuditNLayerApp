@@ -36,7 +36,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() {  });
             dataExportService = new DataExportService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => dataExportService.WriteCsv("", ""), "Expected Exception");
+            Assert.ThrowsException<OLNotFound>(() => dataExportService.WriteCsv("", ""), "Expected Exception");
             mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
         }
 
@@ -50,7 +50,7 @@ namespace OnlineLibraryApiTest
             mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() { new Book() });
             dataExportService = new DataExportService(mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLException>(() => dataExportService.WriteCsv(path, filename), "Expected Exception");
+            Assert.ThrowsException<OLInternalServerError>(() => dataExportService.WriteCsv(path, filename), "Expected Exception");
             mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
         }
 
