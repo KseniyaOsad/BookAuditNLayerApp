@@ -25,8 +25,8 @@ namespace OnlineLibrary.BLL.Services
         public void WriteCsv(string path, string filename)
         {
             List<Book> books = unitOfWork.BookRepository.GetAllBooks();
-            ExceptionHelper.Check<OLException>(books == null || !books.Any(), "Books don't exist", ExceptionType.NotFound);
-            ExceptionHelper.Check<OLException>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty", ExceptionType.InternalServerError);
+            ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "Books don't exist");
+            ExceptionHelper.Check<OLInternalServerError>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty");
             try
             {
                 using (StreamWriter sw = new StreamWriter(path + filename, false))
@@ -48,7 +48,7 @@ namespace OnlineLibrary.BLL.Services
             }
             catch (Exception ex)
             {
-                throw new OLException("Failed to write file: " + ex.ToString(), ExceptionType.InternalServerError );
+                throw new OLInternalServerError("Failed to write file: " + ex.ToString());
             }
         }
     }

@@ -68,7 +68,7 @@ namespace OnlineLibrary.API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateReservation(int Id, [FromBody] Book book)
         {
-            ExceptionHelper.Check<OLException>(Id != book.Id, "IDs don't match", ExceptionType.BadRequest);
+            ExceptionHelper.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
             _bookService.ChangeBookReservation(Id, book.Reserve);
             Book b = _bookService.GetBookById(Id);
             return Ok(b);
@@ -78,7 +78,7 @@ namespace OnlineLibrary.API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateArchievation(int Id, [FromBody] Book book)
         {
-            ExceptionHelper.Check<OLException>(Id != book.Id, "IDs don't match", ExceptionType.BadRequest);
+            ExceptionHelper.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
             _bookService.ChangeBookArchievation(Id, book.InArchive);
             Book b = _bookService.GetBookById(Id);
             return Ok(b);
