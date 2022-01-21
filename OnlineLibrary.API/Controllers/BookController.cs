@@ -8,11 +8,14 @@ using AutoMapper;
 using System.Collections.Generic;
 using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.Common.Exceptions.Enum;
+using Microsoft.AspNetCore.JsonPatch;
+using OnlineLibrary.Common.Filters;
 
 namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [TypeFilter(typeof(OLExceptionFilter))]
     public class BookController : Controller
     {
         private readonly IBookService _bookService;
@@ -65,7 +68,7 @@ namespace OnlineLibrary.API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateReservation(int Id, [FromBody] Book book)
         {
-            ExceptionHelper.Check<OLException>(Id != book.Id, "Id не совпадают", ExceptionType.BadRequest);
+            ExceptionHelper.Check<OLException>(Id != book.Id, "IDs don't match", ExceptionType.BadRequest);
             _bookService.ChangeBookReservation(Id, book.Reserve);
             Book b = _bookService.GetBookById(Id);
             return Ok(b);
@@ -75,11 +78,19 @@ namespace OnlineLibrary.API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateArchievation(int Id, [FromBody] Book book)
         {
-            ExceptionHelper.Check<OLException>(Id != book.Id, "Id не совпадают", ExceptionType.BadRequest);
+            ExceptionHelper.Check<OLException>(Id != book.Id, "IDs don't match", ExceptionType.BadRequest);
             _bookService.ChangeBookArchievation(Id, book.InArchive);
             Book b = _bookService.GetBookById(Id);
             return Ok(b);
         }
+
+        [HttpPatch("{id}")]
+        public IActionResult UpdatePatch(int Id, [FromBody] JsonPatchDocument<Book> book)
+        {
+            _bookService.UpdatePatch(Id, book);
+            return Ok(_bookService.GetBookById(Id));
+        }
+
 
         // GET: api/Book/GetAllGenres
         [HttpGet]

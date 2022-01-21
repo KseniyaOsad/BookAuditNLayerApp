@@ -1,11 +1,13 @@
 ﻿using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using OnlineLibrary.Common.Filters;
 
 namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [TypeFilter(typeof(OLExceptionFilter))]
     public class DataExportController : Controller
     {
         private readonly IDataExportService _dataExport;

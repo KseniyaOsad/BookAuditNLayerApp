@@ -2,11 +2,13 @@
 using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using OnlineLibrary.Common.Filters;
 
 namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [TypeFilter(typeof(OLExceptionFilter))]
     public class AuthorController : Controller
     {
         private readonly IAuthorService _authorService;
