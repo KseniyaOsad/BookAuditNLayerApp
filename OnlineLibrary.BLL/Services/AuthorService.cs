@@ -25,9 +25,10 @@ namespace OnlineLibrary.BLL.Services
 
         public int CreateAuthor(Author author)
         {
+            ExceptionHelper.Check<OLException>(author == null, "A null object came to the method", ExceptionType.BadRequest);
             unitOfWork.AuthorRepository.InsertAuthor(author);
             unitOfWork.Save();
-            ExceptionHelper.Check<OLException>(author.Id == 0, "Автор не был создан", ExceptionType.BadRequest);
+            ExceptionHelper.Check<OLException>(author.Id == 0, "The author was not created", ExceptionType.BadRequest);
             return author.Id;
         }
 
@@ -40,7 +41,7 @@ namespace OnlineLibrary.BLL.Services
         public List<Author> GetAuthorsByIdList(List<int> authorsId)
         {
             List<Author> authors = unitOfWork.AuthorRepository.GetAuthorsByIdList(authorsId);
-            ExceptionHelper.Check<OLException>(authors == null || !authors.Any(), "Авторы не найдены", ExceptionType.NotFound);
+            ExceptionHelper.Check<OLException>(authors == null || !authors.Any(), "Authors not found", ExceptionType.NotFound);
             return authors;
         }
     }

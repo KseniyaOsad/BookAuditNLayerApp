@@ -1,4 +1,5 @@
-﻿using OnlineLibrary.Common.Entities;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using OnlineLibrary.Common.Entities;
 using System.Collections.Generic;
 
 namespace OnlineLibrary.BLL.Interfaces
@@ -16,5 +17,7 @@ namespace OnlineLibrary.BLL.Interfaces
         void ChangeBookArchievation(int? bookId, bool newArchievationValue);
 
         int CreateBook(Book book);
+
+        void UpdatePatch(int bookId, JsonPatchDocument<Book> book);
     }
 }

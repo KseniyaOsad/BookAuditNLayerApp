@@ -68,7 +68,7 @@ namespace OnlineLibrary.DAL.Repositories
             return _context.Book
                 .Include(b => b.Authors)
                 .Where(b => b.Id == bookId)
-                .First();
+                .FirstOrDefault();
         }
 
         public bool IsBookIdExists(int bookId)
