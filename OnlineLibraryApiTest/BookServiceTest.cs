@@ -1,8 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentValidation.TestHelper;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.Common.Entities;
 using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Validators;
 using OnlineLibrary.DAL.Interfaces;
 using OnlineLibraryApiTest.Repositories;
 using System;
@@ -17,12 +20,38 @@ namespace OnlineLibraryApiTest
 
         private Mock<IUnitOfWork> mockUnitOfWork;
 
+        private BookValidator bookValidator;
+
         [TestInitialize]
         public void InitializeTest()
         {
             mockUnitOfWork = new Mock<IUnitOfWork>();
             mockUnitOfWork.Setup(x => x.BookRepository).Returns(new TestBookRepository());
             mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(new TestAuthorRepository());
+            bookValidator = new BookValidator();
+        }
+
+        [TestMethod]
+        public void UpdatePatch_Book_NotFind()
+        {
+            mockUnitOfWork.Setup(x => x.BookRepository.GetBookById(It.IsAny<int>())).Returns(value: null);
+            bookService = new BookService(mockUnitOfWork.Object);
+            Assert.ThrowsException<OLException>(() => bookService.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), "Expected exception");
+            mockUnitOfWork.Verify(x => x.Save(), Times.Never);
+        }
+
+        [TestMethod]
+        [DataRow(null, "   ", -2)]
+        [DataRow("", null, 0)]
+        [DataRow("  ", null, 90)]
+        public void Validate_Book_FieldIsIncorrect(string name, string descr, Genre genre)
+        {
+            Book book = new Book() { Name = name, Description = descr, Genre = genre, Authors = new List<Author> {  } };
+            var result = bookValidator.TestValidate(book);
+            result.ShouldHaveValidationErrorFor(x => x.Name);
+            result.ShouldHaveValidationErrorFor(x => x.Description);
+            result.ShouldHaveValidationErrorFor(x => x.Genre);
+            result.ShouldHaveValidationErrorFor(x => x.Authors);
         }
 
         [TestMethod]

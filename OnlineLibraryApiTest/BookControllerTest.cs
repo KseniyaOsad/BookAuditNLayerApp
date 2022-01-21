@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation.TestHelper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -33,10 +34,20 @@ namespace OnlineLibraryApiTest
         }
 
         [TestMethod]
+        public void UpdatePatch_Book()
+        {
+            mockBookService.Setup(x => x.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()));
+            bookController = new BookController(mockBookService.Object, mockAuthorService.Object, mockMapper.Object);
+            bookController.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
+            mockBookService.Verify(x => x.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), Times.Once);
+            mockBookService.Verify(x => x.GetBookById(It.IsAny<int>()), Times.Once);
+        }
+
+        [TestMethod]
         [DataRow(null, "   ", -2)]
         [DataRow("", null, 0)]
         [DataRow("  ", null, 90)]
-        public void Validate_Book_FieldIsIncorrect(string name, string descr, Genre genre)
+        public void Validate_CreateBook_FieldIsIncorrect(string name, string descr, Genre genre)
         {
             CreateBook book = new CreateBook() { Name = name, Description = descr, Genre = genre, Authors = new List<int> { 2} };
             var result = bookValidator.TestValidate(book);
