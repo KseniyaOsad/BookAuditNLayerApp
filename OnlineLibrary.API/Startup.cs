@@ -63,6 +63,7 @@ namespace OnlineLibrary.API
 
             // Validators.
             services.AddTransient<IValidator<CreateBook>, CreateBookValidator>();
+            services.AddTransient<IValidator<Book>, BookValidator>();
             services.AddTransient<IValidator<Author>, AuthorValidator>();
         }
 
@@ -80,7 +81,7 @@ namespace OnlineLibrary.API
 
             app.UseAuthorization();
 
-            app.UseMiddleware<ErrorHandlerMiddleware>();
+            //app.UseMiddleware<ErrorHandlerMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {
