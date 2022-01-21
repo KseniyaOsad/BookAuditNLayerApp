@@ -14,7 +14,6 @@ namespace OnlineLibrary.Common.Validators
             RuleFor(x => x.Description).NotEmpty();
             RuleFor(x => x.Authors).NotEmpty();
             RuleFor(x => x.Genre).NotEmpty().IsInEnum();
-            //RuleFor(x => x.Tags).NotEmpty();
         }
     }
 }
