@@ -1,17 +1,19 @@
 ﻿using OnlineLibrary.Common.Entities;
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace OnlineLibrary.DAL.Interfaces
 {
     public interface IBookRepository
     {
+        int GetAllBooksCount();
+
         List<Book> GetAllBooks();
 
-        List<Book> FilterBooks(string bookName);
+        List<Book> GetAllBooks(int skip, int pageSize);
 
-        List<Book> FilterBooks(int authorId);
-
-        List<Book> FilterBooks(int authorId, string bookName);
+        List<Book> FilterBooks(Expression<Func<Book, bool>> expr);
 
         Book GetBookById(int bookId);
 

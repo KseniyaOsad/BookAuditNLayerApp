@@ -10,6 +10,9 @@ using OnlineLibrary.Common.Exceptions.Enum;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Validators;
 using FluentValidation;
+using OnlineLibrary.Common.Pagination;
+using LinqKit;
+using System.Linq.Expressions;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -31,74 +34,54 @@ namespace OnlineLibrary.BLL.Services
             return books;
         }
 
-        public List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve)
+        public PageOfEntities<Book> GetAllBooks(PaginationOptions paginationOptions)
         {
-            // Убираем отступы у строки.
-            name = (name != null) ? name.Trim() : name;
-            // authorId теперь либо null либо больше 0 (чтоб дальше долго не проверять).
-            authorId = (authorId <= 0 || authorId == null) ? null : authorId;
+            int count = unitOfWork.BookRepository.GetAllBooksCount();
+            if (count == 0) return new PageOfEntities<Book>();
+            int skip = (paginationOptions.PageNumber - 1) * paginationOptions.PageSize;
+            PageOfEntities<Book> page = new PageOfEntities<Book>();
+            page.EntitiesCount = count;
 
-            // Проверяем 0 случай, когда все поля фильтрации не заполнены.
-            if (
-                    (authorId == null)
-                    && String.IsNullOrEmpty(name)
-                    && (inReserve == null || inReserve < 0 || inReserve > 1)
-                    && (inArchieve == null || inArchieve < 0 || inArchieve > 1)
-                 )
+            if (count - skip >= 1)
             {
-                List<Book> allBooks =  GetAllBooks();
-                ExceptionHelper.Check<OLNotFound>(allBooks == null || !allBooks.Any(), "Books don't exist");
-                return allBooks;
+                page.Entities = unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize);
+                page.Page = paginationOptions.PageNumber;
             }
-
-            List<Book> books;
-            // Проверяем первый случай когда заполнены поля "имя" и "номер автора".
-            if ((authorId != null) && !String.IsNullOrEmpty(name))
-            {
-                books = unitOfWork.BookRepository.FilterBooks((int)authorId, name);
-            }
-            // Заполнен только автор книги.
-            else if (authorId != null)
-            {
-                books = unitOfWork.BookRepository.FilterBooks((int)authorId);
-            }
-            // Заполнено только название книги.
-            else if (!String.IsNullOrEmpty(name))
-            {
-                books = unitOfWork.BookRepository.FilterBooks(name);
-            }
-            // Поля фильтрации пустые, получаем весь список.
             else
             {
-                books = unitOfWork.BookRepository.GetAllBooks();
+                page.Page = (count / paginationOptions.PageSize) + 1;
+                skip = (page.Page - 1) * paginationOptions.PageSize;
+                page.Entities = unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize);
             }
+            page.ElementsOnPage = page.Entities.Count();
+            return page;
+        }
 
-            ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "There are no books matching this search");
-
-            // Выбраны поля резервации и архивации.
-            if (inReserve >= 0 && inReserve <= 1 && inArchieve >= 0 && inArchieve <= 1)
+        public List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve)
+        {
+            Expression<Func<Book, bool>> expr = PredicateBuilder.New<Book>(true);
+            if (authorId != null && authorId > 0)
             {
-                bool reservation = (inReserve == 0) ? false : true;
-                bool archievation = (inArchieve == 0) ? false : true;
-                books = books.Where(b => b.InArchive == archievation && b.Reserve == reservation).ToList();
+                expr = expr.And(b=>b.Authors.Contains(unitOfWork.AuthorRepository.GetAuthorsByIdList(new List<int>(){ (int)authorId}).First())); // ????????????
             }
-            // Выбраны поля резервации.
-            else if (inReserve >= 0 && inReserve <= 1)
+            if (name != null && name.Trim() != "")
             {
-                bool reservation = (inReserve == 0) ? false : true;
-                books = books.Where(b => b.Reserve == reservation).ToList();
+                expr = expr.And(b => b.Name.Trim().ToLower().Contains(name.Trim().ToLower()));
             }
-            // Выбраны поля архивации.
-            else if (inArchieve >= 0 && inArchieve <= 1)
+            if (inReserve != null && inReserve >= 0 && inReserve <= 1)
             {
-                bool archievation = (inArchieve == 0) ? false : true;
-                books = books.Where(b => b.InArchive == archievation).ToList();
+                bool reserve = inReserve == 0 ? false : true;
+                expr = expr.And(b => b.Reserve == reserve);
             }
-            // Если проверка выше не прошла, значит поля резервации и архивации не выбраны.
+            if (inArchieve != null && inArchieve >= 0 && inArchieve <= 1)
+            {
+                bool archieve = inArchieve == 0 ? false : true;
+                expr = expr.And(b => b.InArchive == archieve);
+            }
+            List<Book> books = unitOfWork.BookRepository.FilterBooks(expr);
             ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "There are no books matching this search");
             return books;
         }
-
 
         public Book GetBookById(int? bookId)
         {
