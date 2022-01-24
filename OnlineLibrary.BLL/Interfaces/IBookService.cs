@@ -9,9 +9,11 @@ namespace OnlineLibrary.BLL.Interfaces
     {
         List<Book> GetAllBooks();
 
-        PageOfEntities<Book> GetAllBooks(PaginationOptions paginationOptions);
+        PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions);
 
         List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
+
+        PaginatedList<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve, PaginationOptions paginationOptions);
 
         Book GetBookById(int? bookId);
 

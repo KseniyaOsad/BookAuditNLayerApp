@@ -22,7 +22,7 @@ namespace OnlineLibrary.BLL.Services
 
         private readonly IValidator<Book> bookValidator;
 
-        public BookService(IUnitOfWork uow, IValidator<Book> validator )
+        public BookService(IUnitOfWork uow, IValidator<Book> validator)
         {
             unitOfWork = uow;
             bookValidator = validator;
@@ -34,39 +34,34 @@ namespace OnlineLibrary.BLL.Services
             return books;
         }
 
-        public PageOfEntities<Book> GetAllBooks(PaginationOptions paginationOptions)
+        public PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions)
         {
             int count = unitOfWork.BookRepository.GetAllBooksCount();
-            if (count == 0) return new PageOfEntities<Book>();
+            if (count == 0) return new PaginatedList<Book>();
             int skip = (paginationOptions.PageNumber - 1) * paginationOptions.PageSize;
-            PageOfEntities<Book> page = new PageOfEntities<Book>();
-            page.EntitiesCount = count;
 
             if (count - skip >= 1)
             {
-                page.Entities = unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize);
-                page.Page = paginationOptions.PageNumber;
+                return new PaginatedList<Book>(count, unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize));
             }
             else
             {
-                page.Page = (count / paginationOptions.PageSize) + 1;
-                skip = (page.Page - 1) * paginationOptions.PageSize;
-                page.Entities = unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize);
+                int page = count == paginationOptions.PageSize ? 1 : (count / paginationOptions.PageSize) + 1;
+                skip = (page - 1) * paginationOptions.PageSize;
+                return new PaginatedList<Book>(count, unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize));
             }
-            page.ElementsOnPage = page.Entities.Count();
-            return page;
         }
 
-        public List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve)
+        private Expression<Func<Book, bool>> Filter(int? authorId, string name, int? inReserve, int? inArchieve)
         {
             Expression<Func<Book, bool>> expr = PredicateBuilder.New<Book>(true);
             if (authorId != null && authorId > 0)
             {
-                expr = expr.And(b=>b.Authors.Contains(unitOfWork.AuthorRepository.GetAuthorsByIdList(new List<int>(){ (int)authorId}).First())); // ????????????
+                expr = expr.And(b => b.Authors.Any(a => a.Id == authorId));
             }
             if (name != null && name.Trim() != "")
             {
-                expr = expr.And(b => b.Name.Trim().ToLower().Contains(name.Trim().ToLower()));
+                expr = expr.And(b => b.Name.Trim().ToUpper().Contains(name.Trim().ToUpper()));
             }
             if (inReserve != null && inReserve >= 0 && inReserve <= 1)
             {
@@ -78,7 +73,31 @@ namespace OnlineLibrary.BLL.Services
                 bool archieve = inArchieve == 0 ? false : true;
                 expr = expr.And(b => b.InArchive == archieve);
             }
-            List<Book> books = unitOfWork.BookRepository.FilterBooks(expr);
+            return expr;
+        }
+
+        public PaginatedList<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve, PaginationOptions paginationOptions)
+        {
+            Expression<Func<Book, bool>> expr = Filter(authorId, name, inReserve, inArchieve);
+            int count = unitOfWork.BookRepository.GetAllBooksCount(expr);
+            ExceptionHelper.Check<OLNotFound>(count == 0, "There are no books matching this search");
+            int skip = (paginationOptions.PageNumber - 1) * paginationOptions.PageSize;
+
+            if (count - skip >= 1)
+            {
+                return new PaginatedList<Book>(count, unitOfWork.BookRepository.FilterBooks(expr, skip, paginationOptions.PageSize));
+            }
+            else
+            {
+                int page = count == paginationOptions.PageSize ? 1 : (count / paginationOptions.PageSize) + 1;
+                skip = (page - 1) * paginationOptions.PageSize;
+                return new PaginatedList<Book>(count, unitOfWork.BookRepository.FilterBooks(expr, skip, paginationOptions.PageSize));
+            }
+        }
+
+        public List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve)
+        {
+            List<Book> books = unitOfWork.BookRepository.FilterBooks(Filter(authorId, name, inReserve, inArchieve));
             ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "There are no books matching this search");
             return books;
         }

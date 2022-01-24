@@ -47,8 +47,7 @@ namespace OnlineLibrary.DAL.Repositories
         {
             return _context.Book
                 .Include(b => b.Authors)
-                .Where(b => b.Id == bookId)
-                .FirstOrDefault();
+                .FirstOrDefault(b => b.Id == bookId);
         }
 
         public bool IsBookIdExists(int bookId)
@@ -69,9 +68,27 @@ namespace OnlineLibrary.DAL.Repositories
             return _context.Book.Count();
         }
 
+        public int GetAllBooksCount(Expression<Func<Book, bool>> expr)
+        {
+            return _context.Book
+                .Where(expr)
+                .Count();
+        }
+
         public List<Book> FilterBooks(Expression<Func<Book, bool>> expr)
         {
-            return _context.Book.Include(x=>x.Authors).Where(expr).ToList();
+            return _context.Book.Include(x => x.Authors).Where(expr).ToList();
         }
+
+        public List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize)
+        {
+            return _context.Book
+                .Include(x => x.Authors)
+                .Where(expr)
+                .Skip(skip)
+                .Take(pageSize)
+                .ToList();
+        }
+
     }
 }

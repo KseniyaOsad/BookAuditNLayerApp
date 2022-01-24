@@ -9,11 +9,15 @@ namespace OnlineLibrary.DAL.Interfaces
     {
         int GetAllBooksCount();
 
+        int GetAllBooksCount(Expression<Func<Book, bool>> expr);
+
         List<Book> GetAllBooks();
 
         List<Book> GetAllBooks(int skip, int pageSize);
 
         List<Book> FilterBooks(Expression<Func<Book, bool>> expr);
+
+        List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize);
 
         Book GetBookById(int bookId);
 

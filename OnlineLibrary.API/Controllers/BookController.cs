@@ -32,13 +32,11 @@ namespace OnlineLibrary.API.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/Book/GetAllBooks/
-        [HttpGet("{PageNumber}/{PageSize}")]
-        public IActionResult GetAllBooks(int? PageNumber, int? PageSize)
+        // Post: api/Book/GetAllBooks/
+        [HttpPost]
+        public IActionResult GetAllBooks([FromBody]PaginationOptions paginationOptions)
         {
-            PageNumber = PageNumber ?? 1;
-            PageSize = PageSize ?? 1;
-            return Ok(_bookService.GetAllBooks(new PaginationOptions((int)PageNumber, (int)PageSize)));
+            return Ok(_bookService.GetAllBooks(paginationOptions));
         }
 
         // GET: api/Book/GetAllBooks
@@ -48,11 +46,11 @@ namespace OnlineLibrary.API.Controllers
             return Ok(_bookService.GetAllBooks());
         }
 
-        // GET: api/Book/GetBooksWithFilters
-        [HttpGet("{authorId}/{name}/{reservation}/{inArchieve}")]
-        public IActionResult GetBooksWithFilters(int? authorId, string name, int? reservation, int? inArchieve)
+        // Post: api/Book/FilterBook
+        [HttpPost("{authorId}/{name}/{reservation}/{inArchieve}")]
+        public IActionResult FilterBook(int? authorId, string name, int? reservation, int? inArchieve, [FromBody] PaginationOptions paginationOptions)
         {
-            return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve));
+            return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve, paginationOptions));
         }
 
         // GET: api/Book/GetBookById/[id]
