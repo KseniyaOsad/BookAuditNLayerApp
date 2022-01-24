@@ -10,6 +10,7 @@ using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.Common.Exceptions.Enum;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Filters;
+using OnlineLibrary.Common.Pagination;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -29,6 +30,15 @@ namespace OnlineLibrary.API.Controllers
             _bookService = iBook;
             _authorService = iAuthor;
             _mapper = mapper;
+        }
+
+        // GET: api/Book/GetAllBooks/
+        [HttpGet("{PageNumber}/{PageSize}")]
+        public IActionResult GetAllBooks(int? PageNumber, int? PageSize)
+        {
+            PageNumber = PageNumber ?? 1;
+            PageSize = PageSize ?? 1;
+            return Ok(_bookService.GetAllBooks(new PaginationOptions((int)PageNumber, (int)PageSize)));
         }
 
         // GET: api/Book/GetAllBooks
