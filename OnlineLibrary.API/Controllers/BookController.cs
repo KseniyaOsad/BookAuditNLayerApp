@@ -7,7 +7,6 @@ using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using OnlineLibrary.Common.Exceptions;
-using OnlineLibrary.Common.Exceptions.Enum;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Filters;
 using OnlineLibrary.Common.Pagination;
@@ -17,7 +16,7 @@ namespace OnlineLibrary.API.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
-    public class BookController : Controller
+    public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
 
