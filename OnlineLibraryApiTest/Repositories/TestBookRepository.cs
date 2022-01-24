@@ -1,7 +1,9 @@
 ﻿using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.Pagination;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace OnlineLibraryApiTest.Repositories
 {
@@ -45,6 +47,26 @@ namespace OnlineLibraryApiTest.Repositories
         }
 
         public bool IsBookIdExists(int bookId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Book> GetAllBooks(PaginationOptions paginationOptions)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetAllBooksCount()
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Book> GetAllBooks(int skip, int pageSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Book> FilterBooks(Expression<Func<Book, bool>> expr)
         {
             throw new NotImplementedException();
         }
