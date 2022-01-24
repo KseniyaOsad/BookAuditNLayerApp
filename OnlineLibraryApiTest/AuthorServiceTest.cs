@@ -4,8 +4,6 @@ using OnlineLibrary.BLL.Services;
 using OnlineLibrary.Common.Entities;
 using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.DAL.Interfaces;
-using OnlineLibraryApiTest.Repositories;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,12 +16,18 @@ namespace OnlineLibraryApiTest
 
         private Mock<IUnitOfWork> mockUnitOfWork;
 
+        private Mock<IBookRepository> mockBookRepository;
+
+        private Mock<IAuthorRepository> mockAuthorRepository;
+
         [TestInitialize]
         public void InitializeTest()
         {
             mockUnitOfWork = new Mock<IUnitOfWork>();
-            mockUnitOfWork.Setup(x => x.BookRepository).Returns(new TestBookRepository());
-            mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(new TestAuthorRepository());
+            mockBookRepository = new Mock<IBookRepository>();
+            mockAuthorRepository = new Mock<IAuthorRepository>();
+            mockUnitOfWork.Setup(x => x.BookRepository).Returns(mockBookRepository.Object);
+            mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(mockAuthorRepository.Object);
         }
 
         [TestMethod]
@@ -86,9 +90,10 @@ namespace OnlineLibraryApiTest
         [DataRow(null)]
         public void Create_Author_FieldsIsIncorrect(string name)
         {
+            mockAuthorRepository.Setup(x => x.InsertAuthor(It.IsAny<Author>()));
             authorService = new AuthorService(mockUnitOfWork.Object);
             Assert.ThrowsException<OLBadRequest>(() => authorService.CreateAuthor(new Author() { Name = name }), "Expected Exception");
-            mockUnitOfWork.Verify(x => x.AuthorRepository.InsertAuthor(It.IsAny<Author>()), Times.Never);
+            mockUnitOfWork.Verify(x => x.AuthorRepository.InsertAuthor(It.IsAny<Author>()), Times.Once);
         }
 
         [TestMethod]

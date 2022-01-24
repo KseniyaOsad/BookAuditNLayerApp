@@ -6,12 +6,12 @@ using Moq;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.Common.Entities;
 using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Pagination;
 using OnlineLibrary.Common.Validators;
 using OnlineLibrary.DAL.Interfaces;
-using OnlineLibraryApiTest.Repositories;
-using FluentValidation.Results;
+using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.JsonPatch.Operations;
+using System.Linq.Expressions;
 
 namespace OnlineLibraryApiTest
 {
@@ -26,14 +26,20 @@ namespace OnlineLibraryApiTest
 
         private BookValidator bookValidator;
 
+        private Mock<IBookRepository> mockBookRepository;
+
+        private Mock<IAuthorRepository> mockAuthorRepository;
+
         [TestInitialize]
         public void InitializeTest()
         {
-            mockUnitOfWork = new Mock<IUnitOfWork>();
             mockBookValidator = new Mock<IValidator<Book>>();
-            mockUnitOfWork.Setup(x => x.BookRepository).Returns(new TestBookRepository());
-            mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(new TestAuthorRepository());
             bookValidator = new BookValidator();
+            mockUnitOfWork = new Mock<IUnitOfWork>();
+            mockBookRepository = new Mock<IBookRepository>();
+            mockAuthorRepository = new Mock<IAuthorRepository>();
+            mockUnitOfWork.Setup(x => x.BookRepository).Returns(mockBookRepository.Object);
+            mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(mockAuthorRepository.Object);
         }
 
         [TestMethod]
@@ -85,98 +91,94 @@ namespace OnlineLibraryApiTest
             Assert.AreEqual(books, result);
             mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
         }
-        
+
+        [TestMethod]
+        public void Get_AllBooks_WithPagination_ListIsEmpty_Ok()
+        {
+            mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount()).Returns(0);
+            bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
+            PaginatedList<Book> result = bookService.GetAllBooks(It.IsAny<PaginationOptions>());
+            Assert.AreEqual(0, result.TotalCount);
+            mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [TestMethod]
+        [DataRow(1, 2)]
+        [DataRow(10, -2)]
+        [DataRow(10, 20)]
+        public void Get_AllBooks_WithPagination_Ok(int pNumber, int pageSize)
+        {
+            PaginationOptions pO = new PaginationOptions(pNumber, pageSize);
+            mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount()).Returns(1);
+            mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), pO.PageSize)).Returns(new List<Book>() { new Book() });
+            bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
+            PaginatedList<Book> result = bookService.GetAllBooks(pO);
+            Assert.AreEqual(1, result.TotalCount);
+            mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), pO.PageSize), Times.Once);
+        }
+
         [TestMethod]
         [DataRow(-1, " ", null, 0)]
-        [DataRow(0, "", 1, null)]
+        [DataRow(0, "s", 1, null)]
         [DataRow(0, "", null, null)]
-        [DataRow(0, "", -1, 2)]
-        public void Filter_Books_NameAndAuthorIsEmpty_ListIsEmpty(int? authorId, string name, int? inReserve, int? InArchive)
+        [DataRow(1, "", -1, 2)]
+        public void Filter_Books_ListIsEmpty(int? authorId, string name, int? inReserve, int? InArchive)
         {
-            mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() { });
+            mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>())).Returns(new List<Book>() { });
             bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
 
             Assert.ThrowsException<OLNotFound>(()=>bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
-            mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
+            mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>()), Times.Once);
         }
 
-        //[TestMethod]
-        //[DataRow(1, " ", null, 0)]
-        //[DataRow(2, "", 1, null)]
-        //[DataRow(2, null, 1, 1)]
-        //public void Filter_Books_NameFieldIsEmpty_ListIsEmpty(int? authorId, string name, int? inReserve, int? InArchive)
-        //{
-        //    mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks((int)authorId)).Returns(new List<Book>() { });
-        //    bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
+        [TestMethod]
+        [DataRow(-1, " ", null, 0, 1, 2)]
+        [DataRow(0, "s", 1, null, -1, 12)]
+        [DataRow(0, "", null, null, 10, 2)]
+        [DataRow(1, "", -1, 2, 1, -2)]
+        public void Filter_Books_WithPagination_ListIsEmpty(int? authorId, string name, int? inReserve, int? InArchive, int pNumber, int pageSize)
+        {
+            PaginationOptions pO = new PaginationOptions(pNumber, pageSize);
+            mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(0);
+            bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
 
-        //    Assert.ThrowsException<OLNotFound>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
-        //    mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks((int)authorId), Times.Once);
-        //}
-
-        //[TestMethod]
-        //[DataRow(-1, " s ", null, 0)]
-        //[DataRow(0, "a", 1, null)]
-        //[DataRow(null, "A", 1, 1)]
-        //public void Filter_Books_AuthorFieldIsEmpty_ListIsEmpty(int? authorId, string name, int? inReserve, int? InArchive)
-        //{
-        //    mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(name)).Returns(new List<Book>() { });
-        //    bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
-
-        //    Assert.ThrowsException<OLNotFound>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
-        //    mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(name.Trim()), Times.Once);
-        //}
-
-        //[TestMethod]
-        //[DataRow(1, " s ", null, 0)]
-        //[DataRow(2, "a", 1, null)]
-        //[DataRow(3, "A", 1, 1)]
-        //public void Filter_Books_ListIsEmpty(int? authorId, string name, int? inReserve, int? InArchive)
-        //{
-        //    mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks((int)authorId, name)).Returns(new List<Book>() { });
-        //    bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
-
-        //    Assert.ThrowsException<OLNotFound>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive), "Expected exception");
-        //    mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks((int)authorId, name.Trim()), Times.Once);
-        //}
+            Assert.ThrowsException<OLNotFound>(() => bookService.FilterBooks(authorId, name, inReserve, InArchive, pO), "Expected exception");
+            mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), pO.PageSize), Times.Never);
+        }
 
         [TestMethod]
         [DataRow(-1, " ", null, 0)]
-        [DataRow(0, "", 1, null)]
-        [DataRow(0, "", 0, 2)]
-        [DataRow(0, "", -1, 1)]
-        public void Filter_Books_NameAndAuthorIsEmpty_ReserveOrInArchive_Ok(int? authorId, string name, int? inReserve, int? InArchive)
+        [DataRow(0, "s", 1, null)]
+        [DataRow(0, "", null, null)]
+        [DataRow(1, "", -1, 2)]
+        public void Filter_Books_OK(int? authorId, string name, int? inReserve, int? InArchive)
         {
-            List<Book> books = new List<Book>() { new Book() { Reserve= true, InArchive = true }, new Book() { } };
-            mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(books);
+            List<Book> books = new List<Book>() { new Book() };
+            mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>())).Returns(books);
             bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
 
             List<Book> result = bookService.FilterBooks(authorId, name, inReserve, InArchive);
-            int expectedCount = 1;
-            Assert.AreEqual(expectedCount, result.Count);
-            mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
+            Assert.AreEqual(books, result);
+            mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>()), Times.Once);
         }
 
-        //[TestMethod]
-        //[DataRow(-1, " s", 1, 0)]
-        //[DataRow(0, "s ", 1, 1)]
-        //[DataRow(0, " s  ", 0, 0)]
-        //[DataRow(0, "s", 0, 1)]
-        //public void Filter_Books_AuthorIsEmpty_ReserveAndInArchive_Ok(int? authorId, string name, int? inReserve, int? InArchive)
-        //{
-        //    List<Book> books = new List<Book>() { 
-        //        new Book() { Name=name, Reserve = true, InArchive = true }, new Book() {Name=name },
-        //        new Book() { Name=name, Reserve = true}, new Book() { Name=name, InArchive = true },
-        //    };
+        [TestMethod]
+        [DataRow(-1, " ", null, 0, 1, 2)]
+        [DataRow(0, "s", 1, null, -1, 12)]
+        [DataRow(0, "", null, null, 10, 2)]
+        [DataRow(1, "", -1, 2, 1, -2)]
+        public void Filter_Books_WithPagination_OK(int? authorId, string name, int? inReserve, int? InArchive, int pNumber, int pageSize)
+        {
+            PaginationOptions pO = new PaginationOptions(pNumber, pageSize);
+            mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(1);
+            mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), pO.PageSize)).Returns(new List<Book>() { new Book() });
+            bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
 
-        //    mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(name.Trim())).Returns(books);
-        //    bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
-
-        //    List<Book> result = bookService.FilterBooks(authorId, name, inReserve, InArchive);
-        //    int expectedCount = 1;
-        //    Assert.AreEqual(expectedCount, result.Count);
-        //    mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(name.Trim()), Times.Once);
-        //}
-
+            PaginatedList<Book> result = bookService.FilterBooks(authorId, name, inReserve, InArchive, pO);
+            Assert.AreEqual(1, result.TotalCount);
+            mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), pO.PageSize), Times.Once);
+        }
+        
         [TestMethod]
         [DataRow(0)]
         [DataRow(-1)]
@@ -299,10 +301,11 @@ namespace OnlineLibraryApiTest
         [DataRow("", "s")]
         public void Create_Book_FieldsIsIncorrect(string name, string description)
         {
+            mockBookRepository.Setup(x => x.InsertBook(It.IsAny<Book>()));
             bookService = new BookService(mockUnitOfWork.Object, mockBookValidator.Object);
             Book book = new Book() { Name = name, Description = description};
             Assert.ThrowsException<OLInternalServerError>(() => bookService.CreateBook(book), "Expected exception");
-            mockUnitOfWork.Verify(x => x.BookRepository.InsertBook(It.IsAny<Book>()), Times.Never);
+            mockUnitOfWork.Verify(x => x.BookRepository.InsertBook(It.IsAny<Book>()), Times.Once);
         }
 
         [TestMethod]

@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.Common.Entities;
 using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.DAL.Interfaces;
-using OnlineLibraryApiTest.Repositories;
 using System;
 using System.Collections.Generic;
 
@@ -18,6 +16,10 @@ namespace OnlineLibraryApiTest
 
         private Mock<IUnitOfWork> mockUnitOfWork;
 
+        private Mock<IBookRepository> mockBookRepository;
+
+        private Mock<IAuthorRepository> mockAuthorRepository;
+
         private const string _fileName = "book.csv";
 
         private readonly string _path = @"C:\Users\theks\Desktop\C\OnlineLibrary\OnlineLibraryApiTest\Data\";
@@ -26,8 +28,10 @@ namespace OnlineLibraryApiTest
         public void InitializeTest()
         {
             mockUnitOfWork = new Mock<IUnitOfWork>();
-            mockUnitOfWork.Setup(x => x.BookRepository).Returns(new TestBookRepository());
-            mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(new TestAuthorRepository());
+            mockBookRepository = new Mock<IBookRepository>();
+            mockAuthorRepository = new Mock<IAuthorRepository>();
+            mockUnitOfWork.Setup(x => x.BookRepository).Returns(mockBookRepository.Object);
+            mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(mockAuthorRepository.Object);
         }
 
         [TestMethod]

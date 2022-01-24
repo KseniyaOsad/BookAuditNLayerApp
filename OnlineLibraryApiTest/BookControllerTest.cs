@@ -9,6 +9,7 @@ using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.Pagination;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -123,6 +124,20 @@ namespace OnlineLibraryApiTest
         }
 
         [TestMethod]
+        public void Get_AllBooks_WithPagination_OK()
+        {
+            mockBookService.Setup(x => x.GetAllBooks(It.IsAny<PaginationOptions>())).Returns(new PaginatedList<Book>() { });
+            bookController = new BookController(mockBookService.Object, mockAuthorService.Object, mockMapper.Object);
+
+            var result = bookController.GetAllBooks(It.IsAny<PaginationOptions>());
+            var okResult = result as OkObjectResult;
+
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(200, okResult.StatusCode);
+            mockBookService.Verify(x => x.GetAllBooks(It.IsAny<PaginationOptions>()), Times.Once);
+        }
+
+        [TestMethod]
         [DataRow(1, "C#", 0, 1)]
         [DataRow(null, "C#", 1, 0)]
         [DataRow(null, "", null, null)]
@@ -130,17 +145,17 @@ namespace OnlineLibraryApiTest
         [DataRow(null, "C#", 1, null)]
         [DataRow(null, null, null, null)]
         [DataRow(1, null, 1, null)]
-        public void Get_BooksWithFilters_Ok(int? authorId, string name, int? res, int? arch)
+        public void Filter_Book_Ok(int? authorId, string name, int? res, int? arch)
         {
-            mockBookService.Setup(x => x.FilterBooks(authorId, name, res, arch)).Returns(new List<Book>() { new Book() });
+            mockBookService.Setup(x => x.FilterBooks(authorId, name, res, arch, It.IsAny<PaginationOptions>())).Returns(new PaginatedList<Book>() { });
             bookController = new BookController(mockBookService.Object, mockAuthorService.Object, mockMapper.Object);
 
-            var result = bookController.GetBooksWithFilters(authorId, name, res, arch);
+            var result = bookController.FilterBook(authorId, name, res, arch, It.IsAny<PaginationOptions>());
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            mockBookService.Verify(x => x.FilterBooks(authorId, name, res, arch), Times.Once);
+            mockBookService.Verify(x => x.FilterBooks(authorId, name, res, arch, It.IsAny<PaginationOptions>()), Times.Once);
         }
 
         [TestMethod]
