@@ -41,13 +41,6 @@ namespace OnlineLibrary.API.Controllers
             return Ok(_bookService.GetAllBooks(paginationOptions));
         }
 
-        // GET: api/Book/GetAllBooks
-        [HttpGet]
-        public IActionResult GetAllBooks()
-        {
-            return Ok(_bookService.GetAllBooks());
-        }
-
         // Post: api/Book/FilterBook
         [HttpPost]
         public IActionResult FilterBook([FromBody] FilterBook filterBook)
