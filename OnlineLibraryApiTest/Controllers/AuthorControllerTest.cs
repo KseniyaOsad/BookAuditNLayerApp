@@ -8,21 +8,21 @@ using OnlineLibrary.Common.Entities;
 using OnlineLibrary.Common.Validators;
 using System.Collections.Generic;
 
-namespace OnlineLibraryApiTest
+namespace OnlineLibraryApiTest.Controllers
 {
     [TestClass]
     public class AuthorControllerTest
     {
-        private AuthorController authorController;
+        private AuthorController _authorController;
 
-        private Mock<IAuthorService> mockAuthorService = new Mock<IAuthorService>();
+        private Mock<IAuthorService> _mockAuthorService = new Mock<IAuthorService>();
 
-        private AuthorValidator authorValidator;
+        private AuthorValidator _authorValidator;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            authorValidator = new AuthorValidator();
+            _authorValidator = new AuthorValidator();
         }
 
         [TestMethod]
@@ -32,36 +32,36 @@ namespace OnlineLibraryApiTest
         public void Validate_Author_FieldIsIncorrect(string name)
         {
             Author author = new Author() { Name = name };
-            var result = authorValidator.TestValidate(author);
+            var result = _authorValidator.TestValidate(author);
             result.ShouldHaveValidationErrorFor(x => x.Name);
         }
 
         [TestMethod]
         public void Get_AllAuthors_ListIsEmpty_Ok()
         {
-            mockAuthorService.Setup(x => x.GetAllAuthors()).Returns(new List<Author>() { });
-            authorController = new AuthorController(mockAuthorService.Object);
+            _mockAuthorService.Setup(x => x.GetAllAuthors()).Returns(new List<Author>() { });
+            _authorController = new AuthorController(_mockAuthorService.Object);
 
-            var result = authorController.GetAllAuthors();
+            var result = _authorController.GetAllAuthors();
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            mockAuthorService.Verify(x => x.GetAllAuthors(), Times.Once);
+            _mockAuthorService.Verify(x => x.GetAllAuthors(), Times.Once);
         }
 
         [TestMethod]
         public void Get_AllAuthors_OK()
         {
-            mockAuthorService.Setup(x => x.GetAllAuthors()).Returns(new List<Author>() { new Author() });
-            authorController = new AuthorController(mockAuthorService.Object);
+            _mockAuthorService.Setup(x => x.GetAllAuthors()).Returns(new List<Author>() { new Author() });
+            _authorController = new AuthorController(_mockAuthorService.Object);
 
-            var result = authorController.GetAllAuthors();
+            var result = _authorController.GetAllAuthors();
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            mockAuthorService.Verify(x => x.GetAllAuthors(), Times.Once);
+            _mockAuthorService.Verify(x => x.GetAllAuthors(), Times.Once);
         }
 
         [TestMethod]
@@ -71,15 +71,15 @@ namespace OnlineLibraryApiTest
         {
             Author author = new Author() { Name = name };
 
-            mockAuthorService.Setup(x => x.CreateAuthor(author)).Returns(1);
-            authorController = new AuthorController(mockAuthorService.Object);
+            _mockAuthorService.Setup(x => x.CreateAuthor(author)).Returns(1);
+            _authorController = new AuthorController(_mockAuthorService.Object);
 
-            var result = authorController.Create(author);
+            var result = _authorController.Create(author);
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            mockAuthorService.Verify(x => x.CreateAuthor(author), Times.Once);
+            _mockAuthorService.Verify(x => x.CreateAuthor(author), Times.Once);
         }
     }
 }
