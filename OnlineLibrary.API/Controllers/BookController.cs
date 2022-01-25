@@ -22,12 +22,15 @@ namespace OnlineLibrary.API.Controllers
 
         private readonly IAuthorService _authorService;
 
+        private readonly ITagService _tagService;
+
         private readonly IMapper _mapper;
 
-        public BookController(IBookService iBook, IAuthorService iAuthor, IMapper mapper)
+        public BookController(IBookService iBook, IAuthorService iAuthor, ITagService iTag, IMapper mapper)
         {
             _bookService = iBook;
             _authorService = iAuthor;
+            _tagService = iTag;
             _mapper = mapper;
         }
 
@@ -46,10 +49,10 @@ namespace OnlineLibrary.API.Controllers
         }
 
         // Post: api/Book/FilterBook
-        [HttpPost("{authorId}/{name}/{reservation}/{inArchieve}")]
-        public IActionResult FilterBook(int? authorId, string name, int? reservation, int? inArchieve, [FromBody] PaginationOptions paginationOptions)
+        [HttpPost]
+        public IActionResult FilterBook([FromBody] FilterBook filterBook)
         {
-            return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve, paginationOptions));
+            return Ok(_bookService.FilterBooks(filterBook));
         }
 
         // GET: api/Book/GetBookById/[id]
@@ -63,11 +66,12 @@ namespace OnlineLibrary.API.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] CreateBook cBook)
         {
-            // необходимо настроить добавление с тегами!
+            List<Tag> tags = _tagService.GetTagsByIdList(cBook.Tags);
             List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
 
             Book book = _mapper.Map<CreateBook, Book>(cBook);
             book.Authors = authors;
+            book.Tags = tags;
             return Ok(_bookService.CreateBook(book));
         }
 

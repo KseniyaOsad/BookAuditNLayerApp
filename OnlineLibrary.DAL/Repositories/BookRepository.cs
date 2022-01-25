@@ -39,6 +39,7 @@ namespace OnlineLibrary.DAL.Repositories
         {
             return _context.Book
                 .Include(b => b.Authors)
+                .Include(b => b.Tags)
                 .OrderBy(b => b.Name)
                 .ToList();
         }
@@ -47,6 +48,7 @@ namespace OnlineLibrary.DAL.Repositories
         {
             return _context.Book
                 .Include(b => b.Authors)
+                .Include(b => b.Tags)
                 .FirstOrDefault(b => b.Id == bookId);
         }
 
@@ -58,6 +60,7 @@ namespace OnlineLibrary.DAL.Repositories
         public List<Book> GetAllBooks(int skip, int pageSize)
         {
             return _context.Book
+                    .Include(b => b.Tags)
                     .Skip(skip)
                     .Take(pageSize)
                     .ToList();
@@ -77,12 +80,16 @@ namespace OnlineLibrary.DAL.Repositories
 
         public List<Book> FilterBooks(Expression<Func<Book, bool>> expr)
         {
-            return _context.Book.Include(x => x.Authors).Where(expr).ToList();
+            return _context.Book
+                .Include(x => x.Tags)
+                .Include(x => x.Authors)
+                .Where(expr).ToList();
         }
 
         public List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize)
         {
             return _context.Book
+                .Include(x => x.Tags)
                 .Include(x => x.Authors)
                 .Where(expr)
                 .Skip(skip)

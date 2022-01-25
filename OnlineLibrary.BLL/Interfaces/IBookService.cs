@@ -11,9 +11,7 @@ namespace OnlineLibrary.BLL.Interfaces
 
         PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions);
 
-        List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
-
-        PaginatedList<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve, PaginationOptions paginationOptions);
+        PaginatedList<Book> FilterBooks(FilterBook filterBook);
 
         Book GetBookById(int? bookId);
 

@@ -1,5 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
-using OnlineLibrary.DAL.EF;
+﻿using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 
@@ -8,15 +7,19 @@ namespace OnlineLibrary.DAL.Repositories
     public class EFUnitOfWork : IUnitOfWork
     {
         private BookContext _db;
+
         private Lazy<BookRepository> _bookRepository;
+
         private Lazy<AuthorRepository> _authorRepository;
-        private bool _disposed = false;
+
+        private Lazy<TagRepository> _tagRepository;
 
         public EFUnitOfWork(BookContext context)
         {
             _db = context;
             _bookRepository = new Lazy<BookRepository>(() => new BookRepository(_db));
             _authorRepository = new Lazy<AuthorRepository>(() => new AuthorRepository(_db));
+            _tagRepository = new Lazy<TagRepository>(() => new TagRepository(_db));
         }
 
         public IBookRepository BookRepository
@@ -35,22 +38,17 @@ namespace OnlineLibrary.DAL.Repositories
             }
         }
 
-        public virtual void Dispose(bool disposing)
+        public ITagRepository TagRepository
         {
-            if (!_disposed)
+            get
             {
-                if (disposing)
-                {
-                    _db.Dispose();
-                }
-
-                _disposed = true;
+                return _tagRepository.Value;
             }
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            _db.Dispose();
         }
 
         public void Save()
