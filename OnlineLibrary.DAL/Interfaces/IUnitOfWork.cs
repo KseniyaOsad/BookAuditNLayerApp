@@ -1,5 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
-using System;
+﻿using System;
 
 namespace OnlineLibrary.DAL.Interfaces
 {
@@ -10,5 +9,7 @@ namespace OnlineLibrary.DAL.Interfaces
         IBookRepository BookRepository { get; }
 
         IAuthorRepository AuthorRepository { get; }
+
+        ITagRepository TagRepository { get; }
     }
 }

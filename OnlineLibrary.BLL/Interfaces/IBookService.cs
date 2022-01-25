@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.Pagination;
 using System.Collections.Generic;
 
 namespace OnlineLibrary.BLL.Interfaces
@@ -8,7 +9,9 @@ namespace OnlineLibrary.BLL.Interfaces
     {
         List<Book> GetAllBooks();
 
-        List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve);
+        PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions);
+
+        PaginatedList<Book> FilterBooks(FilterBook filterBook);
 
         Book GetBookById(int? bookId);
 

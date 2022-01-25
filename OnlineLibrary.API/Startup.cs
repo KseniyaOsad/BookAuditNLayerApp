@@ -54,6 +54,7 @@ namespace OnlineLibrary.API
                 options.UseSqlServer(Configuration.GetConnectionString("BookContext")));
             services.AddTransient<IBookService, BookService>();
             services.AddTransient<IAuthorService, AuthorService>();
+            services.AddTransient<ITagService, TagService>();
             services.AddTransient<IDataExportService, DataExportService>();
             services.AddTransient<IUnitOfWork, EFUnitOfWork>(setviceProvider =>
             {
@@ -65,6 +66,7 @@ namespace OnlineLibrary.API
             services.AddTransient<IValidator<CreateBook>, CreateBookValidator>();
             services.AddTransient<IValidator<Book>, BookValidator>();
             services.AddTransient<IValidator<Author>, AuthorValidator>();
+            services.AddTransient<IValidator<Tag>, TagValidator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

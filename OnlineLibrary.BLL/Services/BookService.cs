@@ -6,104 +6,102 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OnlineLibrary.Common.Exceptions;
-using OnlineLibrary.Common.Exceptions.Enum;
 using Microsoft.AspNetCore.JsonPatch;
-using OnlineLibrary.Common.Validators;
 using FluentValidation;
+using OnlineLibrary.Common.Pagination;
+using LinqKit;
+using System.Linq.Expressions;
 
 namespace OnlineLibrary.BLL.Services
 {
     public class BookService : IBookService
     {
-        private readonly IUnitOfWork unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
-        private readonly IValidator<Book> bookValidator;
+        private readonly IValidator<Book> _bookValidator;
 
-        public BookService(IUnitOfWork uow, IValidator<Book> validator )
+        public BookService(IUnitOfWork uow, IValidator<Book> validator)
         {
-            unitOfWork = uow;
-            bookValidator = validator;
+            _unitOfWork = uow;
+            _bookValidator = validator;
         }
 
         public List<Book> GetAllBooks()
         {
-            List<Book> books = unitOfWork.BookRepository.GetAllBooks();
+            List<Book> books = _unitOfWork.BookRepository.GetAllBooks();
             return books;
         }
 
-        public List<Book> FilterBooks(int? authorId, string name, int? inReserve, int? inArchieve)
+        public PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions)
         {
-            // Убираем отступы у строки.
-            name = (name != null) ? name.Trim() : name;
-            // authorId теперь либо null либо больше 0 (чтоб дальше долго не проверять).
-            authorId = (authorId <= 0 || authorId == null) ? null : authorId;
+            int count = _unitOfWork.BookRepository.GetAllBooksCount();
+            if (count == 0) return new PaginatedList<Book>();
+            int skip = (paginationOptions.PageNumber - 1) * paginationOptions.PageSize;
 
-            // Проверяем 0 случай, когда все поля фильтрации не заполнены.
-            if (
-                    (authorId == null)
-                    && String.IsNullOrEmpty(name)
-                    && (inReserve == null || inReserve < 0 || inReserve > 1)
-                    && (inArchieve == null || inArchieve < 0 || inArchieve > 1)
-                 )
+            if (count - skip >= 1)
             {
-                List<Book> allBooks =  GetAllBooks();
-                ExceptionHelper.Check<OLNotFound>(allBooks == null || !allBooks.Any(), "Books don't exist");
-                return allBooks;
+                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize));
             }
-
-            List<Book> books;
-            // Проверяем первый случай когда заполнены поля "имя" и "номер автора".
-            if ((authorId != null) && !String.IsNullOrEmpty(name))
-            {
-                books = unitOfWork.BookRepository.FilterBooks((int)authorId, name);
-            }
-            // Заполнен только автор книги.
-            else if (authorId != null)
-            {
-                books = unitOfWork.BookRepository.FilterBooks((int)authorId);
-            }
-            // Заполнено только название книги.
-            else if (!String.IsNullOrEmpty(name))
-            {
-                books = unitOfWork.BookRepository.FilterBooks(name);
-            }
-            // Поля фильтрации пустые, получаем весь список.
             else
             {
-                books = unitOfWork.BookRepository.GetAllBooks();
+                int page = count == paginationOptions.PageSize ? 1 : (count / paginationOptions.PageSize) + 1;
+                skip = (page - 1) * paginationOptions.PageSize;
+                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize));
             }
-
-            ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "There are no books matching this search");
-
-            // Выбраны поля резервации и архивации.
-            if (inReserve >= 0 && inReserve <= 1 && inArchieve >= 0 && inArchieve <= 1)
-            {
-                bool reservation = (inReserve == 0) ? false : true;
-                bool archievation = (inArchieve == 0) ? false : true;
-                books = books.Where(b => b.InArchive == archievation && b.Reserve == reservation).ToList();
-            }
-            // Выбраны поля резервации.
-            else if (inReserve >= 0 && inReserve <= 1)
-            {
-                bool reservation = (inReserve == 0) ? false : true;
-                books = books.Where(b => b.Reserve == reservation).ToList();
-            }
-            // Выбраны поля архивации.
-            else if (inArchieve >= 0 && inArchieve <= 1)
-            {
-                bool archievation = (inArchieve == 0) ? false : true;
-                books = books.Where(b => b.InArchive == archievation).ToList();
-            }
-            // Если проверка выше не прошла, значит поля резервации и архивации не выбраны.
-            ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "There are no books matching this search");
-            return books;
         }
 
+        private Expression<Func<Book, bool>> Filter(FilterBook filterBook)
+        {
+            Expression<Func<Book, bool>> expr = PredicateBuilder.New<Book>(true);
+
+            if (filterBook.AuthorId != null && filterBook.AuthorId > 0)
+            {
+                expr = expr.And(b => b.Authors.Any(a => a.Id == filterBook.AuthorId));
+            }
+            if (filterBook.TagId != null && filterBook.TagId > 0)
+            {
+                expr = expr.And(b => b.Tags.Any(t => t.Id == filterBook.TagId));
+            }
+            if (filterBook.Name != null && filterBook.Name.Trim() != "")
+            {
+                expr = expr.And(b => b.Name.Trim().ToUpper().Contains(filterBook.Name.Trim().ToUpper()));
+            }
+            if (filterBook.Reservation != null && filterBook.Reservation >= 0 && filterBook.Reservation <= 1)
+            {
+                bool reserve = filterBook.Reservation == 0 ? false : true;
+                expr = expr.And(b => b.Reserve == reserve);
+            }
+            if (filterBook.Archievation != null && filterBook.Archievation >= 0 && filterBook.Archievation <= 1)
+            {
+                bool archieve = filterBook.Archievation == 0 ? false : true;
+                expr = expr.And(b => b.InArchive == archieve);
+            }
+            return expr;
+        }
+
+        public PaginatedList<Book> FilterBooks(FilterBook filterBook)
+        {
+            Expression<Func<Book, bool>> expr = Filter(filterBook);
+            int count = _unitOfWork.BookRepository.GetAllBooksCount(expr);
+            ExceptionHelper.Check<OLNotFound>(count == 0, "There are no books matching this search");
+            int skip = (filterBook.Pagination.PageNumber - 1) * filterBook.Pagination.PageSize;
+
+            if (count - skip >= 1)
+            {
+                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, filterBook.Pagination.PageSize));
+            }
+            else
+            {
+                int page = count == filterBook.Pagination.PageSize ? 1 : (count / filterBook.Pagination.PageSize) + 1;
+                skip = (page - 1) * filterBook.Pagination.PageSize;
+                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, filterBook.Pagination.PageSize));
+            }
+        }
 
         public Book GetBookById(int? bookId)
         {
             ExceptionHelper.Check<OLBadRequest>(bookId == null || bookId <= 0, "Id is incorrect");
-            Book book = unitOfWork.BookRepository.GetBookById((int)bookId);
+            Book book = _unitOfWork.BookRepository.GetBookById((int)bookId);
             ExceptionHelper.Check<OLNotFound>(book == null, "Book not found");
             return book;
         }
@@ -111,33 +109,33 @@ namespace OnlineLibrary.BLL.Services
         public void ChangeBookReservation(int? bookId, bool newReservationValue)
         {
             ExceptionHelper.Check<OLBadRequest>(bookId == null || bookId <= 0, "Id is incorrect");
-            ExceptionHelper.Check<OLNotFound>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Book not found");
-            unitOfWork.BookRepository.ChangeBookReservation((int)bookId, newReservationValue);
-            unitOfWork.Save();
+            ExceptionHelper.Check<OLNotFound>(!_unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Book not found");
+            _unitOfWork.BookRepository.ChangeBookReservation((int)bookId, newReservationValue);
+            _unitOfWork.Save();
         }
 
         public void ChangeBookArchievation(int? bookId, bool newArchievationValue)
         {
             ExceptionHelper.Check<OLBadRequest>(bookId == null || bookId <= 0, "Id is incorrect");
-            ExceptionHelper.Check<OLNotFound>(!unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Book not found");
-            unitOfWork.BookRepository.ChangeBookArchievation((int)bookId, newArchievationValue);
-            unitOfWork.Save();
+            ExceptionHelper.Check<OLNotFound>(!_unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Book not found");
+            _unitOfWork.BookRepository.ChangeBookArchievation((int)bookId, newArchievationValue);
+            _unitOfWork.Save();
         }
         public void UpdatePatch(int bookId, JsonPatchDocument<Book> book)
         {
-            var originalBook = unitOfWork.BookRepository.GetBookById(bookId);
+            var originalBook = _unitOfWork.BookRepository.GetBookById(bookId);
             ExceptionHelper.Check<OLNotFound>(originalBook == null, "Book not found");
             book.ApplyTo(originalBook);
-            var results = bookValidator.Validate(originalBook);
+            var results = _bookValidator.Validate(originalBook);
             ExceptionHelper.Check<OLBadRequest>(!results.IsValid, "The book has been changed incorrectly");
-            unitOfWork.Save();
+            _unitOfWork.Save();
         }
 
         public int CreateBook(Book book)
         {
             ExceptionHelper.Check<OLBadRequest>(book == null, "A null object came to the method");
-            unitOfWork.BookRepository.InsertBook(book);
-            unitOfWork.Save();
+            _unitOfWork.BookRepository.InsertBook(book);
+            _unitOfWork.Save();
             ExceptionHelper.Check<OLInternalServerError>(book.Id == 0, "The book was not created");
             return book.Id;
         }

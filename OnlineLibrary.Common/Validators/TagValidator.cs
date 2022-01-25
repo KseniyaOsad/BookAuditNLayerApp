@@ -3,9 +3,9 @@ using OnlineLibrary.Common.Entities;
 
 namespace OnlineLibrary.Common.Validators
 {
-    public class AuthorValidator : AbstractValidator<Author>
+    public class TagValidator : AbstractValidator<Tag>
     {
-        public AuthorValidator()
+        public TagValidator()
         {
             RuleFor(x => x.Name).NotEmpty();
         }

@@ -7,42 +7,45 @@ using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using OnlineLibrary.Common.Exceptions;
-using OnlineLibrary.Common.Exceptions.Enum;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Filters;
+using OnlineLibrary.Common.Pagination;
 
 namespace OnlineLibrary.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
-    public class BookController : Controller
+    public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
 
         private readonly IAuthorService _authorService;
 
+        private readonly ITagService _tagService;
+
         private readonly IMapper _mapper;
 
-        public BookController(IBookService iBook, IAuthorService iAuthor, IMapper mapper)
+        public BookController(IBookService iBook, IAuthorService iAuthor, ITagService iTag, IMapper mapper)
         {
             _bookService = iBook;
             _authorService = iAuthor;
+            _tagService = iTag;
             _mapper = mapper;
         }
 
-        // GET: api/Book/GetAllBooks
-        [HttpGet]
-        public IActionResult GetAllBooks()
+        // Post: api/Book/GetAllBooks/
+        [HttpPost]
+        public IActionResult GetAllBooks([FromBody]PaginationOptions paginationOptions)
         {
-            return Ok(_bookService.GetAllBooks());
+            return Ok(_bookService.GetAllBooks(paginationOptions));
         }
 
-        // GET: api/Book/GetBooksWithFilters
-        [HttpGet("{authorId}/{name}/{reservation}/{inArchieve}")]
-        public IActionResult GetBooksWithFilters(int? authorId, string name, int? reservation, int? inArchieve)
+        // Post: api/Book/FilterBook
+        [HttpPost]
+        public IActionResult FilterBook([FromBody] FilterBook filterBook)
         {
-            return Ok(_bookService.FilterBooks(authorId, name, reservation, inArchieve));
+            return Ok(_bookService.FilterBooks(filterBook));
         }
 
         // GET: api/Book/GetBookById/[id]
@@ -56,11 +59,12 @@ namespace OnlineLibrary.API.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] CreateBook cBook)
         {
-            // необходимо настроить добавление с тегами!
+            List<Tag> tags = _tagService.GetTagsByIdList(cBook.Tags);
             List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
 
             Book book = _mapper.Map<CreateBook, Book>(cBook);
             book.Authors = authors;
+            book.Tags = tags;
             return Ok(_bookService.CreateBook(book));
         }
 
