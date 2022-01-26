@@ -86,7 +86,7 @@ namespace OnlineLibrary.BLL.Services
                 (filterBook.SortDirection != null && Enum.IsDefined(typeof(ListSortDirection), filterBook.SortDirection)) 
                 ? filterBook.SortDirection : ListSortDirection.Ascending;
             filterBook.PropertyToOrder = 
-                (filterBook.PropertyToOrder != null && filterBook.PropertyToOrder.Trim() != "") 
+                String.IsNullOrEmpty(filterBook.PropertyToOrder) 
                 ? filterBook.PropertyToOrder.Trim() : "Id" ;
 
             
