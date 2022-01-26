@@ -1,4 +1,5 @@
 ﻿using OnlineLibrary.Common.Pagination;
+using System.ComponentModel;
 
 namespace OnlineLibrary.Common.Entities
 {
@@ -15,5 +16,9 @@ namespace OnlineLibrary.Common.Entities
         public int? Reservation { get; set; }
 
         public PaginationOptions Pagination { get; set; }
+
+        public string PropertyToOrder { get; set; }
+
+        public ListSortDirection? SortDirection { get; set; }
     }
 }
