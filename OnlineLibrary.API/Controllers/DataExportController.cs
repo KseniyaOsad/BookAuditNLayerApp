@@ -5,7 +5,7 @@ using OnlineLibrary.Common.Filters;
 
 namespace OnlineLibrary.API.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/dataexports")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
     public class DataExportController : ControllerBase
@@ -22,7 +22,7 @@ namespace OnlineLibrary.API.Controllers
             _path = hostEnvironment.ContentRootPath + @"\Data\csvFiles\";
         }
 
-        // GET: api/DataExport/GetFile
+        // GET: api/dataexport
         [HttpGet]
         public IActionResult GetFile()
         {

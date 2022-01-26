@@ -13,7 +13,7 @@ using OnlineLibrary.Common.Pagination;
 
 namespace OnlineLibrary.API.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/books")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
     public class BookController : ControllerBase
@@ -34,7 +34,7 @@ namespace OnlineLibrary.API.Controllers
             _mapper = mapper;
         }
 
-        // Post: api/Book/GetAllBooks/
+        // Post: api/Book/
         [HttpPost]
         public IActionResult GetAllBooks([FromBody]PaginationOptions paginationOptions)
         {
@@ -42,20 +42,21 @@ namespace OnlineLibrary.API.Controllers
         }
 
         // Post: api/Book/FilterBook
-        [HttpPost]
+        [HttpPost("search")]
         public IActionResult FilterBook([FromBody] FilterBook filterBook)
         {
             return Ok(_bookService.FilterBooks(filterBook));
         }
 
-        // GET: api/Book/GetBookById/[id]
+        // GET: api/Books/[id]
         [HttpGet("{id}")]
         public IActionResult GetBookById(int? id)
         {
+
             return Ok(_bookService.GetBookById(id));
         }
 
-        // POST:  api/Book/Create
+        // POST:  api/Books/
         [HttpPost]
         public IActionResult Create([FromBody] CreateBook cBook)
         {
@@ -97,7 +98,7 @@ namespace OnlineLibrary.API.Controllers
 
 
         // GET: api/Book/GetAllGenres
-        [HttpGet]
+        [HttpGet("genres")]
         public IActionResult GetAllGenres()
         {
             return Ok(Enum.GetNames(typeof(Genre)));
