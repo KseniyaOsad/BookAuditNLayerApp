@@ -111,19 +111,6 @@ namespace OnlineLibraryApiTest.Controllers
             _mockBookService.Verify(x => x.GetBookById(id), Times.Once);
         }
 
-        [TestMethod]
-        public void Get_AllBooks_OK()
-        {
-            _mockBookService.Setup(x => x.GetAllBooks()).Returns(new List<Book>() {  });
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            var result = _bookController.GetAllBooks();
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.GetAllBooks(), Times.Once);
-        }
 
         [TestMethod]
         public void Get_AllBooks_WithPagination_OK()

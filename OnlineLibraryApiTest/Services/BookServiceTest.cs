@@ -11,6 +11,7 @@ using OnlineLibrary.Common.Validators;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq.Expressions;
 
 namespace OnlineLibraryApiTest.Services
@@ -82,18 +83,6 @@ namespace OnlineLibraryApiTest.Services
         }
 
         [TestMethod]
-        public void Get_AllBooks_Ok()
-        {
-            List<Book> books = new List<Book>() { };
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(books);
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            List<Book> result = _bookService.GetAllBooks();
-            Assert.AreEqual(books, result);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
-        }
-
-        [TestMethod]
         public void Get_AllBooks_WithPagination_ListIsEmpty_Ok()
         {
             _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount()).Returns(0);
@@ -130,7 +119,7 @@ namespace OnlineLibraryApiTest.Services
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
 
             Assert.ThrowsException<OLNotFound>(() => _bookService.FilterBooks(filterBook), "Expected exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<ListSortDirection>()), Times.Never);
         }
 
         [TestMethod]
@@ -142,12 +131,12 @@ namespace OnlineLibraryApiTest.Services
         {
             FilterBook filterBook = new FilterBook() { AuthorId = authorId, Name= name, Reservation= inReserve, Archievation= InArchive, TagId = authorId, Pagination = new PaginationOptions(pNumber, pageSize) };
             _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(1);
-            _mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>())).Returns(new List<Book>() { new Book() });
+            _mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<ListSortDirection>())).Returns(new List<Book>() { new Book() });
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
 
             PaginatedList<Book> result = _bookService.FilterBooks(filterBook);
             Assert.AreEqual(1, result.TotalCount);
-            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<ListSortDirection>()), Times.Once);
         }
         
         [TestMethod]
