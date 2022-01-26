@@ -152,6 +152,20 @@ namespace OnlineLibraryApiTest.Services
         }
 
         [TestMethod]
+        [DataRow("Name")]
+        [DataRow("Id")]
+        [DataRow("Description")]
+        [DataRow("Reserve")]
+        [DataRow("InArchive")]
+        [DataRow("Genre")]
+        public void Order_Book_Ok(string propertyToOrder)
+        {
+            IQueryable<Book> books = Enumerable.Empty<Book>().AsQueryable();
+            // No exceptions while trying to sort.   
+            books.OrderBy(propertyToOrder, ListSortDirection.Ascending);
+        }
+
+        [TestMethod]
         [DataRow(-1, " ", null, 0, 1, 2)]
         [DataRow(0, "s", 1, null, -1, 12)]
         [DataRow(0, "", null, null, 10, 2)]
