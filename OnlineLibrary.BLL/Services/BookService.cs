@@ -11,6 +11,7 @@ using FluentValidation;
 using OnlineLibrary.Common.Pagination;
 using LinqKit;
 using System.Linq.Expressions;
+using System.ComponentModel;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -26,23 +27,17 @@ namespace OnlineLibrary.BLL.Services
             _bookValidator = validator;
         }
 
-        public List<Book> GetAllBooks()
-        {
-            List<Book> books = _unitOfWork.BookRepository.GetAllBooks();
-            return books;
-        }
-
         public PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions)
         {
             int count = _unitOfWork.BookRepository.GetAllBooksCount();
             if (count == 0) return new PaginatedList<Book>();
             int skip = (paginationOptions.PageNumber - 1) * paginationOptions.PageSize;
 
-            if (count - skip >= 1)
+            if (count - skip >= 1) // Check if there are items on this page.
             {
                 return new PaginatedList<Book>(count, _unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize));
             }
-            else
+            else // If no elements are found on the specified page return the latest page.
             {
                 int page = count == paginationOptions.PageSize ? 1 : (count / paginationOptions.PageSize) + 1;
                 skip = (page - 1) * paginationOptions.PageSize;
@@ -86,15 +81,24 @@ namespace OnlineLibrary.BLL.Services
             ExceptionHelper.Check<OLNotFound>(count == 0, "There are no books matching this search");
             int skip = (filterBook.Pagination.PageNumber - 1) * filterBook.Pagination.PageSize;
 
-            if (count - skip >= 1)
+            // If SortDirection or PropertyToOrder are not setted => set standard values.
+            filterBook.SortDirection = 
+                (filterBook.SortDirection != null && Enum.IsDefined(typeof(ListSortDirection), filterBook.SortDirection)) 
+                ? filterBook.SortDirection : ListSortDirection.Ascending;
+            filterBook.PropertyToOrder = 
+                (filterBook.PropertyToOrder != null && filterBook.PropertyToOrder.Trim() != "") 
+                ? filterBook.PropertyToOrder.Trim() : "Id" ;
+
+            
+            if (count - skip >= 1) // Check if there are items on this page.
             {
-                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, filterBook.Pagination.PageSize));
+                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, filterBook.Pagination.PageSize, filterBook.PropertyToOrder, (ListSortDirection)filterBook.SortDirection));
             }
-            else
+            else // If no elements are found on the specified page return the latest page.
             {
                 int page = count == filterBook.Pagination.PageSize ? 1 : (count / filterBook.Pagination.PageSize) + 1;
                 skip = (page - 1) * filterBook.Pagination.PageSize;
-                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, filterBook.Pagination.PageSize));
+                return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, filterBook.Pagination.PageSize, filterBook.PropertyToOrder, (ListSortDirection)filterBook.SortDirection));
             }
         }
 

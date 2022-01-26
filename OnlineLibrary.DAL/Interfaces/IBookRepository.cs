@@ -1,6 +1,7 @@
 ﻿using OnlineLibrary.Common.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq.Expressions;
 
 namespace OnlineLibrary.DAL.Interfaces
@@ -11,13 +12,9 @@ namespace OnlineLibrary.DAL.Interfaces
 
         int GetAllBooksCount(Expression<Func<Book, bool>> expr);
 
-        List<Book> GetAllBooks();
-
         List<Book> GetAllBooks(int skip, int pageSize);
 
-        List<Book> FilterBooks(Expression<Func<Book, bool>> expr);
-
-        List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize);
+        List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize, string propertyToOrder, ListSortDirection SortDirection);
 
         Book GetBookById(int bookId);
 

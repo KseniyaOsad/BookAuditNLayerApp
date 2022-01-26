@@ -7,8 +7,6 @@ namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IBookService
     {
-        List<Book> GetAllBooks();
-
         PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions);
 
         PaginatedList<Book> FilterBooks(FilterBook filterBook);

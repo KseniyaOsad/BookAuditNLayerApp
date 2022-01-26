@@ -24,7 +24,7 @@ namespace OnlineLibrary.BLL.Services
 
         public void WriteCsv(string path, string filename)
         {
-            List<Book> books = unitOfWork.BookRepository.GetAllBooks();
+            List<Book> books = unitOfWork.BookRepository.GetAllBooks(0, 50);
             ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "Books don't exist");
             ExceptionHelper.Check<OLInternalServerError>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty");
             try
