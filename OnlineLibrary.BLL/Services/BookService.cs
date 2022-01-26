@@ -79,17 +79,18 @@ namespace OnlineLibrary.BLL.Services
             Expression<Func<Book, bool>> expr = Filter(filterBook);
             int count = _unitOfWork.BookRepository.GetAllBooksCount(expr);
             ExceptionHelper.Check<OLNotFound>(count == 0, "There are no books matching this search");
+            // If Pagination is null - create standart pagination.
+            filterBook.Pagination = filterBook.Pagination ?? new PaginationOptions();
             int skip = (filterBook.Pagination.PageNumber - 1) * filterBook.Pagination.PageSize;
 
             // If SortDirection or PropertyToOrder are not setted => set standard values.
             filterBook.SortDirection = 
                 (filterBook.SortDirection != null && Enum.IsDefined(typeof(ListSortDirection), filterBook.SortDirection)) 
                 ? filterBook.SortDirection : ListSortDirection.Ascending;
-            filterBook.PropertyToOrder = 
-                !String.IsNullOrEmpty(filterBook.PropertyToOrder) 
-                ? filterBook.PropertyToOrder.Trim() : "Id" ;
+            filterBook.PropertyToOrder =
+                String.IsNullOrWhiteSpace(filterBook.PropertyToOrder)
+                ? "Id" : filterBook.PropertyToOrder.Trim();
 
-            
             if (count - skip >= 1) // Check if there are items on this page.
             {
                 return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, filterBook.Pagination.PageSize, filterBook.PropertyToOrder, (ListSortDirection)filterBook.SortDirection));
