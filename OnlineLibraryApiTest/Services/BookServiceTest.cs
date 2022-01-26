@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using OnlineLibrary.Common.Helpers;
+using System.Linq;
 
 namespace OnlineLibraryApiTest.Services
 {
@@ -105,6 +107,48 @@ namespace OnlineLibraryApiTest.Services
             PaginatedList<Book> result = _bookService.GetAllBooks(pO);
             Assert.AreEqual(1, result.TotalCount);
             _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), pO.PageSize), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow("", -1)]
+        [DataRow("", null)]
+        [DataRow(" ", 2)]
+        [DataRow(null, -2)]
+        public void Filter_Books_CheckOrdering_OrderPropertyIsIncorrect(string propertyToOrder, ListSortDirection sortDirection)
+        {
+            FilterBook filterBook = new FilterBook() { SortDirection = sortDirection, PropertyToOrder = propertyToOrder };
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(1);
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+
+            _bookService.FilterBooks(filterBook);
+            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), "Id", ListSortDirection.Ascending), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow("Name", 1)]
+        [DataRow("Id", 0)]
+        [DataRow("Description", 0)]
+        [DataRow("Reserve", 0)]
+        [DataRow("InArchive", 1)]
+        [DataRow("Genre", 1)]
+        public void Filter_Books_CheckOrdering_Ok(string propertyToOrder, ListSortDirection sortDirection)
+        {
+            FilterBook filterBook = new FilterBook() { SortDirection = sortDirection, PropertyToOrder = propertyToOrder };
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(1);
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+
+            _bookService.FilterBooks(filterBook);
+            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), propertyToOrder, sortDirection), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow("name")]
+        [DataRow("hi")]
+        [DataRow("Nme")]
+        public void Order_Book_OrderPropertyNotFound(string propertyToOrder)
+        {
+            IQueryable<Book> books = Enumerable.Empty<Book>().AsQueryable();
+            Assert.ThrowsException<ArgumentNullException>(()=> books.OrderBy(propertyToOrder, ListSortDirection.Ascending), "Expected exception");
         }
 
         [TestMethod]
