@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using OnlineLibrary.Common.Filters;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.API.Controllers
 {
-    [Route("api/dataexports")]
+    [Route("api/data-exports")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
     public class DataExportController : ControllerBase
@@ -22,12 +23,12 @@ namespace OnlineLibrary.API.Controllers
             _path = hostEnvironment.ContentRootPath + @"\Data\csvFiles\";
         }
 
-        // GET: api/dataexport
+        // GET: api/data-exports
         [HttpGet]
-        public IActionResult GetFile()
+        public async Task<IActionResult> GetFileAsync()
         {
-            _dataExport.WriteCsv(_path, _fileName);
-            return new FileContentResult(System.IO.File.ReadAllBytes(_path + _fileName), "application/csv")
+            await _dataExport.WriteCsvAsync(_path, _fileName);
+            return new FileContentResult(await System.IO.File.ReadAllBytesAsync(_path + _fileName), "application/csv")
             {
                 FileDownloadName = _fileName
             };

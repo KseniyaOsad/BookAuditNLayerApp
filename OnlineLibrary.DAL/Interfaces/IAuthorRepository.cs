@@ -1,15 +1,16 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.DAL.Interfaces
 {
     public interface IAuthorRepository
     {
-        List<Author> GetAllAuthors();
+        Task<List<Author>> GetAllAuthorsAsync();
 
         void InsertAuthor(Author author);
 
-        List<Author> GetAuthorsByIdList(List<int> authorsId);
+        Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId);
 
     }
 }

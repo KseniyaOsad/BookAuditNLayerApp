@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using OnlineLibrary.Common.Exceptions.Enum;
 using OnlineLibrary.Common.Exceptions;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -22,10 +23,11 @@ namespace OnlineLibrary.BLL.Services
             unitOfWork = uow;
         }
 
-        public void WriteCsv(string path, string filename)
+        public async Task WriteCsvAsync(string path, string filename)
         {
-            List<Book> books = unitOfWork.BookRepository.GetAllBooks(0, 50);
-            ExceptionExtensions.Check<OLNotFound>(books == null || !books.Any(), "Books don't exist");
+            int count = await unitOfWork.BookRepository.GetAllBooksCountAsync();
+            ExceptionExtensions.Check<OLNotFound>(count == 0, "Books don't exist");
+            List<Book> books = await unitOfWork.BookRepository.GetAllBooksAsync(0, count);
             ExceptionExtensions.Check<OLInternalServerError>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty");
             try
             {
@@ -42,7 +44,7 @@ namespace OnlineLibrary.BLL.Services
                                     AuthorName = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray())
                                 }.ToString())
                             ).ToList();
-                    sw.Write(allTextToWrite.ToString());
+                    await sw.WriteAsync(allTextToWrite.ToString());
                     sw.Close();
                 }
             }

@@ -3,22 +3,23 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.DAL.Interfaces
 {
     public interface IBookRepository
     {
-        int GetAllBooksCount();
+        Task<int> GetAllBooksCountAsync();
 
-        int GetAllBooksCount(Expression<Func<Book, bool>> expr);
+        Task<int> GetAllBooksCountAsync(Expression<Func<Book, bool>> expr);
 
-        List<Book> GetAllBooks(int skip, int pageSize);
+        Task<List<Book>> GetAllBooksAsync(int skip, int pageSize);
 
-        List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize, string propertyToOrder, ListSortDirection SortDirection);
+        Task<List<Book>> FilterBooksAsync(Expression<Func<Book, bool>> expr, int skip, int pageSize, string propertyToOrder, ListSortDirection SortDirection);
 
-        Book GetBookById(int bookId);
+        Task<Book> GetBookByIdAsync(int bookId);
 
-        bool IsBookIdExists(int bookId);
+        Task<bool> IsBookIdExistsAsync(int bookId);
 
         void InsertBook(Book book);
     }

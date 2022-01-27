@@ -1,8 +1,8 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using OnlineLibrary.Common.Filters;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -20,18 +20,16 @@ namespace OnlineLibrary.API.Controllers
 
         // POST:  api/authors
         [HttpPost]
-        public IActionResult Create([FromBody] Author author)
+        public async Task<IActionResult> CreateAsync([FromBody] Author author)
         {
-            int id = _authorService.CreateAuthor(author);
-            return Ok(id);
+            return Ok(await _authorService.CreateAuthorAsync(author));
         }
 
         // GET: api/authors
         [HttpGet]
-        public IActionResult GetAllAuthors()
+        public async Task<IActionResult> GetAllAuthorsAsync()
         {
-            List<Author> authors = _authorService.GetAllAuthors();
-            return Ok(authors);
+            return Ok(await _authorService.GetAllAuthorsAsync());
         }
     }
 }

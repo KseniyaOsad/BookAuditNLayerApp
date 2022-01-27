@@ -14,6 +14,7 @@ using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Controllers
 {
@@ -39,13 +40,13 @@ namespace OnlineLibraryApiTest.Controllers
         }
 
         [TestMethod]
-        public void UpdatePatch_Book()
+        public async Task UpdatePatch_Book()
         {
-            _mockBookService.Setup(x => x.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()));
+            _mockBookService.Setup(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-            _bookController.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
-            _mockBookService.Verify(x => x.UpdatePatch(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), Times.Once);
-            _mockBookService.Verify(x => x.GetBookById(It.IsAny<int>()), Times.Once);
+            await _bookController.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
+            _mockBookService.Verify(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), Times.Once);
+            _mockBookService.Verify(x => x.GetBookByIdAsync(It.IsAny<int>()), Times.Once);
         }
 
         [TestMethod]
@@ -66,88 +67,89 @@ namespace OnlineLibraryApiTest.Controllers
         [DataRow("s", "", 2, new int[] { 4 })]
         [DataRow(null, "s", 1, new int[] { })]
         [DataRow("s", "s", 1, new int[] { })]
-        public void Create_Book(string name, string descr, Genre genre, int[] authors)
+        public async Task Create_Book(string name, string descr, Genre genre, int[] authors)
         {
             List<int> ints = authors.ToList();
             CreateBook cBook = new CreateBook() { Name = name, Description = descr, Genre = genre, Authors = ints };
 
-            _mockAuthorService.Setup(x => x.GetAuthorsByIdList(ints));
-            _mockBookService.Setup(x => x.CreateBook(It.IsAny<Book>()));
+            _mockAuthorService.Setup(x => x.GetAuthorsByIdListAsync(ints));
+            _mockBookService.Setup(x => x.CreateBookAsync(It.IsAny<Book>()));
             _mockMapper.Setup(x => x.Map<CreateBook, Book>(It.IsAny<CreateBook>())).Returns(new Book());
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
 
-            _bookController.Create(cBook);
-            _mockAuthorService.Verify(x => x.GetAuthorsByIdList(ints), Times.Once);
-            _mockBookService.Verify(x => x.CreateBook(It.IsAny<Book>()), Times.Once);
+            await _bookController.CreateAsync(cBook);
+            _mockAuthorService.Verify(x => x.GetAuthorsByIdListAsync(ints), Times.Once);
+            _mockBookService.Verify(x => x.CreateBookAsync(It.IsAny<Book>()), Times.Once);
         }
 
         [TestMethod]
-        public void Get_AllBooks_WithPagination_OK()
+        public async Task Get_AllBooks_WithPagination_OK()
         {
-            _mockBookService.Setup(x => x.GetAllBooks(It.IsAny<PaginationOptions>())).Returns(new PaginatedList<Book>() { });
+            _mockBookService.Setup(x => x.GetAllBooksAsync(It.IsAny<PaginationOptions>())).Returns(Task.FromResult(new PaginatedList<Book>() { }));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
 
-            var result = _bookController.GetAllBooks(It.IsAny<PaginationOptions>());
+            var result = await _bookController.GetAllBooksAsync(It.IsAny<PaginationOptions>());
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.GetAllBooks(It.IsAny<PaginationOptions>()), Times.Once);
+            _mockBookService.Verify(x => x.GetAllBooksAsync(It.IsAny<PaginationOptions>()), Times.Once);
         }
 
         [TestMethod]
-        public void Filter_Book_Ok()
+        public async Task Filter_Book_Ok()
         {
             BookProcessing bookProcessing = new BookProcessing();
-            _mockBookService.Setup(x => x.FilterBooks(bookProcessing)).Returns(new PaginatedList<Book>() { });
+            _mockBookService.Setup(x => x.FilterBooksAsync(bookProcessing)).Returns(Task.FromResult(new PaginatedList<Book>() { }));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
 
-            var result = _bookController.FilterBook(bookProcessing);
+            var result = await _bookController.FilterBookAsync(bookProcessing);
             var okResult = result as OkObjectResult;
             
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.FilterBooks(bookProcessing), Times.Once);
+            _mockBookService.Verify(x => x.FilterBooksAsync(bookProcessing), Times.Once);
         }
 
         [TestMethod]
         [DataRow(1)]
         [DataRow(null)]
         [DataRow(-3)]
-        public void Get_BookById_Ok(int? bookId)
+        public async Task Get_BookById_Ok(int? bookId)
         {
-            _mockBookService.Setup(x => x.GetBookById(bookId)).Returns(new Book());
+            _mockBookService.Setup(x => x.GetBookByIdAsync(bookId)).Returns(Task.FromResult(new Book()));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
 
-            var result = _bookController.GetBookById(bookId);
+            var result = await _bookController.GetBookByIdAsync(bookId);
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.GetBookById(bookId), Times.Once);
+            _mockBookService.Verify(x => x.GetBookByIdAsync(bookId), Times.Once);
 
         }
 
         [TestMethod]
         [DataRow("s", "s", 1, new int[] { 1, 2 })]
         [DataRow("a", "a", 2, new int[] { 1 })]
-        public void Create_Book_Ok(string name, string descr, Genre genre, int[] authors)
+        public async Task Create_Book_Ok(string name, string descr, Genre genre, int[] authors)
         {
             CreateBook cBook = new CreateBook() { Name = name, Description = descr, Genre = genre, Authors = authors.ToList() };
             
             _mockMapper.Setup(x => x.Map<CreateBook, Book>(It.IsAny<CreateBook>())).Returns(new Book());
-            _mockAuthorService.Setup(x => x.GetAuthorsByIdList(It.IsAny<List<int>>())).Returns(new List<Author>() { new Author() });
-            _mockBookService.Setup(x => x.CreateBook(It.IsAny<Book>())).Returns(1);
+            List<Author> AList = new List<Author>() { new Author() };
+            _mockAuthorService.Setup(x => x.GetAuthorsByIdListAsync(It.IsAny<List<int>>())).Returns(Task.FromResult(AList));
+            _mockBookService.Setup(x => x.CreateBookAsync(It.IsAny<Book>())).Returns(Task.FromResult(1));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
 
-            var result = _bookController.Create(cBook);
+            var result = await _bookController.CreateAsync(cBook);
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
 
-            _mockAuthorService.Verify(x => x.GetAuthorsByIdList(It.IsAny<List<int>>()), Times.Once);
-            _mockBookService.Verify(x => x.CreateBook(It.IsAny<Book>()), Times.Once);
+            _mockAuthorService.Verify(x => x.GetAuthorsByIdListAsync(It.IsAny<List<int>>()), Times.Once);
+            _mockBookService.Verify(x => x.CreateBookAsync(It.IsAny<Book>()), Times.Once);
 
         }
 

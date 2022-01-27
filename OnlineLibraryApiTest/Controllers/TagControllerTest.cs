@@ -9,6 +9,7 @@ using OnlineLibrary.Common.Validators;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Controllers
 {
@@ -33,49 +34,49 @@ namespace OnlineLibraryApiTest.Controllers
         }
 
         [TestMethod]
-        public void Get_AllTags_ListIsEmpty_Ok()
+        public async Task Get_AllTags_ListIsEmpty_Ok()
         {
-            _mockTagService.Setup(x => x.GetAllTags()).Returns(new List<Tag>() { });
+            _mockTagService.Setup(x => x.GetAllTagsAsync()).Returns(Task.FromResult(new List<Tag>() { }));
             _tagController = new TagController(_mockTagService.Object);
 
-            var result = _tagController.GetAllTags();
+            var result = await _tagController.GetAllTagsAsync();
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockTagService.Verify(x => x.GetAllTags(), Times.Once);
+            _mockTagService.Verify(x => x.GetAllTagsAsync(), Times.Once);
         }
 
         [TestMethod]
-        public void Get_AllTags_OK()
+        public async Task Get_AllTags_OK()
         {
-            _mockTagService.Setup(x => x.GetAllTags()).Returns(new List<Tag>() { new Tag() });
+            _mockTagService.Setup(x => x.GetAllTagsAsync()).Returns(Task.FromResult(new List<Tag>() { new Tag() }));
             _tagController = new TagController(_mockTagService.Object);
 
-            var result = _tagController.GetAllTags();
+            var result = await _tagController.GetAllTagsAsync();
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockTagService.Verify(x => x.GetAllTags(), Times.Once);
+            _mockTagService.Verify(x => x.GetAllTagsAsync(), Times.Once);
         }
 
         [TestMethod]
         [DataRow("A")]
         [DataRow("B")]
-        public void Create_Tag_Ok(string name)
+        public async Task Create_Tag_Ok(string name)
         {
             Tag tag = new Tag() { Name = name };
 
-            _mockTagService.Setup(x => x.CreateTag(tag)).Returns(1);
+            _mockTagService.Setup(x => x.CreateTagAsync(tag)).Returns(Task.FromResult(1));
             _tagController = new TagController(_mockTagService.Object);
 
-            var result = _tagController.Create(tag);
+            var result = await _tagController.CreateAsync(tag);
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockTagService.Verify(x => x.CreateTag(tag), Times.Once);
+            _mockTagService.Verify(x => x.CreateTagAsync(tag), Times.Once);
         }
     }
 }

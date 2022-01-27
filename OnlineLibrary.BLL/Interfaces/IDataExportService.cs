@@ -1,7 +1,9 @@
-﻿namespace OnlineLibrary.BLL.Interfaces
+﻿using System.Threading.Tasks;
+
+namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IDataExportService
     {
-        void WriteCsv(string path, string filename);
+        Task WriteCsvAsync(string path, string filename);
     }
 }

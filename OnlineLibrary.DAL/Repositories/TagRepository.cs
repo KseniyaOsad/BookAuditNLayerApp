@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.DAL.Repositories
 {
@@ -18,16 +19,16 @@ namespace OnlineLibrary.DAL.Repositories
             _context = context;
         }
 
-        public List<Tag> GetAllTags()
+        public Task<List<Tag>> GetAllTagsAsync()
         {
             return _context.Tag
               .Include(t => t.Books)
-              .OrderBy(t => t.Name).ToList();
+              .OrderBy(t => t.Name).ToListAsync();
         }
 
-        public List<Tag> GetTagsByIdList(List<int> tagsId)
+        public Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
         {
-            return _context.Tag.Where(t => tagsId.Contains(t.Id)).ToList();
+            return  _context.Tag.Where(t => tagsId.Contains(t.Id)).ToListAsync();
         }
 
         public void InsertTag(Tag tag)

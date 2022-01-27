@@ -5,6 +5,7 @@ using Moq;
 using OnlineLibrary.API.Controllers;
 using OnlineLibrary.BLL.Interfaces;
 using System;
+using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Controllers
 {
@@ -19,15 +20,15 @@ namespace OnlineLibraryApiTest.Controllers
         private Mock<IWebHostEnvironment> _mockHostingEnvironment = new Mock<IWebHostEnvironment>();
 
         [TestMethod]
-        public void Get_File_OK()
+        public async Task Get_File_OK()
         {
             _mockHostingEnvironment.Setup(x => x.ContentRootPath).Returns(@"C:\Users\theks\Desktop\C\OnlineLibrary\OnlineLibrary.API");
             _dataExportController = new DataExportController(_mockHostingEnvironment.Object, _mockDataExportService.Object);
-            var result = _dataExportController.GetFile();
+            var result = await _dataExportController.GetFileAsync();
             var okResult = result as FileContentResult;
 
             Assert.IsNotNull(okResult);
-            _mockDataExportService.Verify(x => x.WriteCsv(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _mockDataExportService.Verify(x => x.WriteCsvAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
     }
 }

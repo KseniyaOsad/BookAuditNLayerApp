@@ -2,6 +2,7 @@
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Filters;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -20,16 +21,16 @@ namespace OnlineLibrary.API.Controllers
 
         // POST:  api/tags
         [HttpPost]
-        public IActionResult Create([FromBody] Tag tag)
+        public async Task<IActionResult> CreateAsync([FromBody] Tag tag)
         {
-            return Ok(_tagService.CreateTag(tag));
+            return Ok(await _tagService.CreateTagAsync(tag));
         }
 
         // GET: api/tags
         [HttpGet]
-        public IActionResult GetAllTags()
+        public async Task<IActionResult> GetAllTagsAsync()
         {
-            return Ok(_tagService.GetAllTags());
+            return Ok(await _tagService.GetAllTagsAsync());
         }
     }
 }

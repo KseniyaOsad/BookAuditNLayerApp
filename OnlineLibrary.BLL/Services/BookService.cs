@@ -12,6 +12,7 @@ using LinqKit;
 using System.Linq.Expressions;
 using OnlineLibrary.Common.EntityProcessing.Filtration;
 using OnlineLibrary.Common.EntityProcessing;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -27,12 +28,12 @@ namespace OnlineLibrary.BLL.Services
             _bookValidator = validator;
         }
 
-        public PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions)
+        public async Task<PaginatedList<Book>> GetAllBooksAsync(PaginationOptions paginationOptions)
         {
-            int count = _unitOfWork.BookRepository.GetAllBooksCount();
+            int count = await _unitOfWork.BookRepository.GetAllBooksCountAsync();
             if (count == 0) return new PaginatedList<Book>();
             int skip = CalculateSkip(count, paginationOptions.PageNumber, paginationOptions.PageSize);
-            return new PaginatedList<Book>(count, _unitOfWork.BookRepository.GetAllBooks(skip, paginationOptions.PageSize));
+            return new PaginatedList<Book>(count, await _unitOfWork.BookRepository.GetAllBooksAsync(skip, paginationOptions.PageSize));
         }
 
         private Expression<Func<Book, bool>> Filter(BookFiltration filterBook)
@@ -79,38 +80,38 @@ namespace OnlineLibrary.BLL.Services
             return count - remainder;
         }
 
-        public PaginatedList<Book> FilterBooks(BookProcessing bookProcessing)
+        public async Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing)
         {
             Expression<Func<Book, bool>> expr = Filter(bookProcessing.Filtration);
-            int count = _unitOfWork.BookRepository.GetAllBooksCount(expr);
+            int count = await _unitOfWork.BookRepository.GetAllBooksCountAsync(expr);
             ExceptionExtensions.Check<OLNotFound>(count == 0, "There are no books matching this search");
             int skip = CalculateSkip(count, bookProcessing.Pagination.PageNumber, bookProcessing.Pagination.PageSize);
-            return new PaginatedList<Book>(count, _unitOfWork.BookRepository.FilterBooks(expr, skip, bookProcessing.Pagination.PageSize, bookProcessing.Sorting.PropertyToOrder, bookProcessing.Sorting.SortDirection));
+            return new PaginatedList<Book>(count, await _unitOfWork.BookRepository.FilterBooksAsync(expr, skip, bookProcessing.Pagination.PageSize, bookProcessing.Sorting.PropertyToOrder, bookProcessing.Sorting.SortDirection));
         }
 
-        public Book GetBookById(int? bookId)
+        public async Task<Book> GetBookByIdAsync(int? bookId)
         {
             ExceptionExtensions.Check<OLBadRequest>(bookId == null || bookId <= 0, "Id is incorrect");
-            Book book = _unitOfWork.BookRepository.GetBookById((int)bookId);
+            Book book = await _unitOfWork.BookRepository.GetBookByIdAsync((int)bookId);
             ExceptionExtensions.Check<OLNotFound>(book == null, "Book not found");
             return book;
         }
 
-        public void UpdatePatch(int bookId, JsonPatchDocument<Book> book)
+        public async Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book)
         {
-            var originalBook = _unitOfWork.BookRepository.GetBookById(bookId);
+            var originalBook = await _unitOfWork.BookRepository.GetBookByIdAsync(bookId);
             ExceptionExtensions.Check<OLNotFound>(originalBook == null, "Book not found");
             book.ApplyTo(originalBook);
             var results = _bookValidator.Validate(originalBook);
             ExceptionExtensions.Check<OLBadRequest>(!results.IsValid, "The book has been changed incorrectly");
-            _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
-        public int CreateBook(Book book)
+        public async Task<int> CreateBookAsync(Book book)
         {
             ExceptionExtensions.Check<OLBadRequest>(book == null, "A null object came to the method");
             _unitOfWork.BookRepository.InsertBook(book);
-            _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
             ExceptionExtensions.Check<OLInternalServerError>(book.Id == 0, "The book was not created");
             return book.Id;
         }

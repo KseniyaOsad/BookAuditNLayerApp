@@ -3,9 +3,11 @@ using Moq;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Exceptions.Enum;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Services
 {
@@ -31,82 +33,84 @@ namespace OnlineLibraryApiTest.Services
         }
 
         [TestMethod]
-        public void Get_AllAuthors_ListIsEmpty()
+        public async Task Get_AllAuthors_ListIsEmpty()
         {
-            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAllAuthors()).Returns(new List<Author>() { });
+            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAllAuthorsAsync()).Returns(Task.FromResult(new List<Author>() { }));
             _authorService = new AuthorService(_mockUnitOfWork.Object);
 
-            List<Author> authors = _authorService.GetAllAuthors();
+            List<Author> authors = await _authorService.GetAllAuthorsAsync();
             Assert.IsFalse(authors.Any());
-            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAllAuthors(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAllAuthorsAsync(), Times.Once);
         }
 
         [TestMethod]
-        public void Get_AllAuthors_Ok()
+        public async Task Get_AllAuthors_Ok()
         {
             List<Author> authors = new List<Author>() { new Author() };
-            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAllAuthors()).Returns(authors);
+            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAllAuthorsAsync()).Returns(Task.FromResult(authors));
             _authorService = new AuthorService(_mockUnitOfWork.Object);
-            List<Author> result = _authorService.GetAllAuthors();
+            List<Author> result = await _authorService.GetAllAuthorsAsync();
             Assert.AreEqual(authors, result);
-            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAllAuthors(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAllAuthorsAsync(), Times.Once);
         }
 
         [TestMethod]
         [DataRow(0,  -2 , 100)]
         [DataRow(1, -23 )]
         [DataRow( )]
-        public void Get_AuthorsByIdList_ReturnsNothing(params int[] ids)
+        [ExpectedException(typeof(OLNotFound))]
+        public async Task Get_AuthorsByIdList_ReturnsNothing(params int[] ids)
         {
             List<int> authorsId = ids.ToList();
-            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAuthorsByIdList(authorsId)).Returns(new List<Author>() { });
+            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAuthorsByIdListAsync(authorsId)).Returns(Task.FromResult(new List<Author>() { }));
             _authorService = new AuthorService(_mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLNotFound>(() => _authorService.GetAuthorsByIdList(authorsId), "Expected Exception");
-            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAuthorsByIdList(authorsId), Times.Once);
+            await _authorService.GetAuthorsByIdListAsync(authorsId);
+            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAuthorsByIdListAsync(authorsId), Times.Once);
         }
 
         [TestMethod]
         [DataRow(0, -2, 100)]
         [DataRow(1, -23)]
         [DataRow(1, 2, 3)]
-        public void Get_AuthorsByIdList_OK(params int[] ids)
+        public async Task Get_AuthorsByIdList_OK(params int[] ids)
         {
             List<int> authorsId = ids.ToList();
             List<Author> authors = new List<Author>() { new Author() };
 
-            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAuthorsByIdList(authorsId)).Returns(authors);
+            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAuthorsByIdListAsync(authorsId)).Returns(Task.FromResult(authors));
             _authorService = new AuthorService(_mockUnitOfWork.Object);
 
-            List<Author> result = _authorService.GetAuthorsByIdList(authorsId);
+            List<Author> result = await _authorService.GetAuthorsByIdListAsync(authorsId);
 
             Assert.AreEqual(authors, result);
-            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAuthorsByIdList(authorsId), Times.Once);
+            _mockUnitOfWork.Verify(x => x.AuthorRepository.GetAuthorsByIdListAsync(authorsId), Times.Once);
         }
 
         [TestMethod]
         [DataRow("")]
         [DataRow("   ")]
         [DataRow(null)]
-        public void Create_Author_FieldsIsIncorrect(string name)
+        [ExpectedException(typeof(OLBadRequest))]
+        public async Task Create_Author_FieldsIsIncorrect(string name)
         {
             _mockAuthorRepository.Setup(x => x.InsertAuthor(It.IsAny<Author>()));
             _authorService = new AuthorService(_mockUnitOfWork.Object);
-            Assert.ThrowsException<OLBadRequest>(() => _authorService.CreateAuthor(new Author() { Name = name }), "Expected Exception");
+            await _authorService.CreateAuthorAsync(new Author() { Name = name });
             _mockUnitOfWork.Verify(x => x.AuthorRepository.InsertAuthor(It.IsAny<Author>()), Times.Once);
         }
 
         [TestMethod]
         [DataRow("s")]
-        public void Create_Author_OK(string name)
+        public async Task Create_Author_OK(string name)
         {
             Author author = new Author() { Id = 1, Name = name };
             _mockUnitOfWork.Setup(x => x.AuthorRepository.InsertAuthor(It.IsAny<Author>()));
             _authorService = new AuthorService(_mockUnitOfWork.Object);
-            int? id = _authorService.CreateAuthor(author);
+            int? id = await _authorService.CreateAuthorAsync(author);
 
             _mockUnitOfWork.Verify(x => x.AuthorRepository.InsertAuthor(It.IsAny<Author>()), Times.Once);
-            _mockUnitOfWork.Verify(x => x.Save(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.SaveAsync(), Times.Once);
         }
     }
 }

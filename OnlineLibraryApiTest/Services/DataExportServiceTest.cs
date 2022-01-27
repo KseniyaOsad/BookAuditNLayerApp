@@ -6,6 +6,7 @@ using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Services
 {
@@ -35,13 +36,14 @@ namespace OnlineLibraryApiTest.Services
         }
 
         [TestMethod]
-        public void Write_toCSV_ListIsEmpty()
+        [ExpectedException(typeof(OLNotFound))]
+        public async Task Write_toCSV_ListIsEmpty()
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>())).Returns(new List<Book>() {  });
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.FromResult(new List<Book>() {  }));
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLNotFound>(() => _dataExportService.WriteCsv("", ""), "Expected Exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            await _dataExportService.WriteCsvAsync("", "");
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         [TestMethod]
@@ -49,22 +51,25 @@ namespace OnlineLibraryApiTest.Services
         [DataRow("Hi", "")]
         [DataRow("", null)]
         [DataRow("Hi", "/Hi")]
-        public void Write_toCSV_PathIsINcorrect(string path, string filename)
+        [ExpectedException(typeof(OLInternalServerError))]
+        public async Task Write_toCSV_PathIsINcorrect(string path, string filename)
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>())).Returns(new List<Book>() { new Book() });
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync()).Returns(Task.FromResult(1));
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.FromResult(new List<Book>() { new Book() }));
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLInternalServerError>(() => _dataExportService.WriteCsv(path, filename), "Expected Exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            await _dataExportService.WriteCsvAsync(path, filename);
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         [TestMethod]
-        public void Write_toCSV_Ok()
+        public async Task Write_toCSV_Ok()
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>())).Returns(new List<Book>() { new Book() { Name = "Hello world", Authors = new List<Author> { new Author() { Name="me" } } } });
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync()).Returns(Task.FromResult(1));
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.FromResult(new List<Book>() { new Book() { Name = "Hello world", Authors = new List<Author> { new Author() { Name="me" } } } }));
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
-            _dataExportService.WriteCsv(_path, _fileName);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            await _dataExportService.WriteCsvAsync(_path, _fileName);
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
     }
 }
