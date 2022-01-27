@@ -1,19 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using OnlineLibrary.BLL.Interfaces;
-using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Helpers;
+using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.Common.Extensions;
 using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using OnlineLibrary.Common.Exceptions;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Filters;
-using OnlineLibrary.Common.Pagination;
+using OnlineLibrary.Common.EntityProcessing.Pagination;
+using OnlineLibrary.Common.DBEntities.Enums;
+using OnlineLibrary.Common.EntityProcessing.Filtration;
+using OnlineLibrary.Common.EntityProcessing;
 
 namespace OnlineLibrary.API.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/books")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
     public class BookController : ControllerBase
@@ -34,28 +37,29 @@ namespace OnlineLibrary.API.Controllers
             _mapper = mapper;
         }
 
-        // Post: api/Book/GetAllBooks/
+        // Post: api/Book/
         [HttpPost]
         public IActionResult GetAllBooks([FromBody]PaginationOptions paginationOptions)
         {
             return Ok(_bookService.GetAllBooks(paginationOptions));
         }
 
-        // Post: api/Book/FilterBook
-        [HttpPost]
-        public IActionResult FilterBook([FromBody] FilterBook filterBook)
+        // Post: api/Book/Filtration
+        [HttpPost("search")]
+        public IActionResult FilterBook([FromBody] BookProcessing bookProcessing)
         {
-            return Ok(_bookService.FilterBooks(filterBook));
+            return Ok(_bookService.FilterBooks(bookProcessing));
         }
 
-        // GET: api/Book/GetBookById/[id]
+        // GET: api/Books/[id]
         [HttpGet("{id}")]
         public IActionResult GetBookById(int? id)
         {
+
             return Ok(_bookService.GetBookById(id));
         }
 
-        // POST:  api/Book/Create
+        // POST:  api/Books/
         [HttpPost]
         public IActionResult Create([FromBody] CreateBook cBook)
         {
@@ -68,26 +72,6 @@ namespace OnlineLibrary.API.Controllers
             return Ok(_bookService.CreateBook(book));
         }
 
-        // PUT:  api/Book/UpdateReservation/[id]
-        [HttpPut("{id}")]
-        public IActionResult UpdateReservation(int Id, [FromBody] Book book)
-        {
-            ExceptionHelper.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
-            _bookService.ChangeBookReservation(Id, book.Reserve);
-            Book b = _bookService.GetBookById(Id);
-            return Ok(b);
-        }
-
-        // PUT:  api/Book/UpdateArchievation/[id]
-        [HttpPut("{id}")]
-        public IActionResult UpdateArchievation(int Id, [FromBody] Book book)
-        {
-            ExceptionHelper.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
-            _bookService.ChangeBookArchievation(Id, book.InArchive);
-            Book b = _bookService.GetBookById(Id);
-            return Ok(b);
-        }
-
         [HttpPatch("{id}")]
         public IActionResult UpdatePatch(int Id, [FromBody] JsonPatchDocument<Book> book)
         {
@@ -97,7 +81,7 @@ namespace OnlineLibrary.API.Controllers
 
 
         // GET: api/Book/GetAllGenres
-        [HttpGet]
+        [HttpGet("genres")]
         public IActionResult GetAllGenres()
         {
             return Ok(Enum.GetNames(typeof(Genre)));

@@ -1,4 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
+﻿using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System;
+using System.ComponentModel;
+using OnlineLibrary.Common.Extensions;
 
 namespace OnlineLibrary.DAL.Repositories
 {
@@ -18,30 +20,9 @@ namespace OnlineLibrary.DAL.Repositories
             _context = context;
         }
 
-        public void ChangeBookArchievation(int bookId, bool newArchievationValue)
-        {
-            Book book = _context.Book.Where(b => b.Id == bookId).First();
-            book.InArchive = newArchievationValue;
-        }
-
-        public void ChangeBookReservation(int bookId, bool newReservationValue)
-        {
-            Book book = _context.Book.Where(b => b.Id == bookId).First();
-            book.Reserve = newReservationValue;
-        }
-
         public void InsertBook(Book book)
         {
             _context.Add(book);
-        }
-
-        public List<Book> GetAllBooks()
-        {
-            return _context.Book
-                .Include(b => b.Authors)
-                .Include(b => b.Tags)
-                .OrderBy(b => b.Name)
-                .ToList();
         }
 
         public Book GetBookById(int bookId)
@@ -61,6 +42,7 @@ namespace OnlineLibrary.DAL.Repositories
         {
             return _context.Book
                     .Include(b => b.Tags)
+                    .Include(b => b.Authors)
                     .Skip(skip)
                     .Take(pageSize)
                     .ToList();
@@ -78,20 +60,13 @@ namespace OnlineLibrary.DAL.Repositories
                 .Count();
         }
 
-        public List<Book> FilterBooks(Expression<Func<Book, bool>> expr)
-        {
-            return _context.Book
-                .Include(x => x.Tags)
-                .Include(x => x.Authors)
-                .Where(expr).ToList();
-        }
-
-        public List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize)
+        public List<Book> FilterBooks(Expression<Func<Book, bool>> expr, int skip, int pageSize, string propertyToOrder , ListSortDirection SortDirection )
         {
             return _context.Book
                 .Include(x => x.Tags)
                 .Include(x => x.Authors)
                 .Where(expr)
+                .OrderBy(propertyToOrder, SortDirection)
                 .Skip(skip)
                 .Take(pageSize)
                 .ToList();

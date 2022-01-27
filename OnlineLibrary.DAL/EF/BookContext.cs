@@ -1,4 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
+﻿using OnlineLibrary.Common.DBEntities;
 using Microsoft.EntityFrameworkCore;
 
 namespace OnlineLibrary.DAL.EF

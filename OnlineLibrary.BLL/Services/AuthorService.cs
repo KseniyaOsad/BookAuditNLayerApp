@@ -1,5 +1,5 @@
-﻿using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Helpers;
+﻿using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.Common.Extensions;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
@@ -20,10 +20,10 @@ namespace OnlineLibrary.BLL.Services
 
         public int CreateAuthor(Author author)
         {
-            ExceptionHelper.Check<OLBadRequest>(author == null, "A null object came to the method");
+            ExceptionExtensions.Check<OLBadRequest>(author == null, "A null object came to the method");
             _unitOfWork.AuthorRepository.InsertAuthor(author);
             _unitOfWork.Save();
-            ExceptionHelper.Check<OLBadRequest>(author.Id == 0, "The author was not created");
+            ExceptionExtensions.Check<OLBadRequest>(author.Id == 0, "The author was not created");
             return author.Id;
         }
 
@@ -36,7 +36,7 @@ namespace OnlineLibrary.BLL.Services
         public List<Author> GetAuthorsByIdList(List<int> authorsId)
         {
             List<Author> authors = _unitOfWork.AuthorRepository.GetAuthorsByIdList(authorsId);
-            ExceptionHelper.Check<OLNotFound>(authors == null || !authors.Any(), "Authors not found");
+            ExceptionExtensions.Check<OLNotFound>(authors == null || !authors.Any(), "Authors not found");
             return authors;
         }
     }

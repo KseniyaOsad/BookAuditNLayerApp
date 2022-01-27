@@ -1,23 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OnlineLibrary.Common.Pagination
+﻿namespace OnlineLibrary.Common.EntityProcessing.Pagination
 {
     public class PaginationOptions
     {
-        const int maxPageSize = 50;
-
         const int minPageSize = 2;
 
-        private int pageNumber = 1;
+        private int pageNumber;
 
-        private int pageSize = 10;
+        private int pageSize;
 
         public PaginationOptions(int pageNumber, int pageSize)
         {
             PageNumber = pageNumber;
             PageSize = pageSize;
+        }
+
+        public PaginationOptions()
+        {
+            PageNumber = 1;
+            PageSize = 10;
         }
 
         public int PageNumber
@@ -41,8 +41,7 @@ namespace OnlineLibrary.Common.Pagination
             set
             {
                 pageSize =
-                    (value > maxPageSize) ?
-                        maxPageSize : (value < minPageSize) ?
+                     (value < minPageSize) ?
                             minPageSize : value;
             }
         }

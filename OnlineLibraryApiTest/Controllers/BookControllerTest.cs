@@ -8,8 +8,10 @@ using OnlineLibrary.API.Controllers;
 using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using OnlineLibrary.BLL.Interfaces;
-using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Pagination;
+using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.Common.DBEntities.Enums;
+using OnlineLibrary.Common.EntityProcessing;
+using OnlineLibrary.Common.EntityProcessing.Pagination;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -80,52 +82,6 @@ namespace OnlineLibraryApiTest.Controllers
         }
 
         [TestMethod]
-        [DataRow(-1, true)]
-        [DataRow(1, false)]
-        [DataRow(0, false)]
-        public void Change_BookArchivation(int id, bool arch)
-        {
-            Book book = new Book() { Id = id, InArchive = arch };
-            _mockBookService.Setup(x => x.ChangeBookArchievation(id, arch));
-            _mockBookService.Setup(x => x.GetBookById(id));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            _bookController.UpdateArchievation(id, book);
-            _mockBookService.Verify(x => x.ChangeBookArchievation(id, arch), Times.Once);
-            _mockBookService.Verify(x => x.GetBookById(id), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(-1, true)]
-        [DataRow(1, false)]
-        [DataRow(0, false)]
-        public void Change_BookReservation(int id, bool reserve)
-        {
-            Book book = new Book() { Id = id, Reserve = reserve };
-            _mockBookService.Setup(x => x.ChangeBookArchievation(id, reserve));
-            _mockBookService.Setup(x => x.GetBookById(id));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            _bookController.UpdateReservation(id, book);
-            _mockBookService.Verify(x => x.ChangeBookReservation(id, reserve), Times.Once);
-            _mockBookService.Verify(x => x.GetBookById(id), Times.Once);
-        }
-
-        [TestMethod]
-        public void Get_AllBooks_OK()
-        {
-            _mockBookService.Setup(x => x.GetAllBooks()).Returns(new List<Book>() {  });
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            var result = _bookController.GetAllBooks();
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.GetAllBooks(), Times.Once);
-        }
-
-        [TestMethod]
         public void Get_AllBooks_WithPagination_OK()
         {
             _mockBookService.Setup(x => x.GetAllBooks(It.IsAny<PaginationOptions>())).Returns(new PaginatedList<Book>() { });
@@ -140,25 +96,18 @@ namespace OnlineLibraryApiTest.Controllers
         }
 
         [TestMethod]
-        [DataRow(1, "C#", 0, 1)]
-        [DataRow(null, "C#", 1, 0)]
-        [DataRow(null, "", null, null)]
-        [DataRow(null, "C#", null, 0)]
-        [DataRow(null, "C#", 1, null)]
-        [DataRow(null, null, null, null)]
-        [DataRow(1, null, 1, null)]
-        public void Filter_Book_Ok(int? authorId, string name, int? res, int? arch)
+        public void Filter_Book_Ok()
         {
-            FilterBook filterBook = new FilterBook() { AuthorId = authorId, Name= name, Reservation=res, Archievation= arch, TagId = authorId, Pagination = new PaginationOptions(1, 2)};
-            _mockBookService.Setup(x => x.FilterBooks(filterBook)).Returns(new PaginatedList<Book>() { });
+            BookProcessing bookProcessing = new BookProcessing();
+            _mockBookService.Setup(x => x.FilterBooks(bookProcessing)).Returns(new PaginatedList<Book>() { });
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
 
-            var result = _bookController.FilterBook(filterBook);
+            var result = _bookController.FilterBook(bookProcessing);
             var okResult = result as OkObjectResult;
-
+            
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.FilterBooks(filterBook), Times.Once);
+            _mockBookService.Verify(x => x.FilterBooks(bookProcessing), Times.Once);
         }
 
         [TestMethod]
@@ -202,44 +151,5 @@ namespace OnlineLibraryApiTest.Controllers
 
         }
 
-        [TestMethod]
-        [DataRow(1, true)]
-        [DataRow(2, false)]
-        [DataRow(3, false)]
-        public void Change_BookArchivation_Ok(int id, bool arch)
-        {
-            Book book = new Book() { Id = id, InArchive = arch };
-
-            _mockBookService.Setup(x => x.GetBookById(id)).Returns(new Book());
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            var result = _bookController.UpdateArchievation(id, book);
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.ChangeBookArchievation(id, arch), Times.Once);
-            _mockBookService.Verify(x => x.GetBookById(id), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(1, true)]
-        [DataRow(2, false)]
-        [DataRow(3, false)]
-        public void Change_BookReservation_Ok(int id, bool reserve)
-        {
-            Book book = new Book() { Id = id, Reserve = reserve };
-
-            _mockBookService.Setup(x => x.GetBookById(id)).Returns(new Book());
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            var result = _bookController.UpdateReservation(id, book);
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.ChangeBookReservation(id, reserve), Times.Once);
-            _mockBookService.Verify(x => x.GetBookById(id), Times.Once);
-        }
     }
 }

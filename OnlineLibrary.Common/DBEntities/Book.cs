@@ -1,7 +1,8 @@
-﻿using System;
+﻿using OnlineLibrary.Common.DBEntities.Enums;
+using System;
 using System.Collections.Generic;
 
-namespace OnlineLibrary.Common.Entities
+namespace OnlineLibrary.Common.DBEntities
 {
     public class Book
     {

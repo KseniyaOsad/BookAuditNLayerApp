@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.BLL.Services;
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.DAL.Interfaces;
 using System;
@@ -37,11 +37,11 @@ namespace OnlineLibraryApiTest.Services
         [TestMethod]
         public void Write_toCSV_ListIsEmpty()
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() {  });
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>())).Returns(new List<Book>() {  });
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
 
             Assert.ThrowsException<OLNotFound>(() => _dataExportService.WriteCsv("", ""), "Expected Exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         [TestMethod]
@@ -51,20 +51,20 @@ namespace OnlineLibraryApiTest.Services
         [DataRow("Hi", "/Hi")]
         public void Write_toCSV_PathIsINcorrect(string path, string filename)
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() { new Book() });
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>())).Returns(new List<Book>() { new Book() });
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
 
             Assert.ThrowsException<OLInternalServerError>(() => _dataExportService.WriteCsv(path, filename), "Expected Exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
 
         [TestMethod]
         public void Write_toCSV_Ok()
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks()).Returns(new List<Book>() { new Book() { Name = "Hello world", Authors = new List<Author> { new Author() { Name="me" } } } });
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>())).Returns(new List<Book>() { new Book() { Name = "Hello world", Authors = new List<Author> { new Author() { Name="me" } } } });
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
             _dataExportService.WriteCsv(_path, _fileName);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooks(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         }
     }
 }

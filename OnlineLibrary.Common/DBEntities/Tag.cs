@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace OnlineLibrary.Common.Entities
+namespace OnlineLibrary.Common.DBEntities
 {
-    public class Author
+    public class Tag
     {
         public int Id { get; set; }
 

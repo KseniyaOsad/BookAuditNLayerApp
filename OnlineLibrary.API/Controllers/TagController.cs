@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineLibrary.BLL.Interfaces;
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Filters;
 
 namespace OnlineLibrary.API.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/tags")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
     public class TagController : ControllerBase
@@ -18,14 +18,14 @@ namespace OnlineLibrary.API.Controllers
             _tagService = iTag;
         }
 
-        // POST:  api/Tag/Create
+        // POST:  api/tags
         [HttpPost]
         public IActionResult Create([FromBody] Tag tag)
         {
             return Ok(_tagService.CreateTag(tag));
         }
 
-        // GET: api/Tag/GetAllTags
+        // GET: api/tags
         [HttpGet]
         public IActionResult GetAllTags()
         {

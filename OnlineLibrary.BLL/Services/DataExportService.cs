@@ -1,5 +1,5 @@
-﻿using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Helpers;
+﻿using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.Common.Extensions;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.BLL.Model;
 using OnlineLibrary.DAL.Interfaces;
@@ -24,9 +24,9 @@ namespace OnlineLibrary.BLL.Services
 
         public void WriteCsv(string path, string filename)
         {
-            List<Book> books = unitOfWork.BookRepository.GetAllBooks();
-            ExceptionHelper.Check<OLNotFound>(books == null || !books.Any(), "Books don't exist");
-            ExceptionHelper.Check<OLInternalServerError>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty");
+            List<Book> books = unitOfWork.BookRepository.GetAllBooks(0, 50);
+            ExceptionExtensions.Check<OLNotFound>(books == null || !books.Any(), "Books don't exist");
+            ExceptionExtensions.Check<OLInternalServerError>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty");
             try
             {
                 using (StreamWriter sw = new StreamWriter(path + filename, false))

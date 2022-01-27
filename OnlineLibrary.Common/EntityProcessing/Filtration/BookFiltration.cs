@@ -1,8 +1,9 @@
-﻿using OnlineLibrary.Common.Pagination;
+﻿using OnlineLibrary.Common.EntityProcessing.Pagination;
+using System.ComponentModel;
 
-namespace OnlineLibrary.Common.Entities
+namespace OnlineLibrary.Common.EntityProcessing.Filtration
 {
-    public class FilterBook
+    public class BookFiltration
     {
         public string Name { get; set; }
 
@@ -14,6 +15,5 @@ namespace OnlineLibrary.Common.Entities
 
         public int? Reservation { get; set; }
 
-        public PaginationOptions Pagination { get; set; }
     }
 }

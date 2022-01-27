@@ -1,4 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
+﻿using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using OnlineLibrary.Common.Filters;
 
 namespace OnlineLibrary.API.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/authors")]
     [ApiController]
     [TypeFilter(typeof(GenericExceptionFilter))]
     public class AuthorController : ControllerBase
@@ -18,7 +18,7 @@ namespace OnlineLibrary.API.Controllers
             _authorService = iAuthor;
         }
 
-        // POST:  api/Author/Create
+        // POST:  api/authors
         [HttpPost]
         public IActionResult Create([FromBody] Author author)
         {
@@ -26,7 +26,7 @@ namespace OnlineLibrary.API.Controllers
             return Ok(id);
         }
 
-        // GET: api/Author/GetAllAuthors
+        // GET: api/authors
         [HttpGet]
         public IActionResult GetAllAuthors()
         {
