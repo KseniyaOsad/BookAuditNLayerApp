@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 
 namespace OnlineLibrary.Common.Validators
 {

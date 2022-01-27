@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace OnlineLibrary.Common.Helpers
+namespace OnlineLibrary.Common.Extensions
 {
     public static class QueryableExtensions
     {

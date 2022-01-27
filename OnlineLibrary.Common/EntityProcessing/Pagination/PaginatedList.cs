@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace OnlineLibrary.Common.Pagination
+namespace OnlineLibrary.Common.EntityProcessing.Pagination
 {
     public class PaginatedList<T>
     {

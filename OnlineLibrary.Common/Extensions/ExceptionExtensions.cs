@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace OnlineLibrary.Common.Helpers
+namespace OnlineLibrary.Common.Extensions
 {
-    public class ExceptionHelper
+    public class ExceptionExtensions
     {
         public static void Check<T>(bool condition, string message = "Exception catched", ExceptionType prop = ExceptionType.InternalServerError) where T : OLException
         {

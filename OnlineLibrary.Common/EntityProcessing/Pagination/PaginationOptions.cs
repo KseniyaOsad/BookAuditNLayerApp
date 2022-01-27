@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OnlineLibrary.Common.Pagination
+﻿namespace OnlineLibrary.Common.EntityProcessing.Pagination
 {
     public class PaginationOptions
     {
-        const int maxPageSize = 50;
-
         const int minPageSize = 2;
 
         private int pageNumber;
@@ -47,8 +41,7 @@ namespace OnlineLibrary.Common.Pagination
             set
             {
                 pageSize =
-                    (value > maxPageSize) ?
-                        maxPageSize : (value < minPageSize) ?
+                     (value < minPageSize) ?
                             minPageSize : value;
             }
         }
