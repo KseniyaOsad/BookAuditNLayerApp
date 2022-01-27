@@ -1,4 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
+﻿using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System;
 using System.ComponentModel;
-using OnlineLibrary.Common.Helpers;
+using OnlineLibrary.Common.Extensions;
 
 namespace OnlineLibrary.DAL.Repositories
 {

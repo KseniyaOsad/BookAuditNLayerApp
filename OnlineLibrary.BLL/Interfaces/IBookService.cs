@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.JsonPatch;
-using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Pagination;
-using System.Collections.Generic;
+using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.Common.EntityProcessing;
+using OnlineLibrary.Common.EntityProcessing.Pagination;
 
 namespace OnlineLibrary.BLL.Interfaces
 {
@@ -9,7 +9,7 @@ namespace OnlineLibrary.BLL.Interfaces
     {
         PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions);
 
-        PaginatedList<Book> FilterBooks(FilterBook filterBook);
+        PaginatedList<Book> FilterBooks(BookProcessing bookProcessing);
 
         Book GetBookById(int? bookId);
 

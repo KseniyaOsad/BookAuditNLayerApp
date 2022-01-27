@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using OnlineLibrary.API.Model;
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 using System.Linq;
 
 namespace OnlineLibrary.API.Mapper

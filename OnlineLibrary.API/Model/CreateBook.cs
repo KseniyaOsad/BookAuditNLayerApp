@@ -1,5 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
-using System;
+﻿using OnlineLibrary.Common.DBEntities.Enums;
 using System.Collections.Generic;
 
 namespace OnlineLibrary.API.Model

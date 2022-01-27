@@ -1,4 +1,4 @@
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.DAL.EF;

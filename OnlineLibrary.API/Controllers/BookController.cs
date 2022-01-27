@@ -1,15 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using OnlineLibrary.BLL.Interfaces;
-using OnlineLibrary.Common.Entities;
-using OnlineLibrary.Common.Helpers;
+using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.Common.Extensions;
 using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using OnlineLibrary.Common.Exceptions;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Filters;
-using OnlineLibrary.Common.Pagination;
+using OnlineLibrary.Common.EntityProcessing.Pagination;
+using OnlineLibrary.Common.DBEntities.Enums;
+using OnlineLibrary.Common.EntityProcessing.Filtration;
+using OnlineLibrary.Common.EntityProcessing;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -41,11 +44,12 @@ namespace OnlineLibrary.API.Controllers
             return Ok(_bookService.GetAllBooks(paginationOptions));
         }
 
-        // Post: api/Book/FilterBook
+        // Post: api/Book/Filtration
         [HttpPost("search")]
-        public IActionResult FilterBook([FromBody] FilterBook filterBook)
+        public IActionResult FilterBook([FromBody] BookProcessing bookProcessing)
         {
-            return Ok(_bookService.FilterBooks(filterBook));
+            bookProcessing.MakeValid();
+            return Ok(_bookService.FilterBooks(bookProcessing));
         }
 
         // GET: api/Books/[id]
@@ -73,7 +77,7 @@ namespace OnlineLibrary.API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateReservation(int Id, [FromBody] Book book)
         {
-            ExceptionHelper.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
+            ExceptionExtensions.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
             _bookService.ChangeBookReservation(Id, book.Reserve);
             Book b = _bookService.GetBookById(Id);
             return Ok(b);
@@ -83,7 +87,7 @@ namespace OnlineLibrary.API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateArchievation(int Id, [FromBody] Book book)
         {
-            ExceptionHelper.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
+            ExceptionExtensions.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
             _bookService.ChangeBookArchievation(Id, book.InArchive);
             Book b = _bookService.GetBookById(Id);
             return Ok(b);

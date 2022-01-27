@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OnlineLibrary.BLL.Interfaces;
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Filters;
 
 namespace OnlineLibrary.API.Controllers

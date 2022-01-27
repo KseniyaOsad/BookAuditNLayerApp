@@ -1,4 +1,4 @@
-﻿using OnlineLibrary.Common.Entities;
+﻿using OnlineLibrary.Common.DBEntities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
