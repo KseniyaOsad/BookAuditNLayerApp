@@ -7,6 +7,7 @@ using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Validators;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Controllers
 {
@@ -37,49 +38,50 @@ namespace OnlineLibraryApiTest.Controllers
         }
 
         [TestMethod]
-        public void Get_AllAuthors_ListIsEmpty_Ok()
+        public async Task Get_AllAuthors_ListIsEmpty_Ok()
         {
-            _mockAuthorService.Setup(x => x.GetAllAuthors()).Returns(new List<Author>() { });
+            _mockAuthorService.Setup(x => x.GetAllAuthorsAsync()).Returns(Task.FromResult(new List<Author>() { }));
             _authorController = new AuthorController(_mockAuthorService.Object);
 
-            var result = _authorController.GetAllAuthors();
+            var result = await _authorController.GetAllAuthorsAsync();
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockAuthorService.Verify(x => x.GetAllAuthors(), Times.Once);
+            _mockAuthorService.Verify(x => x.GetAllAuthorsAsync(), Times.Once);
         }
 
         [TestMethod]
-        public void Get_AllAuthors_OK()
+        public async Task Get_AllAuthors_OK()
         {
-            _mockAuthorService.Setup(x => x.GetAllAuthors()).Returns(new List<Author>() { new Author() });
+            List<Author> authors = new List<Author>() { new Author() };
+            _mockAuthorService.Setup(x => x.GetAllAuthorsAsync()).Returns(Task.FromResult(authors));
             _authorController = new AuthorController(_mockAuthorService.Object);
 
-            var result = _authorController.GetAllAuthors();
+            var result = await _authorController.GetAllAuthorsAsync();
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockAuthorService.Verify(x => x.GetAllAuthors(), Times.Once);
+            _mockAuthorService.Verify(x => x.GetAllAuthorsAsync(), Times.Once);
         }
 
         [TestMethod]
         [DataRow("A")]
         [DataRow("B")]
-        public void Create_Author_Ok(string name)
+        public async Task Create_Author_Ok(string name)
         {
             Author author = new Author() { Name = name };
 
-            _mockAuthorService.Setup(x => x.CreateAuthor(author)).Returns(1);
+            _mockAuthorService.Setup(x => x.CreateAuthorAsync(author)).Returns(Task.FromResult(1));
             _authorController = new AuthorController(_mockAuthorService.Object);
 
-            var result = _authorController.Create(author);
+            var result = await _authorController.CreateAsync(author);
             var okResult = result as OkObjectResult;
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockAuthorService.Verify(x => x.CreateAuthor(author), Times.Once);
+            _mockAuthorService.Verify(x => x.CreateAuthorAsync(author), Times.Once);
         }
     }
 }

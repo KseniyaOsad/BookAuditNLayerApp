@@ -13,6 +13,7 @@ using OnlineLibrary.Common.EntityProcessing.Pagination;
 using OnlineLibrary.Common.DBEntities.Enums;
 using OnlineLibrary.Common.EntityProcessing.Filtration;
 using OnlineLibrary.Common.EntityProcessing;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -37,50 +38,49 @@ namespace OnlineLibrary.API.Controllers
             _mapper = mapper;
         }
 
-        // Post: api/Book/
+        // Post: api/books/
         [HttpPost]
-        public IActionResult GetAllBooks([FromBody]PaginationOptions paginationOptions)
+        public async Task<IActionResult> GetAllBooksAsync([FromBody]PaginationOptions paginationOptions)
         {
-            return Ok(_bookService.GetAllBooks(paginationOptions));
+            return Ok(await _bookService.GetAllBooksAsync(paginationOptions));
         }
 
-        // Post: api/Book/Filtration
+        // Post: api/books/search
         [HttpPost("search")]
-        public IActionResult FilterBook([FromBody] BookProcessing bookProcessing)
+        public async Task<IActionResult> FilterBookAsync([FromBody] BookProcessing bookProcessing)
         {
-            return Ok(_bookService.FilterBooks(bookProcessing));
+            return Ok(await _bookService.FilterBooksAsync(bookProcessing));
         }
 
-        // GET: api/Books/[id]
+        // GET: api/books/[id]
         [HttpGet("{id}")]
-        public IActionResult GetBookById(int? id)
+        public async Task<IActionResult> GetBookByIdAsync(int? id)
         {
-
-            return Ok(_bookService.GetBookById(id));
+            return Ok(await _bookService.GetBookByIdAsync(id));
         }
 
-        // POST:  api/Books/
+        // POST:  api/books/
         [HttpPost]
-        public IActionResult Create([FromBody] CreateBook cBook)
+        public async Task<IActionResult> CreateAsync([FromBody] CreateBook cBook)
         {
-            List<Tag> tags = _tagService.GetTagsByIdList(cBook.Tags);
-            List<Author> authors = _authorService.GetAuthorsByIdList(cBook.Authors);
+            List<Tag> tags = await _tagService.GetTagsByIdListAsync(cBook.Tags);
+            List<Author> authors = await _authorService.GetAuthorsByIdListAsync(cBook.Authors);
 
             Book book = _mapper.Map<CreateBook, Book>(cBook);
             book.Authors = authors;
             book.Tags = tags;
-            return Ok(_bookService.CreateBook(book));
+            return Ok(await _bookService.CreateBookAsync(book));
         }
 
+        // Patch:  api/books/[id]
         [HttpPatch("{id}")]
-        public IActionResult UpdatePatch(int Id, [FromBody] JsonPatchDocument<Book> book)
+        public async Task<IActionResult> UpdatePatchAsync(int Id, [FromBody] JsonPatchDocument<Book> book)
         {
-            _bookService.UpdatePatch(Id, book);
-            return Ok(_bookService.GetBookById(Id));
+            await _bookService.UpdatePatchAsync(Id, book);
+            return Ok(await _bookService.GetBookByIdAsync(Id));
         }
 
-
-        // GET: api/Book/GetAllGenres
+        // GET: api/books/genres
         [HttpGet("genres")]
         public IActionResult GetAllGenres()
         {

@@ -1,14 +1,15 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.DAL.Interfaces
 {
     public interface ITagRepository
     {
-        List<Tag> GetAllTags();
+        Task<List<Tag>> GetAllTagsAsync();
 
         void InsertTag(Tag tag);
 
-        List<Tag> GetTagsByIdList(List<int> tagsId);
+        Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId);
     }
 }

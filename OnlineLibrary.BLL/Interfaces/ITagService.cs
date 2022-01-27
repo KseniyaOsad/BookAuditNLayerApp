@@ -1,14 +1,15 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.BLL.Interfaces
 {
     public interface ITagService
     {
-        List<Tag> GetAllTags();
+        Task<List<Tag>> GetAllTagsAsync();
 
-        int CreateTag(Tag tag);
+        Task<int> CreateTagAsync(Tag tag);
 
-        List<Tag> GetTagsByIdList(List<int> tagsId);
+        Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId);
     }
 }

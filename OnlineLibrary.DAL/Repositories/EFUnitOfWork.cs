@@ -1,6 +1,7 @@
 ﻿using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using System;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.DAL.Repositories
 {
@@ -51,9 +52,9 @@ namespace OnlineLibrary.DAL.Repositories
             _db.Dispose();
         }
 
-        public void Save()
+        public async Task SaveAsync()
         {
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
     }
 }

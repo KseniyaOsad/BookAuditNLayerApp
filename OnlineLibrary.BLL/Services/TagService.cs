@@ -5,6 +5,7 @@ using OnlineLibrary.Common.Extensions;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -17,23 +18,23 @@ namespace OnlineLibrary.BLL.Services
             _unitOfWork = uow;
         }
 
-        public int CreateTag(Tag tag)
+        public async Task<int> CreateTagAsync(Tag tag)
         {
             ExceptionExtensions.Check<OLBadRequest>(tag == null, "A null object came to the method");
             _unitOfWork.TagRepository.InsertTag(tag);
-            _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
             ExceptionExtensions.Check<OLBadRequest>(tag.Id == 0, "The tag was not created");
             return tag.Id;
         }
 
-        public List<Tag> GetAllTags()
+        public async Task<List<Tag>> GetAllTagsAsync()
         {
-            return _unitOfWork.TagRepository.GetAllTags();
+            return await _unitOfWork.TagRepository.GetAllTagsAsync();
         }
 
-        public List<Tag> GetTagsByIdList(List<int> tagsId)
+        public async Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
         {
-            List<Tag> tags = _unitOfWork.TagRepository.GetTagsByIdList(tagsId);
+            List<Tag> tags = await _unitOfWork.TagRepository.GetTagsByIdListAsync(tagsId);
             ExceptionExtensions.Check<OLNotFound>(tags == null || !tags.Any(), "Tags not found");
             return tags;
         }

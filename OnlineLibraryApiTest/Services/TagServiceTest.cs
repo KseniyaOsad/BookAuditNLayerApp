@@ -6,6 +6,7 @@ using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Services
 {
@@ -27,57 +28,58 @@ namespace OnlineLibraryApiTest.Services
         }
 
         [TestMethod]
-        public void Get_AllTags_ListIsEmpty()
+        public async Task Get_AllTags_ListIsEmpty()
         {
-            _mockUnitOfWork.Setup(x => x.TagRepository.GetAllTags()).Returns(new List<Tag>() { });
+            _mockUnitOfWork.Setup(x => x.TagRepository.GetAllTagsAsync()).Returns(Task.FromResult(new List<Tag>() { }));
             _tagService = new TagService(_mockUnitOfWork.Object);
 
-            List<Tag> tags = _tagService.GetAllTags();
+            List<Tag> tags = await _tagService.GetAllTagsAsync();
             Assert.IsFalse(tags.Any());
-            _mockUnitOfWork.Verify(x => x.TagRepository.GetAllTags(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.TagRepository.GetAllTagsAsync(), Times.Once);
         }
 
         [TestMethod]
-        public void Get_AllTags_Ok()
+        public async Task Get_AllTags_Ok()
         {
             List<Tag> tags = new List<Tag>() { new Tag() };
-            _mockUnitOfWork.Setup(x => x.TagRepository.GetAllTags()).Returns(tags);
+            _mockUnitOfWork.Setup(x => x.TagRepository.GetAllTagsAsync()).Returns(Task.FromResult(tags));
             _tagService = new TagService(_mockUnitOfWork.Object);
-            List<Tag> result = _tagService.GetAllTags();
+            List<Tag> result = await _tagService.GetAllTagsAsync();
             Assert.AreEqual(tags, result);
-            _mockUnitOfWork.Verify(x => x.TagRepository.GetAllTags(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.TagRepository.GetAllTagsAsync(), Times.Once);
         }
 
         [TestMethod]
         [DataRow(0, -2, 100)]
         [DataRow(1, -23)]
         [DataRow()]
-        public void Get_TagsByIdList_ReturnsNothing(params int[] ids)
+        [ExpectedException(typeof(OLNotFound))]
+        public async Task Get_TagsByIdList_ReturnsNothing(params int[] ids)
         {
             List<int> tagsId = ids.ToList();
-            _mockUnitOfWork.Setup(x => x.TagRepository.GetTagsByIdList(tagsId)).Returns(new List<Tag>() { });
+            _mockUnitOfWork.Setup(x => x.TagRepository.GetTagsByIdListAsync(tagsId)).Returns(Task.FromResult(new List<Tag>() { }));
             _tagService = new TagService(_mockUnitOfWork.Object);
 
-            Assert.ThrowsException<OLNotFound>(() => _tagService.GetTagsByIdList(tagsId), "Expected Exception");
-            _mockUnitOfWork.Verify(x => x.TagRepository.GetTagsByIdList(tagsId), Times.Once);
+            await _tagService.GetTagsByIdListAsync(tagsId);
+            _mockUnitOfWork.Verify(x => x.TagRepository.GetTagsByIdListAsync(tagsId), Times.Once);
         }
 
         [TestMethod]
         [DataRow(0, -2, 100)]
         [DataRow(1, -23)]
         [DataRow(1, 2, 3)]
-        public void Get_TagsByIdList_OK(params int[] ids)
+        public async Task Get_TagsByIdList_OK(params int[] ids)
         {
             List<int> tagsId = ids.ToList();
             List<Tag> tags = new List<Tag>() { new Tag() };
 
-            _mockUnitOfWork.Setup(x => x.TagRepository.GetTagsByIdList(tagsId)).Returns(tags);
+            _mockUnitOfWork.Setup(x => x.TagRepository.GetTagsByIdListAsync(tagsId)).Returns(Task.FromResult(tags));
             _tagService = new TagService(_mockUnitOfWork.Object);
 
-            List<Tag> result = _tagService.GetTagsByIdList(tagsId);
+            List<Tag> result = await _tagService.GetTagsByIdListAsync(tagsId);
 
             Assert.AreEqual(tags, result);
-            _mockUnitOfWork.Verify(x => x.TagRepository.GetTagsByIdList(tagsId), Times.Once);
+            _mockUnitOfWork.Verify(x => x.TagRepository.GetTagsByIdListAsync(tagsId), Times.Once);
         }
 
 
@@ -85,25 +87,26 @@ namespace OnlineLibraryApiTest.Services
         [DataRow("")]
         [DataRow("   ")]
         [DataRow(null)]
-        public void Create_Tag_FieldsIsIncorrect(string name)
+        [ExpectedException(typeof(OLBadRequest))]
+        public async Task Create_Tag_FieldsIsIncorrect(string name)
         {
             _mockUnitOfWork.Setup(x => x.TagRepository.InsertTag(It.IsAny<Tag>()));
             _tagService = new TagService(_mockUnitOfWork.Object);
-            Assert.ThrowsException<OLBadRequest>(() => _tagService.CreateTag(new Tag() { Name = name }), "Expected Exception");
+            await _tagService.CreateTagAsync(new Tag() { Name = name });
             _mockUnitOfWork.Verify(x => x.TagRepository.InsertTag(It.IsAny<Tag>()), Times.Once);
         }
 
         [TestMethod]
         [DataRow("s")]
-        public void Create_Tag_OK(string name)
+        public async Task Create_Tag_OK(string name)
         {
             Tag tag = new Tag() { Id = 1, Name = name };
             _mockUnitOfWork.Setup(x => x.TagRepository.InsertTag(It.IsAny<Tag>()));
             _tagService = new TagService(_mockUnitOfWork.Object);
-            int? id = _tagService.CreateTag(tag);
+            int? id = await _tagService.CreateTagAsync(tag);
 
             _mockUnitOfWork.Verify(x => x.TagRepository.InsertTag(It.IsAny<Tag>()), Times.Once);
-            _mockUnitOfWork.Verify(x => x.Save(), Times.Once);
+            _mockUnitOfWork.Verify(x => x.SaveAsync(), Times.Once);
         }
     }
 }

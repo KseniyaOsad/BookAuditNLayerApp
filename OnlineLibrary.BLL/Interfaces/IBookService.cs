@@ -2,19 +2,20 @@
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IBookService
     {
-        PaginatedList<Book> GetAllBooks(PaginationOptions paginationOptions);
+        Task<PaginatedList<Book>> GetAllBooksAsync(PaginationOptions paginationOptions);
 
-        PaginatedList<Book> FilterBooks(BookProcessing bookProcessing);
+        Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing);
 
-        Book GetBookById(int? bookId);
+        Task<Book> GetBookByIdAsync(int? bookId);
 
-        int CreateBook(Book book);
+        Task<int> CreateBookAsync(Book book);
 
-        void UpdatePatch(int bookId, JsonPatchDocument<Book> book);
+        Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book);
     }
 }

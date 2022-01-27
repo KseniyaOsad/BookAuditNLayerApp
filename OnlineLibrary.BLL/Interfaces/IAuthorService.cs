@@ -1,16 +1,16 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IAuthorService
     {
-        List<Author> GetAllAuthors();
+        Task<List<Author>> GetAllAuthorsAsync();
 
-        int CreateAuthor(Author author);
-        // Returns Id.
+        Task<int> CreateAuthorAsync(Author author);
 
-        List<Author> GetAuthorsByIdList(List<int> authorsId);
+        Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId);
 
     }
 }

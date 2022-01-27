@@ -4,6 +4,7 @@ using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OnlineLibrary.DAL.Repositories
 {
@@ -21,16 +22,16 @@ namespace OnlineLibrary.DAL.Repositories
             _context.Add(author);
         }
 
-        public List<Author> GetAllAuthors()
+        public async Task<List<Author>> GetAllAuthorsAsync()
         {
-            return _context.Author
+            return await _context.Author
                 .Include(a => a.Books)
-                .OrderBy(a => a.Name).ToList();
+                .OrderBy(a => a.Name).ToListAsync();
         }
 
-        public List<Author> GetAuthorsByIdList(List<int> authorsId)
+        public async Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)
         {
-            return _context.Author.Where(a => authorsId.Contains(a.Id)).ToList();
+            return await _context.Author.Where(a => authorsId.Contains(a.Id)).ToListAsync();
         }
 
     }
