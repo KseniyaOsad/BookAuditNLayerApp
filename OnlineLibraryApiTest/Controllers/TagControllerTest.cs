@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.API.Controllers;
 using OnlineLibrary.BLL.Interfaces;
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Validators;
 using System;
 using System.Collections.Generic;

@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.BLL.Services;
-using OnlineLibrary.Common.Entities;
+using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.DAL.Interfaces;
 using System;
