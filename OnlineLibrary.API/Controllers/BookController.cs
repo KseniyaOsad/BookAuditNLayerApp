@@ -48,7 +48,6 @@ namespace OnlineLibrary.API.Controllers
         [HttpPost("search")]
         public IActionResult FilterBook([FromBody] BookProcessing bookProcessing)
         {
-            bookProcessing.MakeValid();
             return Ok(_bookService.FilterBooks(bookProcessing));
         }
 

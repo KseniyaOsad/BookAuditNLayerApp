@@ -15,7 +15,12 @@ namespace OnlineLibrary.Common.EntityProcessing
 
         public BookFiltration Filtration { get; set; }
 
-        public void MakeValid()
+        public BookProcessing()
+        {
+            MakeValid();
+        }
+
+        private void MakeValid()
         {
             Pagination = Pagination ?? new PaginationOptions();
             Sorting = Sorting ?? new SortingOptions();
