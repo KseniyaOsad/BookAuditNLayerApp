@@ -18,10 +18,6 @@ namespace OnlineLibrary.DAL.Interfaces
 
         Book GetBookById(int bookId);
 
-        void ChangeBookReservation(int bookId, bool newReservationValue);
-
-        void ChangeBookArchievation(int bookId, bool newArchievationValue);
-
         bool IsBookIdExists(int bookId);
 
         void InsertBook(Book book);

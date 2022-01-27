@@ -20,18 +20,6 @@ namespace OnlineLibrary.DAL.Repositories
             _context = context;
         }
 
-        public void ChangeBookArchievation(int bookId, bool newArchievationValue)
-        {
-            Book book = _context.Book.Where(b => b.Id == bookId).First();
-            book.InArchive = newArchievationValue;
-        }
-
-        public void ChangeBookReservation(int bookId, bool newReservationValue)
-        {
-            Book book = _context.Book.Where(b => b.Id == bookId).First();
-            book.Reserve = newReservationValue;
-        }
-
         public void InsertBook(Book book)
         {
             _context.Add(book);

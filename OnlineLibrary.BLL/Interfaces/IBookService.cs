@@ -13,10 +13,6 @@ namespace OnlineLibrary.BLL.Interfaces
 
         Book GetBookById(int? bookId);
 
-        void ChangeBookReservation(int? bookId, bool newReservationValue);
-
-        void ChangeBookArchievation(int? bookId, bool newArchievationValue);
-
         int CreateBook(Book book);
 
         void UpdatePatch(int bookId, JsonPatchDocument<Book> book);

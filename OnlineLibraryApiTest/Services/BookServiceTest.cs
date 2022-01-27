@@ -16,7 +16,6 @@ using System.Linq.Expressions;
 using OnlineLibrary.Common.Extensions;
 using System.Linq;
 using OnlineLibrary.Common.DBEntities.Enums;
-using OnlineLibrary.Common.EntityProcessing.Filtration;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Sorting;
 
@@ -238,84 +237,6 @@ namespace OnlineLibraryApiTest.Services
             
             Assert.AreEqual(book, actualBook);
             _mockUnitOfWork.Verify(x => x.BookRepository.GetBookById((int)id), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(-1)]
-        [DataRow(null)]
-        [DataRow(0)]
-        public void Change_BookReservation_IdIsIncorrect(int? id)
-        {
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            Assert.ThrowsException<OLBadRequest>(() => _bookService.ChangeBookReservation(id, true), "Expected exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookReservation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        [DataRow(3)]
-        public void Change_BookReservation_BookNotFound(int? id)
-        {
-            _mockUnitOfWork.Setup(x => x.BookRepository.IsBookIdExists(It.IsAny<int>())).Returns(false);
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            Assert.ThrowsException<OLNotFound>(() => _bookService.ChangeBookReservation(id, true), "Expected exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookReservation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        [DataRow(3)]
-        public void Change_BookReservation_Ok(int? id)
-        {
-            _mockUnitOfWork.Setup(x => x.BookRepository.ChangeBookReservation(It.IsAny<int>(), It.IsAny<bool>()));
-            _mockUnitOfWork.Setup(x => x.BookRepository.IsBookIdExists(It.IsAny<int>())).Returns(true);
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            _bookService.ChangeBookReservation(id, true);
-            _mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookReservation(It.IsAny<int>(), It.IsAny<bool>()), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(-1)]
-        [DataRow(null)]
-        [DataRow(0)]
-        public void Change_BookArchievation_IdIsIncorrect(int? id)
-        {
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            Assert.ThrowsException<OLBadRequest>(() => _bookService.ChangeBookArchievation(id, true), "Expected exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookArchievation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        [DataRow(3)]
-        public void Change_BookArchievation_BookNotFound(int? id)
-        {
-            _mockUnitOfWork.Setup(x => x.BookRepository.IsBookIdExists(It.IsAny<int>())).Returns(false);
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            Assert.ThrowsException<OLNotFound>(() => _bookService.ChangeBookArchievation(id, true), "Expected exception");
-            _mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookArchievation(It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        [DataRow(3)]
-        public void Change_BookArchievation_Ok(int? id)
-        {
-            _mockUnitOfWork.Setup(x => x.BookRepository.ChangeBookArchievation(It.IsAny<int>(), It.IsAny<bool>()));
-            _mockUnitOfWork.Setup(x => x.BookRepository.IsBookIdExists(It.IsAny<int>())).Returns(true);
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            _bookService.ChangeBookArchievation(id, true);
-            _mockUnitOfWork.Verify(x => x.BookRepository.ChangeBookArchievation(It.IsAny<int>(), It.IsAny<bool>()), Times.Once);
         }
 
         [TestMethod]

@@ -96,21 +96,6 @@ namespace OnlineLibrary.BLL.Services
             return book;
         }
 
-        public void ChangeBookReservation(int? bookId, bool newReservationValue)
-        {
-            ExceptionExtensions.Check<OLBadRequest>(bookId == null || bookId <= 0, "Id is incorrect");
-            ExceptionExtensions.Check<OLNotFound>(!_unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Book not found");
-            _unitOfWork.BookRepository.ChangeBookReservation((int)bookId, newReservationValue);
-            _unitOfWork.Save();
-        }
-
-        public void ChangeBookArchievation(int? bookId, bool newArchievationValue)
-        {
-            ExceptionExtensions.Check<OLBadRequest>(bookId == null || bookId <= 0, "Id is incorrect");
-            ExceptionExtensions.Check<OLNotFound>(!_unitOfWork.BookRepository.IsBookIdExists((int)bookId), "Book not found");
-            _unitOfWork.BookRepository.ChangeBookArchievation((int)bookId, newArchievationValue);
-            _unitOfWork.Save();
-        }
         public void UpdatePatch(int bookId, JsonPatchDocument<Book> book)
         {
             var originalBook = _unitOfWork.BookRepository.GetBookById(bookId);

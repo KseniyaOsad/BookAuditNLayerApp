@@ -72,26 +72,6 @@ namespace OnlineLibrary.API.Controllers
             return Ok(_bookService.CreateBook(book));
         }
 
-        // PUT:  api/Book/UpdateReservation/[id]
-        [HttpPut("{id}")]
-        public IActionResult UpdateReservation(int Id, [FromBody] Book book)
-        {
-            ExceptionExtensions.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
-            _bookService.ChangeBookReservation(Id, book.Reserve);
-            Book b = _bookService.GetBookById(Id);
-            return Ok(b);
-        }
-
-        // PUT:  api/Book/UpdateArchievation/[id]
-        [HttpPut("{id}")]
-        public IActionResult UpdateArchievation(int Id, [FromBody] Book book)
-        {
-            ExceptionExtensions.Check<OLBadRequest>(Id != book.Id, "IDs don't match");
-            _bookService.ChangeBookArchievation(Id, book.InArchive);
-            Book b = _bookService.GetBookById(Id);
-            return Ok(b);
-        }
-
         [HttpPatch("{id}")]
         public IActionResult UpdatePatch(int Id, [FromBody] JsonPatchDocument<Book> book)
         {
