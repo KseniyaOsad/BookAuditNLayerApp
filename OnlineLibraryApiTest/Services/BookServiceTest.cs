@@ -123,7 +123,6 @@ namespace OnlineLibraryApiTest.Services
         {
             BookProcessing bookProcessing = new BookProcessing();
             bookProcessing.Sorting = new SortingOptions() { SortDirection = sortDirection, PropertyToOrder = propertyToOrder };
-            bookProcessing.MakeValid();
             _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(1);
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
 
@@ -142,7 +141,6 @@ namespace OnlineLibraryApiTest.Services
         {
             BookProcessing bookProcessing = new BookProcessing();
             bookProcessing.Sorting = new SortingOptions() { SortDirection = sortDirection, PropertyToOrder = propertyToOrder };
-            bookProcessing.MakeValid();
             _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(1);
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
 
@@ -183,7 +181,6 @@ namespace OnlineLibraryApiTest.Services
         {
             BookProcessing bookProcessing = new BookProcessing();
             bookProcessing.Pagination = new PaginationOptions(pNumber, pageSize);
-            bookProcessing.MakeValid();
 
             _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(0);
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
@@ -196,7 +193,6 @@ namespace OnlineLibraryApiTest.Services
         public void Filter_Books_WithPagination_OK()
         {
             BookProcessing bookProcessing = new BookProcessing();
-            bookProcessing.MakeValid();
             _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCount(It.IsAny<Expression<Func<Book, bool>>>())).Returns(1);
             _mockUnitOfWork.Setup(x => x.BookRepository.FilterBooks(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<ListSortDirection>())).Returns(new List<Book>() { new Book() });
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);

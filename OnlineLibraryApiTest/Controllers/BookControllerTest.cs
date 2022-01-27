@@ -133,7 +133,6 @@ namespace OnlineLibraryApiTest.Controllers
         public void Filter_Book_Ok()
         {
             BookProcessing bookProcessing = new BookProcessing();
-            bookProcessing.MakeValid();
             _mockBookService.Setup(x => x.FilterBooks(bookProcessing)).Returns(new PaginatedList<Book>() { });
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
 
