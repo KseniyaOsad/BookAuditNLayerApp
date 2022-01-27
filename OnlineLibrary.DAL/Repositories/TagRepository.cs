@@ -19,16 +19,16 @@ namespace OnlineLibrary.DAL.Repositories
             _context = context;
         }
 
-        public async Task<List<Tag>> GetAllTagsAsync()
+        public Task<List<Tag>> GetAllTagsAsync()
         {
-            return await _context.Tag
+            return _context.Tag
               .Include(t => t.Books)
               .OrderBy(t => t.Name).ToListAsync();
         }
 
-        public async Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
+        public Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
         {
-            return await _context.Tag.Where(t => tagsId.Contains(t.Id)).ToListAsync();
+            return  _context.Tag.Where(t => tagsId.Contains(t.Id)).ToListAsync();
         }
 
         public void InsertTag(Tag tag)

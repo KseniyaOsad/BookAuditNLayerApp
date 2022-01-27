@@ -26,22 +26,22 @@ namespace OnlineLibrary.DAL.Repositories
             _context.Add(book);
         }
 
-        public async Task<Book> GetBookByIdAsync(int bookId)
+        public  Task<Book> GetBookByIdAsync(int bookId)
         {
-            return await _context.Book
+            return  _context.Book
                 .Include(b => b.Authors)
                 .Include(b => b.Tags)
                 .FirstOrDefaultAsync(b => b.Id == bookId);
         }
 
-        public async Task<bool> IsBookIdExistsAsync(int bookId)
+        public  Task<bool> IsBookIdExistsAsync(int bookId)
         {
-            return await _context.Book.AnyAsync(b => b.Id == bookId);
+            return  _context.Book.AnyAsync(b => b.Id == bookId);
         }
 
-        public async Task<List<Book>> GetAllBooksAsync(int skip, int pageSize)
+        public Task<List<Book>> GetAllBooksAsync(int skip, int pageSize)
         {
-            return await _context.Book
+            return _context.Book
                     .Include(b => b.Tags)
                     .Include(b => b.Authors)
                     .Skip(skip)
@@ -49,21 +49,21 @@ namespace OnlineLibrary.DAL.Repositories
                     .ToListAsync();
         }
 
-        public async Task<int> GetAllBooksCountAsync()
+        public Task<int> GetAllBooksCountAsync()
         {
-            return await _context.Book.CountAsync();
+            return _context.Book.CountAsync();
         }
 
-        public async Task<int> GetAllBooksCountAsync(Expression<Func<Book, bool>> expr)
+        public  Task<int> GetAllBooksCountAsync(Expression<Func<Book, bool>> expr)
         {
-            return await _context.Book
+            return  _context.Book
                 .Where(expr)
                 .CountAsync();
         }
 
-        public async Task<List<Book>> FilterBooksAsync(Expression<Func<Book, bool>> expr, int skip, int pageSize, string propertyToOrder , ListSortDirection SortDirection )
+        public  Task<List<Book>> FilterBooksAsync(Expression<Func<Book, bool>> expr, int skip, int pageSize, string propertyToOrder , ListSortDirection SortDirection )
         {
-            return await _context.Book
+            return  _context.Book
                 .Include(x => x.Tags)
                 .Include(x => x.Authors)
                 .Where(expr)

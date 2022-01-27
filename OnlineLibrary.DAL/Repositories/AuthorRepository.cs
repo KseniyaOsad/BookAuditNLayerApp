@@ -22,16 +22,16 @@ namespace OnlineLibrary.DAL.Repositories
             _context.Add(author);
         }
 
-        public async Task<List<Author>> GetAllAuthorsAsync()
+        public  Task<List<Author>> GetAllAuthorsAsync()
         {
-            return await _context.Author
+            return  _context.Author
                 .Include(a => a.Books)
                 .OrderBy(a => a.Name).ToListAsync();
         }
 
-        public async Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)
+        public Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)
         {
-            return await _context.Author.Where(a => authorsId.Contains(a.Id)).ToListAsync();
+            return _context.Author.Where(a => authorsId.Contains(a.Id)).ToListAsync();
         }
 
     }

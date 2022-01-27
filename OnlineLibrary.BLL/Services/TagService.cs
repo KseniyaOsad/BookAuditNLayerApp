@@ -27,9 +27,9 @@ namespace OnlineLibrary.BLL.Services
             return tag.Id;
         }
 
-        public async Task<List<Tag>> GetAllTagsAsync()
+        public Task<List<Tag>> GetAllTagsAsync()
         {
-            return await _unitOfWork.TagRepository.GetAllTagsAsync();
+            return _unitOfWork.TagRepository.GetAllTagsAsync();
         }
 
         public async Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)

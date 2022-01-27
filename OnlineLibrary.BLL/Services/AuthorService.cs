@@ -4,7 +4,6 @@ using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using OnlineLibrary.Common.Validators;
 using OnlineLibrary.Common.Exceptions;
 using System.Threading.Tasks;
 
@@ -28,9 +27,9 @@ namespace OnlineLibrary.BLL.Services
             return author.Id;
         }
 
-        public async Task<List<Author>> GetAllAuthorsAsync()
+        public Task<List<Author>> GetAllAuthorsAsync()
         {
-            return await _unitOfWork.AuthorRepository.GetAllAuthorsAsync();
+            return _unitOfWork.AuthorRepository.GetAllAuthorsAsync();
         }
 
         public async Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)

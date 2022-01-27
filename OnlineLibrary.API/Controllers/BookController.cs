@@ -2,16 +2,12 @@
 using System;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.Common.Extensions;
 using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
-using OnlineLibrary.Common.Exceptions;
 using Microsoft.AspNetCore.JsonPatch;
 using OnlineLibrary.Common.Filters;
-using OnlineLibrary.Common.EntityProcessing.Pagination;
 using OnlineLibrary.Common.DBEntities.Enums;
-using OnlineLibrary.Common.EntityProcessing.Filtration;
 using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
 
@@ -36,13 +32,6 @@ namespace OnlineLibrary.API.Controllers
             _authorService = iAuthor;
             _tagService = iTag;
             _mapper = mapper;
-        }
-
-        // Post: api/books/
-        [HttpPost]
-        public async Task<IActionResult> GetAllBooksAsync([FromBody]PaginationOptions paginationOptions)
-        {
-            return Ok(await _bookService.GetAllBooksAsync(paginationOptions));
         }
 
         // Post: api/books/search

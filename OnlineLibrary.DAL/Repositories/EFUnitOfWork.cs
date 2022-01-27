@@ -52,9 +52,9 @@ namespace OnlineLibrary.DAL.Repositories
             _db.Dispose();
         }
 
-        public async Task SaveAsync()
+        public Task SaveAsync()
         {
-            await _db.SaveChangesAsync();
+             return _db.SaveChangesAsync();
         }
     }
 }
