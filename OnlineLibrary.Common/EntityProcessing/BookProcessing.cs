@@ -9,22 +9,11 @@ namespace OnlineLibrary.Common.EntityProcessing
 {
     public class BookProcessing
     {
-        public PaginationOptions Pagination { get; set; }
+        public PaginationOptions Pagination { get; set; } = new PaginationOptions();
 
-        public SortingOptions Sorting { get; set; }
+        public SortingOptions Sorting { get; set; } = new SortingOptions();
 
-        public BookFiltration Filtration { get; set; }
+        public BookFiltration Filtration { get; set; } = new BookFiltration();
 
-        public BookProcessing()
-        {
-            MakeValid();
-        }
-
-        private void MakeValid()
-        {
-            Pagination = Pagination ?? new PaginationOptions();
-            Sorting = Sorting ?? new SortingOptions();
-            Filtration = Filtration ?? new BookFiltration();
-        }
     }
 }
