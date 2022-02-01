@@ -1,8 +1,6 @@
 ﻿using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.Common.Exceptions.Enum;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OnlineLibrary.Common.Extensions
 {

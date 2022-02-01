@@ -18,7 +18,6 @@ using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using AutoMapper;
 using OnlineLibrary.API.Mapper;
-using OnlineLibrary.Common.ErrorMiddleware;
 
 namespace OnlineLibrary.API
 {

@@ -2,6 +2,7 @@
 using FluentValidation.TestHelper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.API.Controllers;
@@ -33,6 +34,8 @@ namespace OnlineLibraryApiTest.Controllers
 
         private CreateBookValidator _bookValidator;
 
+        private Mock<ILogger<BookController>> _mockILogger = new Mock<ILogger<BookController>>();
+
         [TestInitialize]
         public void InitializeTest()
         {
@@ -43,7 +46,7 @@ namespace OnlineLibraryApiTest.Controllers
         public async Task UpdatePatch_Book()
         {
             _mockBookService.Setup(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
+            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
             await _bookController.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
             _mockBookService.Verify(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), Times.Once);
             _mockBookService.Verify(x => x.GetBookByIdAsync(It.IsAny<int>()), Times.Once);
@@ -75,7 +78,7 @@ namespace OnlineLibraryApiTest.Controllers
             _mockAuthorService.Setup(x => x.GetAuthorsByIdListAsync(ints));
             _mockBookService.Setup(x => x.CreateBookAsync(It.IsAny<Book>()));
             _mockMapper.Setup(x => x.Map<CreateBook, Book>(It.IsAny<CreateBook>())).Returns(new Book());
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
+            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
 
             await _bookController.CreateAsync(cBook);
             _mockAuthorService.Verify(x => x.GetAuthorsByIdListAsync(ints), Times.Once);
@@ -83,25 +86,11 @@ namespace OnlineLibraryApiTest.Controllers
         }
 
         [TestMethod]
-        public async Task Get_AllBooks_WithPagination_OK()
-        {
-            _mockBookService.Setup(x => x.GetAllBooksAsync(It.IsAny<PaginationOptions>())).Returns(Task.FromResult(new PaginatedList<Book>() { }));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            var result = await _bookController.GetAllBooksAsync(It.IsAny<PaginationOptions>());
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.GetAllBooksAsync(It.IsAny<PaginationOptions>()), Times.Once);
-        }
-
-        [TestMethod]
         public async Task Filter_Book_Ok()
         {
             BookProcessing bookProcessing = new BookProcessing();
             _mockBookService.Setup(x => x.FilterBooksAsync(bookProcessing)).Returns(Task.FromResult(new PaginatedList<Book>() { }));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
+            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
 
             var result = await _bookController.FilterBookAsync(bookProcessing);
             var okResult = result as OkObjectResult;
@@ -118,7 +107,7 @@ namespace OnlineLibraryApiTest.Controllers
         public async Task Get_BookById_Ok(int? bookId)
         {
             _mockBookService.Setup(x => x.GetBookByIdAsync(bookId)).Returns(Task.FromResult(new Book()));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
+            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
 
             var result = await _bookController.GetBookByIdAsync(bookId);
             var okResult = result as OkObjectResult;
@@ -140,7 +129,7 @@ namespace OnlineLibraryApiTest.Controllers
             List<Author> AList = new List<Author>() { new Author() };
             _mockAuthorService.Setup(x => x.GetAuthorsByIdListAsync(It.IsAny<List<int>>())).Returns(Task.FromResult(AList));
             _mockBookService.Setup(x => x.CreateBookAsync(It.IsAny<Book>())).Returns(Task.FromResult(1));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
+            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
 
             var result = await _bookController.CreateAsync(cBook);
             var okResult = result as OkObjectResult;
