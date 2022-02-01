@@ -1,5 +1,6 @@
 ﻿using FluentValidation.TestHelper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.API.Controllers;
@@ -19,6 +20,8 @@ namespace OnlineLibraryApiTest.Controllers
         private Mock<IAuthorService> _mockAuthorService = new Mock<IAuthorService>();
 
         private AuthorValidator _authorValidator;
+        
+        private Mock<ILogger<AuthorController>> _mockILogger = new Mock<ILogger<AuthorController>>();
 
         [TestInitialize]
         public void TestInitialize()
@@ -41,7 +44,7 @@ namespace OnlineLibraryApiTest.Controllers
         public async Task Get_AllAuthors_ListIsEmpty_Ok()
         {
             _mockAuthorService.Setup(x => x.GetAllAuthorsAsync()).Returns(Task.FromResult(new List<Author>() { }));
-            _authorController = new AuthorController(_mockAuthorService.Object);
+            _authorController = new AuthorController(_mockAuthorService.Object, _mockILogger.Object);
 
             var result = await _authorController.GetAllAuthorsAsync();
             var okResult = result as OkObjectResult;
@@ -56,7 +59,7 @@ namespace OnlineLibraryApiTest.Controllers
         {
             List<Author> authors = new List<Author>() { new Author() };
             _mockAuthorService.Setup(x => x.GetAllAuthorsAsync()).Returns(Task.FromResult(authors));
-            _authorController = new AuthorController(_mockAuthorService.Object);
+            _authorController = new AuthorController(_mockAuthorService.Object, _mockILogger.Object);
 
             var result = await _authorController.GetAllAuthorsAsync();
             var okResult = result as OkObjectResult;
@@ -74,7 +77,7 @@ namespace OnlineLibraryApiTest.Controllers
             Author author = new Author() { Name = name };
 
             _mockAuthorService.Setup(x => x.CreateAuthorAsync(author)).Returns(Task.FromResult(1));
-            _authorController = new AuthorController(_mockAuthorService.Object);
+            _authorController = new AuthorController(_mockAuthorService.Object, _mockILogger.Object);
 
             var result = await _authorController.CreateAsync(author);
             var okResult = result as OkObjectResult;

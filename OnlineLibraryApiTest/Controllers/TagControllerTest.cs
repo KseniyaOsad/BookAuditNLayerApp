@@ -1,5 +1,6 @@
 ﻿using FluentValidation.TestHelper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using OnlineLibrary.API.Controllers;
@@ -22,6 +23,8 @@ namespace OnlineLibraryApiTest.Controllers
 
         private TagValidator _tagValidator = new TagValidator();
 
+        private Mock<ILogger<TagController>> _mockILogger = new Mock<ILogger<TagController>>();
+
         [TestMethod]
         [DataRow("")]
         [DataRow("  ")]
@@ -37,7 +40,7 @@ namespace OnlineLibraryApiTest.Controllers
         public async Task Get_AllTags_ListIsEmpty_Ok()
         {
             _mockTagService.Setup(x => x.GetAllTagsAsync()).Returns(Task.FromResult(new List<Tag>() { }));
-            _tagController = new TagController(_mockTagService.Object);
+            _tagController = new TagController(_mockTagService.Object, _mockILogger.Object);
 
             var result = await _tagController.GetAllTagsAsync();
             var okResult = result as OkObjectResult;
@@ -51,7 +54,7 @@ namespace OnlineLibraryApiTest.Controllers
         public async Task Get_AllTags_OK()
         {
             _mockTagService.Setup(x => x.GetAllTagsAsync()).Returns(Task.FromResult(new List<Tag>() { new Tag() }));
-            _tagController = new TagController(_mockTagService.Object);
+            _tagController = new TagController(_mockTagService.Object, _mockILogger.Object);
 
             var result = await _tagController.GetAllTagsAsync();
             var okResult = result as OkObjectResult;
@@ -69,7 +72,7 @@ namespace OnlineLibraryApiTest.Controllers
             Tag tag = new Tag() { Name = name };
 
             _mockTagService.Setup(x => x.CreateTagAsync(tag)).Returns(Task.FromResult(1));
-            _tagController = new TagController(_mockTagService.Object);
+            _tagController = new TagController(_mockTagService.Object, _mockILogger.Object);
 
             var result = await _tagController.CreateAsync(tag);
             var okResult = result as OkObjectResult;
