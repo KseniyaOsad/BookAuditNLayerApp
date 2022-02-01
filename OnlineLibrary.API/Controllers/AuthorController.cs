@@ -3,6 +3,9 @@ using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using OnlineLibrary.Common.Filters;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using log4net;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -12,7 +15,9 @@ namespace OnlineLibrary.API.Controllers
     public class AuthorController : ControllerBase
     {
         private readonly IAuthorService _authorService;
-
+        
+        private static readonly ILog _logger = LogManager.GetLogger(typeof(AuthorController));
+    
         public AuthorController(IAuthorService iAuthor)
         {
             _authorService = iAuthor;
@@ -22,14 +27,18 @@ namespace OnlineLibrary.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAsync([FromBody] Author author)
         {
-            return Ok(await _authorService.CreateAuthorAsync(author));
+            int id = await _authorService.CreateAuthorAsync(author);
+            _logger.Info($"New author created. Author ID = {id}.");
+            return Ok(id);
         }
 
         // GET: api/authors
         [HttpGet]
         public async Task<IActionResult> GetAllAuthorsAsync()
         {
-            return Ok(await _authorService.GetAllAuthorsAsync());
+            List<Author> authors = await _authorService.GetAllAuthorsAsync();
+            _logger.Info($"Getting all authors. Authors count = {authors?.Count}.");
+            return Ok(authors);
         }
     }
 }

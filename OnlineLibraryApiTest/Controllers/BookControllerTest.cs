@@ -83,20 +83,6 @@ namespace OnlineLibraryApiTest.Controllers
         }
 
         [TestMethod]
-        public async Task Get_AllBooks_WithPagination_OK()
-        {
-            _mockBookService.Setup(x => x.GetAllBooksAsync(It.IsAny<PaginationOptions>())).Returns(Task.FromResult(new PaginatedList<Book>() { }));
-            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object);
-
-            var result = await _bookController.GetAllBooksAsync(It.IsAny<PaginationOptions>());
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.GetAllBooksAsync(It.IsAny<PaginationOptions>()), Times.Once);
-        }
-
-        [TestMethod]
         public async Task Filter_Book_Ok()
         {
             BookProcessing bookProcessing = new BookProcessing();
