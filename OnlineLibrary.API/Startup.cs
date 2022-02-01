@@ -18,8 +18,6 @@ using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using AutoMapper;
 using OnlineLibrary.API.Mapper;
-using Microsoft.Extensions.Logging;
-using OnlineLibrary.API.Logger;
 
 namespace OnlineLibrary.API
 {
@@ -71,10 +69,8 @@ namespace OnlineLibrary.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory logger)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            logger.AddLog4Net();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
