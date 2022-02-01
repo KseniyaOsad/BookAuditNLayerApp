@@ -1,11 +1,10 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using OnlineLibrary.Common.Filters;
+using OnlineLibrary.API.Filters;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using log4net;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -16,11 +15,12 @@ namespace OnlineLibrary.API.Controllers
     {
         private readonly IAuthorService _authorService;
         
-        private static readonly ILog _logger = LogManager.GetLogger(typeof(AuthorController));
-    
-        public AuthorController(IAuthorService iAuthor)
+        private readonly ILogger<AuthorController> _logger ;
+
+        public AuthorController(IAuthorService iAuthor, ILogger<AuthorController> logger)
         {
             _authorService = iAuthor;
+            _logger = logger;
         }
 
         // POST:  api/authors
@@ -28,7 +28,7 @@ namespace OnlineLibrary.API.Controllers
         public async Task<IActionResult> CreateAsync([FromBody] Author author)
         {
             int id = await _authorService.CreateAuthorAsync(author);
-            _logger.Info($"New author created. Author ID = {id}.");
+            _logger.LogInformation($"New author created. Author ID = {id}.");
             return Ok(id);
         }
 
@@ -37,7 +37,7 @@ namespace OnlineLibrary.API.Controllers
         public async Task<IActionResult> GetAllAuthorsAsync()
         {
             List<Author> authors = await _authorService.GetAllAuthorsAsync();
-            _logger.Info($"Getting all authors. Authors count = {authors?.Count}.");
+            _logger.LogInformation($"Getting all authors. Authors count = {authors?.Count}.");
             return Ok(authors);
         }
     }

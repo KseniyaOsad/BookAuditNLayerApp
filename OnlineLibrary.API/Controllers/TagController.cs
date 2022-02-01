@@ -1,8 +1,8 @@
-﻿using log4net;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.Common.Filters;
+using OnlineLibrary.API.Filters;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,11 +15,12 @@ namespace OnlineLibrary.API.Controllers
     {
         private readonly ITagService _tagService;
 
-        private static readonly ILog _logger = LogManager.GetLogger(typeof(TagController));
+        private readonly ILogger<TagController> _logger ;
 
-        public TagController(ITagService iTag)
+        public TagController(ITagService iTag, ILogger<TagController> logger)
         {
             _tagService = iTag;
+            _logger = logger;
         }
 
         // POST:  api/tags
@@ -27,7 +28,7 @@ namespace OnlineLibrary.API.Controllers
         public async Task<IActionResult> CreateAsync([FromBody] Tag tag)
         {
             int id = await _tagService.CreateTagAsync(tag);
-            _logger.Info($"New tag created. Tag ID = {id}.");
+            _logger.LogInformation($"New tag created. Tag ID = {id}.");
             return Ok(id);
         }
 
@@ -36,7 +37,7 @@ namespace OnlineLibrary.API.Controllers
         public async Task<IActionResult> GetAllTagsAsync()
         {
             List<Tag> tags = await _tagService.GetAllTagsAsync();
-            _logger.Info($"Getting all tags. Tags count = {tags?.Count}.");
+            _logger.LogInformation($"Getting all tags. Tags count = {tags?.Count}.");
             return Ok(tags);
         }
     }

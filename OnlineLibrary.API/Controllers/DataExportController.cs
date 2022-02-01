@@ -1,10 +1,9 @@
 ﻿using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using OnlineLibrary.Common.Filters;
+using OnlineLibrary.API.Filters;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using log4net;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -15,16 +14,17 @@ namespace OnlineLibrary.API.Controllers
     {
         private readonly IDataExportService _dataExport;
 
-        private static readonly ILog _logger = LogManager.GetLogger(typeof(DataExportController));
+        private readonly ILogger<DataExportController> _logger;
 
         private readonly string _path;
 
         private const string _fileName = "book.csv";
 
-        public DataExportController(IWebHostEnvironment hostEnvironment, IDataExportService iData)
+        public DataExportController(IWebHostEnvironment hostEnvironment, IDataExportService iData, ILogger<DataExportController> logger)
         {
             _dataExport = iData;
             _path = hostEnvironment.ContentRootPath + @"\Data\csvFiles\";
+            _logger = logger;
         }
 
         // GET: api/data-exports
@@ -32,12 +32,12 @@ namespace OnlineLibrary.API.Controllers
         public async Task<IActionResult> GetFileAsync()
         {
             await _dataExport.WriteCsvAsync(_path, _fileName);
-            _logger.Info($"Writting data to csw file, {_fileName}.");
+            _logger.LogInformation($"Writting data to csw file, {_fileName}.");
             FileContentResult fileResult = new FileContentResult(await System.IO.File.ReadAllBytesAsync(_path + _fileName), "application/csv")
             {
                 FileDownloadName = _fileName
             };
-            _logger.Info($"Read all bytes from csw file, {_fileName}.");
+            _logger.LogInformation($"Read all bytes from csw file, {_fileName}.");
             return fileResult;
         }
     }
