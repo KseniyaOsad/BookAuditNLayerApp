@@ -66,11 +66,21 @@ namespace OnlineLibrary.API
             services.AddTransient<IValidator<Book>, BookValidator>();
             services.AddTransient<IValidator<Author>, AuthorValidator>();
             services.AddTransient<IValidator<Tag>, TagValidator>();
+
+            // Swagger.
+            services.AddSwaggerGen();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Online Library API");
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
