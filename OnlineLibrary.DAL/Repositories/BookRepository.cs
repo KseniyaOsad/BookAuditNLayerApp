@@ -9,6 +9,8 @@ using System;
 using System.ComponentModel;
 using OnlineLibrary.Common.Extensions;
 using System.Threading.Tasks;
+using OnlineLibrary.Common.EntityProcessing;
+using OnlineLibrary.Common.EntityProcessing.Pagination;
 
 namespace OnlineLibrary.DAL.Repositories
 {
@@ -32,11 +34,6 @@ namespace OnlineLibrary.DAL.Repositories
                 .Include(b => b.Authors)
                 .Include(b => b.Tags)
                 .FirstOrDefaultAsync(b => b.Id == bookId);
-        }
-
-        public  Task<bool> IsBookIdExistsAsync(int bookId)
-        {
-            return  _context.Book.AnyAsync(b => b.Id == bookId);
         }
 
         public Task<List<Book>> GetAllBooksAsync(int skip, int pageSize)
@@ -73,5 +70,14 @@ namespace OnlineLibrary.DAL.Repositories
                 .ToListAsync();
         }
 
+        public Task<int> GetAllBooksCountAsync(string whereExpr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.Common.EntityProcessing;
+using OnlineLibrary.Common.EntityProcessing.Pagination;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,8 +21,8 @@ namespace OnlineLibrary.DAL.Interfaces
 
         Task<Book> GetBookByIdAsync(int bookId);
 
-        Task<bool> IsBookIdExistsAsync(int bookId);
-
         void InsertBook(Book book);
+
+        Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing);
     }
 }

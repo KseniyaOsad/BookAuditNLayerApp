@@ -18,6 +18,7 @@ using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using AutoMapper;
 using OnlineLibrary.API.Mapper;
+using OnlineLibrary.DAL.Repositories.Dapper;
 
 namespace OnlineLibrary.API
 {
@@ -55,10 +56,17 @@ namespace OnlineLibrary.API
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<ITagService, TagService>();
             services.AddTransient<IDataExportService, DataExportService>();
-            services.AddTransient<IUnitOfWork, EFUnitOfWork>(setviceProvider =>
+
+            // EF.
+            //services.AddTransient<IUnitOfWork, EFUnitOfWork>(serviceProvider =>
+            //{
+            //    var context = serviceProvider.GetRequiredService<BookContext>();
+            //    return new EFUnitOfWork(context);
+            //});
+            // Dapper.
+            services.AddTransient<IUnitOfWork, DapperUnitOfWork>(serviceProvider =>
             {
-                var context = setviceProvider.GetRequiredService<BookContext>();
-                return new EFUnitOfWork(context);
+                return new DapperUnitOfWork(Configuration.GetConnectionString("BookContext"));
             });
 
             // Validators.

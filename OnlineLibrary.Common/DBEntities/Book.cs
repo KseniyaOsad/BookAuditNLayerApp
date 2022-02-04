@@ -23,5 +23,12 @@ namespace OnlineLibrary.Common.DBEntities
         public List<Tag> Tags { get; set; }
 
         public DateTime RegistrationDate { get; set; } = DateTime.Now;
+
+        public override bool Equals(object obj)
+        {
+            Book book = obj as Book;
+            if (book == null) return false;
+            return book.Id == Id;
+        }
     }
 }

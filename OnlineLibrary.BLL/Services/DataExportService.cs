@@ -37,11 +37,12 @@ namespace OnlineLibrary.BLL.Services
                     books.
                         Select(
                             b => allTextToWrite.Append(
-                                new BookAndAuthorToCSV()
+                                new BookInfoToCSV()
                                 {
                                     Id = b.Id,
                                     Title = b.Name,
-                                    AuthorName = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray())
+                                    AuthorNames = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray()),
+                                    TagNames = String.Join(" & ", b.Tags.Select(t => t.Name).ToArray())
                                 }.ToString())
                             ).ToList();
                     await sw.WriteAsync(allTextToWrite.ToString());
