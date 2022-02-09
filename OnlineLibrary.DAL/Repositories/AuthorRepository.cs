@@ -1,38 +1,68 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OnlineLibrary.DAL.Repositories
+namespace OnlineLibrary.DAL.Repositories.Dapper
 {
     public class AuthorRepository : IAuthorRepository
     {
-        BookContext _context;
+        private string _connectionString;
 
-        public AuthorRepository(BookContext context)
+        public AuthorRepository(string connectionString)
         {
-            _context = context;
+            _connectionString = connectionString;
         }
 
-        public void InsertAuthor(Author author)
+        public async Task<List<Author>> GetAllAuthorsAsync()
         {
-            _context.Add(author);
+            IEnumerable<Author> AuthorsAndBooks;
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT A.Id, A.Name, B.Id, B.Name, B.Description, B.Genre , B.InArchive , B.RegistrationDate, AB.AuthorsId, AB.BooksId
+                FROM Authors AS A
+                LEFT JOIN AuthorBook  AS AB ON A.Id = AB.AuthorsId
+                LEFT JOIN Books       AS B  ON B.Id = AB.BooksId";
+                AuthorsAndBooks = await connection.QueryAsync<Author, Book, Author>(sql, (author, book) =>
+                {
+                    author.Books = book == null ? new List<Book>() : new List<Book>() { book };
+                    return author;
+                });
+            }
+            return AuthorsAndBooks
+                .GroupBy(a => a.Id)
+                .Select(group =>
+                {
+                    var author = group.First();
+                    if (group.Count() > 1)
+                    {
+                        author.Books = group.Select(a => a.Books.Single()).ToList();
+                    }
+                    return author;
+                })
+                .ToList();
         }
 
-        public  Task<List<Author>> GetAllAuthorsAsync()
+        public async Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)
         {
-            return  _context.Author
-                .Include(a => a.Books)
-                .OrderBy(a => a.Name).ToListAsync();
+            string sql = "SELECT Id, Name FROM Authors WHERE Id IN @Ids;";
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                return (await connection.QueryAsync<Author>(sql, new { Ids = authorsId })).ToList();
+            }
         }
 
-        public Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)
+        public async Task CreateAuthorAsync(Author author)
         {
-            return _context.Author.Where(a => authorsId.Contains(a.Id)).ToListAsync();
-        }
+            string sql = "INSERT INTO Authors (Name) Values (@Name); SELECT SCOPE_IDENTITY();";
 
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                author.Id = await connection.ExecuteScalarAsync<int>(sql, author);
+            }
+        }
     }
 }
