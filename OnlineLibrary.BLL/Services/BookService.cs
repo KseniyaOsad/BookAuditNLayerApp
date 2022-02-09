@@ -8,6 +8,7 @@ using FluentValidation;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
 using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -21,29 +22,6 @@ namespace OnlineLibrary.BLL.Services
         {
             _unitOfWork = uow;
             _bookValidator = validator;
-        }
-
-        public async Task<PaginatedList<Book>> GetAllBooksAsync(PaginationOptions paginationOptions)
-        {
-            int count = await _unitOfWork.BookRepository.GetAllBooksCountAsync();
-            if (count == 0) return new PaginatedList<Book>();
-            int skip = CalculateSkip(count, paginationOptions.PageNumber, paginationOptions.PageSize);
-            return new PaginatedList<Book>(count, await _unitOfWork.BookRepository.GetAllBooksAsync(skip, paginationOptions.PageSize));
-        }
-
-        private int CalculateSkip(int count, int pageNumber, int pageSize)
-        {
-            // If we need to show more data than we have, show the first page.
-            if (count < pageSize) return 0;
-
-            // If after skipping data there is some data, show it.
-            int skip = (pageNumber - 1) * pageSize;
-            if (count - skip >= 1)  return skip;
-
-            // Else calculate how much we need to skip for obtaining the last page.
-            int remainder = count % pageSize;
-            if (remainder == 0) return count - pageSize;
-            return count - remainder;
         }
 
         public async Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing)
@@ -62,18 +40,36 @@ namespace OnlineLibrary.BLL.Services
         public async Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book)
         {
             var originalBook = await _unitOfWork.BookRepository.GetBookByIdAsync(bookId);
-            ExceptionExtensions.Check<OLNotFound>(originalBook == null, "Book not found");
             book.ApplyTo(originalBook);
+            ExceptionExtensions.Check<OLBadRequest>(bookId != originalBook.Id, "You are trying to change the ID. it's not allowed.");
+
+            bool updateBook = false, updateAuthors = false, updateTags = false;
+
+            // Take real authors and tags if needed.
+            if (book.Operations.Any(x => x.path.Contains("authors")))
+            {
+                originalBook.Authors = await _unitOfWork.AuthorRepository.GetAuthorsByIdListAsync(originalBook.Authors.Select(x => x.Id).ToList());
+                updateAuthors = true;
+            }
+            if (book.Operations.Any(x => x.path.Contains("tags")))
+            {
+                originalBook.Tags = await _unitOfWork.TagRepository.GetTagsByIdListAsync(originalBook.Tags.Select(x => x.Id).ToList());
+                updateTags = true;
+            }
+            if (book.Operations.Any(x => !x.path.Contains("tags") && !x.path.Contains("authors")))
+            {
+                updateBook = true;
+            }
+
             var results = _bookValidator.Validate(originalBook);
             ExceptionExtensions.Check<OLBadRequest>(!results.IsValid, "The book has been changed incorrectly");
-            await _unitOfWork.SaveAsync();
+            await _unitOfWork.BookRepository.UpdateBookAsync(originalBook, updateBook, updateAuthors, updateTags);
         }
 
         public async Task<int> CreateBookAsync(Book book)
         {
             ExceptionExtensions.Check<OLBadRequest>(book == null, "A null object came to the method");
-            _unitOfWork.BookRepository.InsertBook(book);
-            await _unitOfWork.SaveAsync();
+            await _unitOfWork.BookRepository.CreateBookAsync(book);
             ExceptionExtensions.Check<OLInternalServerError>(book.Id == 0, "The book was not created");
             return book.Id;
         }
