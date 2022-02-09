@@ -19,26 +19,31 @@ namespace OnlineLibraryApiTest.Controllers
 
         private Mock<IAuthorService> _mockAuthorService = new Mock<IAuthorService>();
 
-        private AuthorValidator _authorValidator;
-        
+        private AuthorValidator _authorValidator = new AuthorValidator();
+
         private Mock<ILogger<AuthorController>> _mockILogger = new Mock<ILogger<AuthorController>>();
 
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            _authorValidator = new AuthorValidator();
-        }
-
+        // Task<IActionResult> CreateAsync([FromBody] Author author)
+        
         [TestMethod]
-        [DataRow("")]
-        [DataRow("  ")]
-        [DataRow(null)]
-        public void Validate_Author_FieldIsIncorrect(string name)
+        [DataRow("A")]
+        [DataRow("B")]
+        public async Task Create_Author_Ok(string name)
         {
             Author author = new Author() { Name = name };
-            var result = _authorValidator.TestValidate(author);
-            result.ShouldHaveValidationErrorFor(x => x.Name);
+
+            _mockAuthorService.Setup(x => x.CreateAuthorAsync(author)).Returns(Task.FromResult(1));
+            _authorController = new AuthorController(_mockAuthorService.Object, _mockILogger.Object);
+
+            var result = await _authorController.CreateAsync(author);
+            var okResult = result as OkObjectResult;
+
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(200, okResult.StatusCode);
+            _mockAuthorService.Verify(x => x.CreateAuthorAsync(author), Times.Once);
         }
+
+        // Task<IActionResult> GetAllAuthorsAsync()
 
         [TestMethod]
         public async Task Get_AllAuthors_ListIsEmpty_Ok()
@@ -69,22 +74,17 @@ namespace OnlineLibraryApiTest.Controllers
             _mockAuthorService.Verify(x => x.GetAllAuthorsAsync(), Times.Once);
         }
 
+        // Validate Author - it passed as [FromBody] in CreateAsync method
+
         [TestMethod]
-        [DataRow("A")]
-        [DataRow("B")]
-        public async Task Create_Author_Ok(string name)
+        [DataRow("")]
+        [DataRow("  ")]
+        [DataRow(null)]
+        public void Validate_Author_FieldIsIncorrect(string name)
         {
             Author author = new Author() { Name = name };
-
-            _mockAuthorService.Setup(x => x.CreateAuthorAsync(author)).Returns(Task.FromResult(1));
-            _authorController = new AuthorController(_mockAuthorService.Object, _mockILogger.Object);
-
-            var result = await _authorController.CreateAsync(author);
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockAuthorService.Verify(x => x.CreateAuthorAsync(author), Times.Once);
+            var result = _authorValidator.TestValidate(author);
+            result.ShouldHaveValidationErrorFor(x => x.Name);
         }
     }
 }
