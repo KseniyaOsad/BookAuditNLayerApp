@@ -51,19 +51,14 @@ namespace OnlineLibrary.API
                 OptionsBuilderConfigurationExtensions.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
             services.AddDbContext<BookContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("BookContext")));
+                options.UseSqlServer(Configuration.GetConnectionString("BookContext"), b => b.MigrationsAssembly("OnlineLibrary.API")));
             services.AddTransient<IBookService, BookService>();
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<ITagService, TagService>();
             services.AddTransient<IDataExportService, DataExportService>();
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IReservationService, ReservationService>();
 
-            // EF.
-            //services.AddTransient<IUnitOfWork, EFUnitOfWork>(serviceProvider =>
-            //{
-            //    var context = serviceProvider.GetRequiredService<BookContext>();
-            //    return new EFUnitOfWork(context);
-            //});
-            // Dapper.
             services.AddTransient<IUnitOfWork, DapperUnitOfWork>(serviceProvider =>
             {
                 return new DapperUnitOfWork(Configuration.GetConnectionString("BookContext"));
@@ -71,9 +66,12 @@ namespace OnlineLibrary.API
 
             // Validators.
             services.AddTransient<IValidator<CreateBook>, CreateBookValidator>();
+            services.AddTransient<IValidator<ReservationModel>, CreateReservationValidator>();
             services.AddTransient<IValidator<Book>, BookValidator>();
             services.AddTransient<IValidator<Author>, AuthorValidator>();
             services.AddTransient<IValidator<Tag>, TagValidator>();
+            services.AddTransient<IValidator<User>, UserValidator>();
+            services.AddTransient<IValidator<CreateUser>, CreateUserValidator>();
 
             // Swagger.
             services.AddSwaggerGen();
