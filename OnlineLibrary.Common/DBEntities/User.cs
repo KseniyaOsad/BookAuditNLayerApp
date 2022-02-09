@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.Common.DBEntities
 {
-    class User
+    public class User
     {
         public int Id { get; set; }
 
@@ -10,7 +11,7 @@ namespace OnlineLibrary.Common.DBEntities
 
         public string Email { get; set; }
 
-        public int Age { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
         public DateTime RegistrationDate { get; set; } = DateTime.Now;
     }

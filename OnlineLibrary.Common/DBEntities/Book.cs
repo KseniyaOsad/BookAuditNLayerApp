@@ -12,8 +12,6 @@ namespace OnlineLibrary.Common.DBEntities
 
         public string Description { get; set; }
 
-        public bool Reserve { get; set; } = false;
-
         public bool InArchive { get; set; } = false;
 
         public Genre Genre { get; set; }
