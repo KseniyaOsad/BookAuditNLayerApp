@@ -18,8 +18,6 @@ namespace OnlineLibrary.API.Controllers
 
         private readonly string _path;
 
-        private const string _fileName = "book.csv";
-
         public DataExportController(IWebHostEnvironment hostEnvironment, IDataExportService iData, ILogger<DataExportController> logger)
         {
             _dataExport = iData;
@@ -27,18 +25,54 @@ namespace OnlineLibrary.API.Controllers
             _logger = logger;
         }
 
-        // GET: api/data-exports
-        [HttpGet]
-        public async Task<IActionResult> GetFileAsync()
+        private async Task<FileContentResult> GetFile(string fileName)
         {
-            await _dataExport.WriteCsvAsync(_path, _fileName);
-            _logger.LogInformation($"Writting data to csw file, {_fileName}.");
-            FileContentResult fileResult = new FileContentResult(await System.IO.File.ReadAllBytesAsync(_path + _fileName), "application/csv")
+            FileContentResult fileResult = new FileContentResult(await System.IO.File.ReadAllBytesAsync(_path + fileName), "application/csv")
             {
-                FileDownloadName = _fileName
+                FileDownloadName = fileName
             };
-            _logger.LogInformation($"Read all bytes from csw file, {_fileName}.");
+            _logger.LogInformation($"Read all bytes from csw file, {fileName}.");
             return fileResult;
+        }
+
+        // GET: api/data-exports/books
+        [HttpGet("books")]
+        public async Task<IActionResult> GetAllBooksAsync()
+        {
+            const string fileName = "book.csv";
+            await _dataExport.WriteBooksToCsvAsync(_path, fileName);
+            _logger.LogInformation($"Writting books info to csw file, {fileName}.");
+            return await GetFile(fileName);
+        }
+
+        // GET: api/data-exports/reservations
+        [HttpGet("reservations")]
+        public async Task<IActionResult> GetAllReservationsAsync()
+        {
+            const string fileName = "reservations.csv";
+            await _dataExport.WriteReservationsToCsvAsync(_path, fileName);
+            _logger.LogInformation($"Writting reservations info to csw file, {fileName}.");
+            return await GetFile(fileName);
+        }
+
+        // GET: api/data-exports/reservations/book/{id}
+        [HttpGet("reservations/book/{id}")]
+        public async Task<IActionResult> GetBookReservationsAsync(int id)
+        {
+            const string fileName = "reservations.csv";
+            await _dataExport.WriteBookReservationsToCsvAsync(_path, fileName, id);
+            _logger.LogInformation($"Writting book reservations to csw file, {fileName}. Book id = {id}");
+            return await GetFile(fileName);
+        }
+
+        // GET: api/data-exports/reservations/user/{id}
+        [HttpGet("reservations/user/{id}")]
+        public async Task<IActionResult> GetUserReservationsAsync(int id)
+        {
+            const string fileName = "reservations.csv";
+            await _dataExport.WriteUserReservationsToCsvAsync(_path, fileName, id);
+            _logger.LogInformation($"Writting user reservations to csw file, {fileName}. User id = {id}");
+            return await GetFile(fileName);
         }
     }
 }

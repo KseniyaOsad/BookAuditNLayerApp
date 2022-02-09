@@ -73,7 +73,7 @@ namespace OnlineLibrary.API.Controllers
             _logger.LogInformation("Map createBook to book.");
 
             int id = await _bookService.CreateBookAsync(book);
-            _logger.LogInformation($"New book created. Book ID = {authors?.Count}");
+            _logger.LogInformation($"New book created. Book ID = {id}");
             return Ok(id);
         }
 
