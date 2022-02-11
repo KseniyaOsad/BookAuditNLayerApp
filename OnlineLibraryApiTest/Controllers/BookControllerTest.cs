@@ -13,9 +13,8 @@ using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.DBEntities.Enums;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
-using System;
+using OnlineLibrary.Common.Exceptions;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Controllers
@@ -58,11 +57,10 @@ namespace OnlineLibraryApiTest.Controllers
 
         [TestMethod]
         [DataRow(1)]
-        [DataRow(null)]
-        [DataRow(-3)]
+        [DataRow(2)]
         public async Task Get_BookById_Ok(int? bookId)
         {
-            _mockBookService.Setup(x => x.GetBookByIdAsync(bookId)).Returns(Task.FromResult(new Book()));
+            _mockBookService.Setup(x => x.GetBookByIdAsync((int)bookId)).Returns(Task.FromResult(new Book()));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
 
             var result = await _bookController.GetBookByIdAsync(bookId);
@@ -70,7 +68,20 @@ namespace OnlineLibraryApiTest.Controllers
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.GetBookByIdAsync(bookId), Times.Once);
+            _mockBookService.Verify(x => x.GetBookByIdAsync((int)bookId), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(null)]
+        [DataRow(-1)]
+        public async Task Get_BookById_IdIsIncorrect(int? bookId)
+        {
+            _mockBookService.Setup(x => x.GetBookByIdAsync(It.IsAny<int>()));
+            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
+
+            await Assert.ThrowsExceptionAsync<OLBadRequest>(() => _bookController.GetBookByIdAsync(bookId));
+            _mockBookService.Verify(x => x.GetBookByIdAsync(It.IsAny<int>()), Times.Never);
         }
 
         // Task<IActionResult> CreateAsync([FromBody] CreateBook cBook)
@@ -122,8 +133,5 @@ namespace OnlineLibraryApiTest.Controllers
             result.ShouldHaveValidationErrorFor(x => x.Description);
             result.ShouldHaveValidationErrorFor(x => x.Genre);
         }
-
-        
-
     }
 }
