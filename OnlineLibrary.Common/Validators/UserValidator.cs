@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using OnlineLibrary.Common.DBEntities;
+using System;
 
 namespace OnlineLibrary.Common.Validators
 {
@@ -9,7 +10,7 @@ namespace OnlineLibrary.Common.Validators
         {
             RuleFor(x => x.Name).NotEmpty();
             RuleFor(x => x.Email).NotEmpty().EmailAddress();
-            RuleFor(x => x.DateOfBirth).NotEmpty();
+            RuleFor(x => x.DateOfBirth).NotEmpty().InclusiveBetween(new DateTime(1900, 1, 1), DateTime.Now);
         }
     }
 }
