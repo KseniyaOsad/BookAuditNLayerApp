@@ -1,11 +1,12 @@
-﻿using OnlineLibrary.DAL.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using OnlineLibrary.Common.Connection;
+using OnlineLibrary.DAL.Interfaces;
 using System;
 
 namespace OnlineLibrary.DAL.Repositories.Dapper
 {
     public class DapperUnitOfWork : IUnitOfWork
     {
-        private string _connectionString;
 
         private Lazy<BookRepository> _bookRepository;
 
@@ -17,14 +18,13 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 
         private Lazy<ReservationRepository> _reservationRepository;
 
-        public DapperUnitOfWork(string connectionString)
+        public DapperUnitOfWork(IOptions<DBConnection> connOptions)
         {
-            _connectionString = connectionString;
-            _bookRepository = new Lazy<BookRepository>(() => new BookRepository(_connectionString));
-            _authorRepository = new Lazy<AuthorRepository>(() => new AuthorRepository(_connectionString));
-            _tagRepository = new Lazy<TagRepository>(() => new TagRepository(_connectionString));
-            _userRepository = new Lazy<UserRepository>(() => new UserRepository(_connectionString));
-            _reservationRepository = new Lazy<ReservationRepository>(() => new ReservationRepository(_connectionString));
+            _bookRepository = new Lazy<BookRepository>(() => new BookRepository(connOptions));
+            _authorRepository = new Lazy<AuthorRepository>(() => new AuthorRepository(connOptions));
+            _tagRepository = new Lazy<TagRepository>(() => new TagRepository(connOptions));
+            _userRepository = new Lazy<UserRepository>(() => new UserRepository(connOptions));
+            _reservationRepository = new Lazy<ReservationRepository>(() => new ReservationRepository(connOptions));
         }
 
         public IBookRepository BookRepository
@@ -51,6 +51,5 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
         {
             get => _reservationRepository.Value;
         }
-
     }
 }

@@ -5,9 +5,7 @@ using OnlineLibrary.API.Filters;
 using OnlineLibrary.API.Model;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace OnlineLibrary.API.Controllers
@@ -56,7 +54,8 @@ namespace OnlineLibrary.API.Controllers
 
         // Get: api/reservations
         [HttpGet]
-        public async Task<IActionResult> GetAllReservationsAsync() {
+        public async Task<IActionResult> GetAllReservationsAsync()
+        {
             List<Reservation> reservations = await _reservationService.GetAllReservationsAsync();
             _logger.LogInformation($"Getting all reservations. Reservations count = {reservations?.Count}.");
             return Ok(reservations);

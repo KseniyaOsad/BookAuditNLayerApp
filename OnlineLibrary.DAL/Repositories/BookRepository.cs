@@ -1,5 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
+using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Filtration;
@@ -18,11 +20,11 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 {
     public class BookRepository : IBookRepository
     {
-        private string _connectionString;
+        private readonly string _connectionString;
 
-        public BookRepository(string connectionString)
+        public BookRepository(IOptions<DBConnection> connOptions)
         {
-            _connectionString = connectionString;
+            _connectionString = connOptions.Value.BookContext;
         }
 
         private int CalculateSkip(int count, int pageNumber, int pageSize)
@@ -207,7 +209,7 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                     return book;
                 }, new { BookId = bookId });
             }
-            ExceptionExtensions.Check<OLNotFound>(!BookGroup.Any(), "Book not found");
+            if (!BookGroup.Any()) return null;
             Book book = BookGroup.First();
             book.Authors = BookGroup.Where(b => b.Authors != null).Select(b => b.Authors?.Single()).Distinct(new EntityComparer<Author>()).ToList() ?? new List<Author>();
             book.Tags = BookGroup.Where(b => b.Tags != null).Select(b => b.Tags.Single()).Distinct(new EntityComparer<Tag>()).ToList() ?? new List<Tag>();

@@ -16,8 +16,6 @@ namespace OnlineLibrary.API.Mapper
             CreateMap<ReservationModel, Reservation>()
                 .ForMember(dest => dest.Book, opt => opt.MapFrom(src => new Book() { Id = src.BookId }))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => new User() { Id = src.UserId }));
-            CreateMap<CreateUser, User>()
-                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => new DateTime(src.Year, src.Month, src.Day)));
         }
     }
 }

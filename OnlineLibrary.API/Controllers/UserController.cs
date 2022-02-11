@@ -19,21 +19,16 @@ namespace OnlineLibrary.API.Controllers
 
         private readonly ILogger<UserController> _logger;
 
-        private readonly IMapper _mapper;
-
-        public UserController(IUserService iUser, IMapper mapper, ILogger<UserController> logger)
+        public UserController(IUserService iUser, ILogger<UserController> logger)
         {
             _userService = iUser;
             _logger = logger;
-            _mapper = mapper;
         }
 
         // POST:  api/users
         [HttpPost]
-        public async Task<IActionResult> CreateAsync([FromBody] CreateUser cUser)
+        public async Task<IActionResult> CreateAsync([FromBody] User user)
         {
-            User user = _mapper.Map<CreateUser, User>(cUser);
-            _logger.LogInformation($"Map CreateUser to User");
             int id = await _userService.CreateUserAsync(user);
             _logger.LogInformation($"New user created. User ID = {id}.");
             return Ok(id);

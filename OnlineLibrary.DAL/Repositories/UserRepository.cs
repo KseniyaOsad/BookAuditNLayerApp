@@ -1,5 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
+using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
@@ -10,11 +12,11 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 {
     public class UserRepository : IUserRepository
     {
-        private string _connectionString;
+        private readonly string _connectionString;
 
-        public UserRepository(string connectionString)
+        public UserRepository(IOptions<DBConnection> connOptions)
         {
-            _connectionString = connectionString;
+            _connectionString = connOptions.Value.BookContext;
         }
 
         public async Task CreateUserAsync(User user)

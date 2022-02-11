@@ -3,7 +3,6 @@ using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
-using OnlineLibrary.DAL.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +18,7 @@ using OnlineLibrary.API.Validator;
 using AutoMapper;
 using OnlineLibrary.API.Mapper;
 using OnlineLibrary.DAL.Repositories.Dapper;
+using OnlineLibrary.Common.Connection;
 
 namespace OnlineLibrary.API
 {
@@ -34,10 +34,12 @@ namespace OnlineLibrary.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
+            services.Configure<DBConnection>(Configuration.GetSection(DBConnection.ConnectionStrings));
+
             var mappingConfig = new MapperConfiguration(mc =>
             {
                 mc.AddProfile(new MappingProfile());
-                
             });
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
@@ -59,19 +61,15 @@ namespace OnlineLibrary.API
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IReservationService, ReservationService>();
 
-            services.AddTransient<IUnitOfWork, DapperUnitOfWork>(serviceProvider =>
-            {
-                return new DapperUnitOfWork(Configuration.GetConnectionString("BookContext"));
-            });
+            services.AddTransient<IUnitOfWork, DapperUnitOfWork>();
 
             // Validators.
             services.AddTransient<IValidator<CreateBook>, CreateBookValidator>();
-            services.AddTransient<IValidator<ReservationModel>, CreateReservationValidator>();
+            services.AddTransient<IValidator<ReservationModel>, ReservationModelValidator>();
             services.AddTransient<IValidator<Book>, BookValidator>();
             services.AddTransient<IValidator<Author>, AuthorValidator>();
             services.AddTransient<IValidator<Tag>, TagValidator>();
             services.AddTransient<IValidator<User>, UserValidator>();
-            services.AddTransient<IValidator<CreateUser>, CreateUserValidator>();
 
             // Swagger.
             services.AddSwaggerGen();

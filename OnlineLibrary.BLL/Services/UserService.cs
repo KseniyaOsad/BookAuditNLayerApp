@@ -19,15 +19,14 @@ namespace OnlineLibrary.BLL.Services
 
         public async Task<int> CreateUserAsync(User user)
         {
-            ExceptionExtensions.Check<OLBadRequest>(user == null, "A null object came to the method");
             await _unitOfWork.UserRepository.CreateUserAsync(user);
             ExceptionExtensions.Check<OLBadRequest>(user.Id == 0, "The user was not created");
             return user.Id;
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
+        public Task<List<User>> GetAllUsersAsync()
         {
-            return await _unitOfWork.UserRepository.GetAllUsersAsync();
+            return _unitOfWork.UserRepository.GetAllUsersAsync();
         }
     }
 }

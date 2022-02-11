@@ -4,12 +4,12 @@ namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IDataExportService
     {
-        Task WriteBooksToCsvAsync(string path, string filename);
+        Task<string> GetAllBooksAsync();
 
-        Task WriteReservationsToCsvAsync(string path, string filename);
+        Task<string> GetAllReservationsAsync();
 
-        Task WriteBookReservationsToCsvAsync(string path, string filename, int bookId);
+        Task<string> GetBookReservationsAsync(int bookId);
 
-        Task WriteUserReservationsToCsvAsync(string path, string filename, int userId);
+        Task<string> GetUserReservationsAsync(int userId);
     }
 }

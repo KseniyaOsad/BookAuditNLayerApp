@@ -1,15 +1,11 @@
 ﻿using FluentValidation;
 using OnlineLibrary.API.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OnlineLibrary.API.Validator
 {
-    public class CreateReservationValidator : AbstractValidator<ReservationModel>
+    public class ReservationModelValidator : AbstractValidator<ReservationModel>
     {
-        public CreateReservationValidator()
+        public ReservationModelValidator()
         {
             RuleFor(x => x.UserId).GreaterThan(0);
             RuleFor(x => x.BookId).GreaterThan(0);

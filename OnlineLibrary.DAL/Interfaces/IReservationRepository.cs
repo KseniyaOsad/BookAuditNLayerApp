@@ -15,5 +15,9 @@ namespace OnlineLibrary.DAL.Interfaces
         Task CreateReservationAsync(Reservation reservation);
 
         Task CloseReservationAsync(Reservation reservation);
+
+        Task<Reservation> GetBookReservationLastRow(int bookId);
+
+        Task<bool> IsBookInReserve(int bookId);
     }
 }

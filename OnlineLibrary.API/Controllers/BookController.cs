@@ -12,6 +12,8 @@ using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
+using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Extensions;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -52,7 +54,8 @@ namespace OnlineLibrary.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBookByIdAsync(int? id)
         {
-            Book book = await _bookService.GetBookByIdAsync(id);
+            ExceptionExtensions.Check<OLBadRequest>(id == null || id <= 0, "Id is incorrect");
+            Book book = await _bookService.GetBookByIdAsync((int)id);
             _logger.LogInformation($"Getting book by id. Book's id = {book?.Id}");
             return Ok(book);
         }

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.JsonPatch;
-using OnlineLibrary.BLL.Interfaces;
+﻿using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.Common.Extensions;
@@ -20,30 +19,29 @@ namespace OnlineLibrary.BLL.Services
 
         public async Task CloseReservationAsync(Reservation reservation)
         {
-            await _unitOfWork.ReservationRepository.CloseReservationAsync(reservation);
+            Reservation reservationRow = await _unitOfWork.ReservationRepository.GetBookReservationLastRow(reservation.Book.Id);
+            ExceptionExtensions.Check<OLNotFound>(reservationRow == null || reservationRow.UserId != reservation.User.Id, $"Reservation not found.");
+            ExceptionExtensions.Check<OLBadRequest>(reservationRow.ReturnDate != default, $"Book isn't in reserve.");
+            await _unitOfWork.ReservationRepository.CloseReservationAsync(reservationRow);
         }
 
         public async Task<int> CreateReservationAsync(Reservation reservation)
         {
             ExceptionExtensions.Check<OLBadRequest>(!(await _unitOfWork.UserRepository.IsUserExistAsync(reservation.User.Id)), $"User not found. User id = {reservation.User.Id}");
-            
+
+            int bookId = reservation.Book.Id;
             reservation.Book = await _unitOfWork.BookRepository.GetBookByIdAsync(reservation.Book.Id);
-            ExceptionExtensions.Check<OLNotFound>(reservation.Book == null, $"Book not found. Book id = {reservation.Book.Id}");
-            ExceptionExtensions.Check<OLBadRequest>(reservation.Book.InArchive, $"Book is in Archive.");
+            ExceptionExtensions.Check<OLNotFound>(reservation.Book == null, $"Book not found. Book id = {bookId}");
+            ExceptionExtensions.Check<OLBadRequest>(reservation.Book.InArchive, $"Book is in Archive. Book id = {bookId}");
 
             await _unitOfWork.ReservationRepository.CreateReservationAsync(reservation);
             ExceptionExtensions.Check<OLInternalServerError>(reservation.Id == 0, "The reservation was not created");
             return reservation.Id;
         }
 
-        public async Task<List<Reservation>> GetAllReservationsAsync()
+        public Task<List<Reservation>> GetAllReservationsAsync()
         {
-            return await _unitOfWork.ReservationRepository.GetAllReservationsAsync();
-        }
-
-        public Task UpdatePatchAsync(int reservationId, JsonPatchDocument<Reservation> reservation)
-        {
-            throw new System.NotImplementedException();
+            return  _unitOfWork.ReservationRepository.GetAllReservationsAsync();
         }
     }
 }

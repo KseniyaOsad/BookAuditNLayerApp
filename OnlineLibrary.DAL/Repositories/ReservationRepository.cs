@@ -1,5 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
+using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.Common.Extensions;
@@ -13,30 +15,34 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 {
     class ReservationRepository : IReservationRepository
     {
-        private string _connectionString;
+        private readonly string _connectionString;
 
-        public ReservationRepository(string connectionString)
+        public ReservationRepository(IOptions<DBConnection> connOptions)
         {
-            _connectionString = connectionString;
+            _connectionString = connOptions.Value.BookContext;
         }
 
         public async Task CloseReservationAsync(Reservation reservation)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                // Check if this user booked this book and did not return.
-                string getRowSql = @"
-                    Select TOP 1 Res.Id, Res.ReturnDate FROM Reservations AS Res
-                    WHERE Res.BookId = @BookId AND Res.UserId = @UserId
-                    ORDER BY Res.Id DESC;
-                ";
-                Reservation reservationRow = await connection.QueryFirstOrDefaultAsync<Reservation>(getRowSql, new { BookId = reservation.Book.Id, UserId = reservation.User.Id });
-                ExceptionExtensions.Check<OLNotFound>(reservationRow == null, $"Reservation not found.");
-                ExceptionExtensions.Check<OLBadRequest>(reservationRow.ReturnDate != default, $"Book isn't in reserve.");
                 string updateRow = @"
                 UPDATE Reservations SET ReturnDate = @ReturnDate WHERE Id = @ResId; 
                 ";
-                await connection.ExecuteAsync(updateRow, new { ReturnDate = DateTime.Now, ResId = reservationRow.Id });
+                await connection.ExecuteAsync(updateRow, new { ReturnDate = DateTime.Now, ResId = reservation.Id });
+            }
+        }
+
+        public async Task<Reservation> GetBookReservationLastRow(int bookId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string getRowSql = @"
+                    Select TOP 1 Res.Id, Res.UserId, Res.ReturnDate FROM Reservations AS Res
+                    WHERE Res.BookId = @BookId 
+                    ORDER BY Res.Id DESC;
+                ";
+                return await connection.QueryFirstOrDefaultAsync<Reservation>(getRowSql, new { BookId = bookId });
             }
         }
 
@@ -117,6 +123,21 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                     reservation.User = user;
                     return reservation;
                 }, new { userId = userId })).ToList();
+            }
+        }
+
+        public async Task<bool> IsBookInReserve(int bookId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string getRowSql = @"
+                    Select TOP 1 Res.Id, Res.ReturnDate FROM Reservations AS Res
+                    WHERE Res.BookId = @BookId
+                    ORDER BY Res.Id DESC;
+                ";
+                Reservation reservationRow = await connection.QueryFirstOrDefaultAsync<Reservation>(getRowSql, new { BookId = bookId});
+                if (reservationRow == null || reservationRow.ReturnDate != default) return false;
+                return true;
             }
         }
     }

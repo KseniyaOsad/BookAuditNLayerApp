@@ -20,7 +20,6 @@ namespace OnlineLibrary.BLL.Services
 
         public async Task<int> CreateTagAsync(Tag tag)
         {
-            ExceptionExtensions.Check<OLBadRequest>(tag == null, "A null object came to the method");
             await _unitOfWork.TagRepository.CreateTagAsync(tag);
             ExceptionExtensions.Check<OLBadRequest>(tag.Id == 0, "The tag was not created");
             return tag.Id;

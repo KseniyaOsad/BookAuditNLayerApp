@@ -22,26 +22,8 @@ namespace OnlineLibrary.BLL.Services
             unitOfWork = uow;
         }
 
-        private async Task WriteCsvAsync(string path, string filename, string text)
+        public async Task<string> GetAllBooksAsync()
         {
-            try
-            {
-                using (StreamWriter sw = new StreamWriter(path + filename, false))
-                {
-                    await sw.WriteAsync(text);
-                    sw.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new OLInternalServerError("Failed to write file: " + ex.ToString());
-            }
-        }
-
-        public async Task WriteBooksToCsvAsync(string path, string filename)
-        {
-            ExceptionExtensions.Check<OLInternalServerError>(string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(filename), "File path is empty");
-
             List<Book> books = await unitOfWork.BookRepository.GetAllBooksForCsvAsync();
             ExceptionExtensions.Check<OLNotFound>(!books.Any(), "Books don't exist");
 
@@ -58,41 +40,39 @@ namespace OnlineLibrary.BLL.Services
                         }.ToString())
                     ).ToList();
 
-            await WriteCsvAsync(path, filename, allTextToWrite.ToString());
+            return allTextToWrite.ToString();
         }
 
-        public async Task WriteReservationsToCsvAsync(string path, string filename)
+        public async Task<string> GetAllReservationsAsync()
         {
-            ExceptionExtensions.Check<OLInternalServerError>(string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(filename), "File path is empty");
             List<Reservation> reservations = await unitOfWork.ReservationRepository.GetAllReservationsAsync();
             ExceptionExtensions.Check<OLNotFound>(!reservations.Any(), "There are no reservations");
-            await WriteReservations(path, filename, reservations);
+            return GetReservationsInString(reservations);
         }
 
-        public async Task WriteBookReservationsToCsvAsync(string path, string filename, int bookId)
+        public async Task<string> GetBookReservationsAsync(int bookId)
         {
-            ExceptionExtensions.Check<OLInternalServerError>(string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(filename), "File path is empty");
             List<Reservation> reservations = await unitOfWork.ReservationRepository.GetBookReservationHistoryAsync(bookId);
             ExceptionExtensions.Check<OLNotFound>(!reservations.Any(), $"This book has no reservation history. Book id = {bookId}");
-            await WriteReservations(path, filename, reservations);
+            return GetReservationsInString(reservations);
         }
 
-        public async Task WriteUserReservationsToCsvAsync(string path, string filename, int userId)
+        public async Task<string> GetUserReservationsAsync(int userId)
         {
-            ExceptionExtensions.Check<OLInternalServerError>(string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(filename), "File path is empty");
             List<Reservation> reservations = await unitOfWork.ReservationRepository.GetUserReservationHistoryAsync(userId);
             ExceptionExtensions.Check<OLNotFound>(!reservations.Any(), $"This user has no reservation history. User id = {userId}");
-            await WriteReservations(path, filename, reservations);
+            return GetReservationsInString(reservations)
+                ;
         }
 
-        private async Task WriteReservations(string path, string filename, List<Reservation> reservations)
+        private string GetReservationsInString(List<Reservation> reservations)
         {
             StringBuilder allTextToWrite = new StringBuilder();
             reservations.Select(
                     r => allTextToWrite.Append(
                         r.ToString())
                     ).ToList();
-            await WriteCsvAsync(path, filename, allTextToWrite.ToString());
+            return allTextToWrite.ToString();
         }
     }
 }

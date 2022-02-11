@@ -10,7 +10,7 @@ namespace OnlineLibrary.BLL.Interfaces
     {
         Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing);
 
-        Task<Book> GetBookByIdAsync(int? bookId);
+        Task<Book> GetBookByIdAsync(int bookId);
 
         Task<int> CreateBookAsync(Book book);
 

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using OnlineLibrary.API.Filters;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Text;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -25,54 +27,53 @@ namespace OnlineLibrary.API.Controllers
             _logger = logger;
         }
 
-        private async Task<FileContentResult> GetFile(string fileName)
+        private async Task<FileStreamResult> GetFile(string textToWrite)
         {
-            FileContentResult fileResult = new FileContentResult(await System.IO.File.ReadAllBytesAsync(_path + fileName), "application/csv")
+            MemoryStream memoryStream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(memoryStream);
+            await writer.WriteLineAsync(textToWrite);
+            await writer.FlushAsync();
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            return new FileStreamResult(memoryStream, "application/csv")
             {
-                FileDownloadName = fileName
+                FileDownloadName = "File.csv"
             };
-            _logger.LogInformation($"Read all bytes from csw file, {fileName}.");
-            return fileResult;
         }
 
         // GET: api/data-exports/books
         [HttpGet("books")]
         public async Task<IActionResult> GetAllBooksAsync()
         {
-            const string fileName = "book.csv";
-            await _dataExport.WriteBooksToCsvAsync(_path, fileName);
-            _logger.LogInformation($"Writting books info to csw file, {fileName}.");
-            return await GetFile(fileName);
+            string text = await _dataExport.GetAllBooksAsync();
+            _logger.LogInformation($"Get books info as string.");
+            return await GetFile(text);
         }
 
         // GET: api/data-exports/reservations
         [HttpGet("reservations")]
         public async Task<IActionResult> GetAllReservationsAsync()
         {
-            const string fileName = "reservations.csv";
-            await _dataExport.WriteReservationsToCsvAsync(_path, fileName);
-            _logger.LogInformation($"Writting reservations info to csw file, {fileName}.");
-            return await GetFile(fileName);
+            string text = await _dataExport.GetAllReservationsAsync();
+            _logger.LogInformation($"Get reservations info as string.");
+            return await GetFile(text);
         }
 
         // GET: api/data-exports/reservations/book/{id}
         [HttpGet("reservations/book/{id}")]
         public async Task<IActionResult> GetBookReservationsAsync(int id)
         {
-            const string fileName = "reservations.csv";
-            await _dataExport.WriteBookReservationsToCsvAsync(_path, fileName, id);
-            _logger.LogInformation($"Writting book reservations to csw file, {fileName}. Book id = {id}");
-            return await GetFile(fileName);
+            string text =  await _dataExport.GetBookReservationsAsync(id);
+            _logger.LogInformation($"Get book reservations info as string. Book id = {id}");
+            return await GetFile(text);
         }
 
         // GET: api/data-exports/reservations/user/{id}
         [HttpGet("reservations/user/{id}")]
         public async Task<IActionResult> GetUserReservationsAsync(int id)
         {
-            const string fileName = "reservations.csv";
-            await _dataExport.WriteUserReservationsToCsvAsync(_path, fileName, id);
-            _logger.LogInformation($"Writting user reservations to csw file, {fileName}. User id = {id}");
-            return await GetFile(fileName);
+            string text = await _dataExport.GetUserReservationsAsync(id);
+            _logger.LogInformation($"Get  user reservations info as string. User id = {id}");
+            return await GetFile(text);
         }
     }
 }
