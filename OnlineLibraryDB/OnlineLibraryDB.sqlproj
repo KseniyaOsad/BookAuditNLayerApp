@@ -58,9 +58,12 @@
     <Folder Include="Properties" />
     <Folder Include="Tables" />
     <Folder Include="StoredProcedures" />
+    <Folder Include="PRE-Deployment" />
+    <Folder Include="POST-Deployment" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OnlineLibraryDB.publish.xml" />
+    <None Include="POST-Deployment\Post-Seed-Books.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Users.sql" />
@@ -70,11 +73,22 @@
     <Build Include="Tables\BookTag.sql" />
     <Build Include="Tables\AuthorBook.sql" />
     <Build Include="Tables\Reservations.sql" />
+    <PostDeploy Include="POST-Deployment\Script.PostDeploymentSeed.sql" />
+    <PreDeploy Include="PRE-Deployment\Script.PreDeploymentDeleteSeed.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PostDeploy Include="Script.PostDeploymentReSeed.sql" />
+    <None Include="POST-Deployment\Post-Seed-Authors.sql" />
   </ItemGroup>
   <ItemGroup>
-    <PreDeploy Include="Script.PreDeploymentSeed.sql" />
+    <None Include="POST-Deployment\Post-Seed-Users.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="POST-Deployment\Post-Seed-Tags.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="POST-Deployment\Post-Seed-BookTag.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="POST-Deployment\Post-Seed-AuthorBook.sql" />
   </ItemGroup>
 </Project>
