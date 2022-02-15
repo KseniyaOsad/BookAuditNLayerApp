@@ -1,0 +1,4 @@
+﻿DELETE FROM Books WHERE Id IN (1, 2);
+DELETE FROM Authors WHERE Id IN (1, 2, 3);
+DELETE FROM Tags WHERE Id IN (1, 2, 3);
+DELETE FROM Users WHERE Id IN (1, 2);

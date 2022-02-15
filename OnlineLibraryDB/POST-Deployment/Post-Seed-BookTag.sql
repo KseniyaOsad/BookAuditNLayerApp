@@ -1,0 +1,4 @@
+﻿SET IDENTITY_INSERT BookTag ON
+INSERT INTO BookTag (Id, BooksId, TagsId) 
+VALUES (1, 1, 1), (2, 2, 2), (3, 2, 3);
+SET IDENTITY_INSERT BookTag OFF; 
