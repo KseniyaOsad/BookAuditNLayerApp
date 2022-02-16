@@ -1,0 +1,8 @@
+﻿CREATE PROCEDURE [dbo].[sp_CreateAuthor]
+	@name NVARCHAR(100)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	INSERT INTO [dbo].[Authors] (Name) VALUES (@name);
+	RETURN SCOPE_IDENTITY();
+END
