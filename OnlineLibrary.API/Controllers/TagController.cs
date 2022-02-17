@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.API.Filters;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,7 +9,6 @@ namespace OnlineLibrary.API.Controllers
 {
     [Route("api/tags")]
     [ApiController]
-    [TypeFilter(typeof(GenericExceptionFilter))]
     public class TagController : ControllerBase
     {
         private readonly ITagService _tagService;

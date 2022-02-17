@@ -1,8 +1,5 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using OnlineLibrary.API.Filters;
-using OnlineLibrary.API.Model;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
 using System.Collections.Generic;
@@ -12,7 +9,6 @@ namespace OnlineLibrary.API.Controllers
 {
     [Route("api/users")]
     [ApiController]
-    [TypeFilter(typeof(GenericExceptionFilter))]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;

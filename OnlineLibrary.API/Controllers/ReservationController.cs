@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using OnlineLibrary.API.Filters;
 using OnlineLibrary.API.Model;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
@@ -12,7 +11,6 @@ namespace OnlineLibrary.API.Controllers
 {
     [Route("api/reservations")]
     [ApiController]
-    [TypeFilter(typeof(GenericExceptionFilter))]
     public class ReservationController : ControllerBase
     {
         private readonly IReservationService _reservationService;

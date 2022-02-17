@@ -19,6 +19,7 @@ using AutoMapper;
 using OnlineLibrary.API.Mapper;
 using OnlineLibrary.DAL.Repositories.Dapper;
 using OnlineLibrary.Common.Connection;
+using OnlineLibrary.API.Filters;
 
 namespace OnlineLibrary.API
 {
@@ -46,7 +47,9 @@ namespace OnlineLibrary.API
 
             //services.AddAutoMapper(typeof(MappingProfile));
 
-            services.AddControllers()
+            services.AddControllers(options => 
+                    options.Filters.Add<GenericExceptionFilter>()
+                )
                 .AddFluentValidation()
                 .AddNewtonsoftJson(OptionsBuilderConfigurationExtensions =>
             {
