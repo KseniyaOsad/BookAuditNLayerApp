@@ -6,7 +6,6 @@ using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.JsonPatch;
-using OnlineLibrary.API.Filters;
 using OnlineLibrary.Common.DBEntities.Enums;
 using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
@@ -19,7 +18,6 @@ namespace OnlineLibrary.API.Controllers
 {
     [Route("api/books")]
     [ApiController]
-    [TypeFilter(typeof(GenericExceptionFilter))]
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -52,11 +50,10 @@ namespace OnlineLibrary.API.Controllers
 
         // GET: api/books/[id]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetBookByIdAsync(int? id)
+        public async Task<IActionResult> GetBookByIdAsync(int id)
         {
-            ExceptionExtensions.Check<OLBadRequest>(id == null || id <= 0, "Id is incorrect");
-            Book book = await _bookService.GetBookByIdAsync((int)id);
-            _logger.LogInformation($"Getting book by id. Book's id = {book?.Id}");
+            Book book = await _bookService.GetBookByIdAsync(id);
+            _logger.LogInformation($"Getting book by id. Book's id = {book.Id}");
             return Ok(book);
         }
 
