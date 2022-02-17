@@ -26,9 +26,10 @@ namespace OnlineLibraryApiTest.Controllers
         [TestMethod]
         public async Task Get_AllBooks_File_OK()
         {
+            _mockDataExportService.Setup(x => x.GetAllBooksAsync()).Returns(Task.FromResult(""));
             _dataExportController = new DataExportController(_mockHostingEnvironment.Object, _mockDataExportService.Object, _mockILogger.Object);
             var result = await _dataExportController.GetAllBooksAsync();
-            var okResult = result as FileStreamResult;
+            var okResult = result as FileResult;
 
             Assert.IsNotNull(okResult);
             _mockDataExportService.Verify(x => x.GetAllBooksAsync(), Times.Once);
@@ -39,9 +40,10 @@ namespace OnlineLibraryApiTest.Controllers
         [TestMethod]
         public async Task Get_AllReservations_File_OK()
         {
+            _mockDataExportService.Setup(x => x.GetAllReservationsAsync()).Returns(Task.FromResult(""));
             _dataExportController = new DataExportController(_mockHostingEnvironment.Object, _mockDataExportService.Object, _mockILogger.Object);
             var result = await _dataExportController.GetAllReservationsAsync();
-            var okResult = result as FileStreamResult;
+            var okResult = result as FileResult;
 
             Assert.IsNotNull(okResult);
             _mockDataExportService.Verify(x => x.GetAllReservationsAsync(), Times.Once);
@@ -52,9 +54,10 @@ namespace OnlineLibraryApiTest.Controllers
         [TestMethod]
         public async Task Get_BookReservations_File_OK()
         {
+            _mockDataExportService.Setup(x => x.GetBookReservationsAsync(It.IsAny<int>())).Returns(Task.FromResult(""));
             _dataExportController = new DataExportController(_mockHostingEnvironment.Object, _mockDataExportService.Object, _mockILogger.Object);
             var result = await _dataExportController.GetBookReservationsAsync(1);
-            var okResult = result as FileStreamResult;
+            var okResult = result as FileResult;
 
             Assert.IsNotNull(okResult);
             _mockDataExportService.Verify(x => x.GetBookReservationsAsync(It.IsAny<int>()), Times.Once);
@@ -65,9 +68,10 @@ namespace OnlineLibraryApiTest.Controllers
         [TestMethod]
         public async Task Get_UserReservations_File_OK()
         {
+            _mockDataExportService.Setup(x => x.GetUserReservationsAsync(It.IsAny<int>())).Returns(Task.FromResult(""));
             _dataExportController = new DataExportController(_mockHostingEnvironment.Object, _mockDataExportService.Object, _mockILogger.Object);
             var result = await _dataExportController.GetUserReservationsAsync(1);
-            var okResult = result as FileStreamResult;
+            var okResult = result as FileResult;
 
             Assert.IsNotNull(okResult);
             _mockDataExportService.Verify(x => x.GetUserReservationsAsync(It.IsAny<int>()), Times.Once);
