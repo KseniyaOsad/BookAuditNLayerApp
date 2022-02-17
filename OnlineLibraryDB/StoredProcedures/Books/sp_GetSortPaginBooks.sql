@@ -1,23 +1,18 @@
-﻿CREATE PROCEDURE [dbo].[sp_GetFilterPaginBooks]
-	@name nvarchar(250) = NULL,
-	@authorId int  = NULL,
-    @tagId int  = NULL,
-    @inArchive bit  = NULL,
+﻿CREATE PROCEDURE [dbo].[sp_GetSortPaginBooks]
+    @bookIds [dbo].[IdList] READONLY,
     @sortDirection nvarchar(100),
     @sortProperty nvarchar(100),
-    @pageNumber int,
+    @skip int,
 	@pageSize int
 AS
-
 BEGIN 
     SET NOCOUNT ON;
 
-    DECLARE @bookIds [dbo].[Id-List] ;
-    INSERT INTO  @bookIds SELECT Id FROM [dbo].[f_FilterBook](@name, @authorId, @tagId, @inArchive);
+    DECLARE @bookIdsExist BIT = 1;
 
-    DECLARE @bookCount int = (SELECT COUNT(*) FROM @bookIds);
-    DECLARE @skip int = [dbo].[f_CalculateSkip](@bookCount, @pageNumber, @pageSize);
-    
+    IF NOT EXISTS(SELECT * FROM @bookIds)
+        SET @bookIdsExist = 0;
+
     SET @sortProperty  = LOWER(@sortProperty);
     SET @sortDirection  = LOWER(@sortDirection);
 
@@ -25,7 +20,8 @@ BEGIN
                     FROM 
                     (SELECT B.Id, B.Name, B.Description, B.InArchive, B.Genre, B.RegistrationDate 
                         FROM [dbo].[Books] AS B
-                        WHERE B.Id IN (SELECT Id FROM @bookIds)
+                        WHERE 
+                        (@bookIdsExist = 0 OR  B.Id IN (SELECT Id FROM @bookIds))
                         ORDER BY 
                         CASE WHEN @sortProperty = 'name' AND @sortDirection = 'asc' THEN B.Name END ASC,
                         CASE WHEN @sortProperty = 'name' AND @sortDirection = 'desc' THEN B.Name END DESC,

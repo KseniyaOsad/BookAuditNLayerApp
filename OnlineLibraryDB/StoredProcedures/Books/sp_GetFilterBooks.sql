@@ -1,13 +1,10 @@
-﻿CREATE FUNCTION [dbo].[f_FilterBook]
-(
+﻿CREATE PROCEDURE [dbo].[sp_GetFilterBooks]
 	@name nvarchar(250) = NULL,
 	@authorId int  = NULL,
     @tagId int  = NULL,
     @inArchive bit  = NULL
-)
-RETURNS TABLE
 AS
-    RETURN SELECT DISTINCT B.Id
+     SELECT DISTINCT B.Id
                     FROM [dbo].[Books] AS B
                     LEFT JOIN [dbo].[AuthorBook] AS AB
                             ON B.Id = AB.BooksId

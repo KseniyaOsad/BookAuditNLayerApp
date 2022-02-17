@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[sp_GetAuthorsByIdList]
-	@ids [dbo].[Id-List] READONLY
+	@ids [dbo].[IdList] READONLY
 AS
 	SET NOCOUNT ON;
 

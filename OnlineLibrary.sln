@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OnlineLibrary.API", "Online
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OnlineLibrary.BLL", "OnlineLibrary.BLL\OnlineLibrary.BLL.csproj", "{87815968-F071-4EAB-B161-A44FCF45598A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineLibraryApiTest", "OnlineLibraryApiTest\OnlineLibraryApiTest.csproj", "{8FE7794D-7B05-4D51-9CFE-60B2780FD045}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OnlineLibraryApiTest", "OnlineLibraryApiTest\OnlineLibraryApiTest.csproj", "{8FE7794D-7B05-4D51-9CFE-60B2780FD045}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "OnlineLibraryDB", "OnlineLibraryDB\OnlineLibraryDB.sqlproj", "{61F33C64-6721-4752-84DC-2B16EAA7AF6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,12 @@ Global
 		{8FE7794D-7B05-4D51-9CFE-60B2780FD045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FE7794D-7B05-4D51-9CFE-60B2780FD045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FE7794D-7B05-4D51-9CFE-60B2780FD045}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61F33C64-6721-4752-84DC-2B16EAA7AF6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61F33C64-6721-4752-84DC-2B16EAA7AF6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61F33C64-6721-4752-84DC-2B16EAA7AF6F}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{61F33C64-6721-4752-84DC-2B16EAA7AF6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61F33C64-6721-4752-84DC-2B16EAA7AF6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61F33C64-6721-4752-84DC-2B16EAA7AF6F}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
