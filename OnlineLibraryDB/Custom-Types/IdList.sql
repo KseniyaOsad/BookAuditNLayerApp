@@ -1,4 +1,4 @@
 ﻿CREATE TYPE [dbo].[IdList] AS TABLE
 (
-	Id INT NOT NULL PRIMARY KEY
+	Id INT NOT NULL
 );
