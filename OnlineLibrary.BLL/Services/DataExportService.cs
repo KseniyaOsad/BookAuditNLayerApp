@@ -5,7 +5,6 @@ using OnlineLibrary.BLL.Model;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using OnlineLibrary.Common.Exceptions;
@@ -61,8 +60,7 @@ namespace OnlineLibrary.BLL.Services
         {
             List<Reservation> reservations = await unitOfWork.ReservationRepository.GetUserReservationHistoryAsync(userId);
             ExceptionExtensions.Check<OLNotFound>(!reservations.Any(), $"This user has no reservation history. User id = {userId}");
-            return GetReservationsInString(reservations)
-                ;
+            return GetReservationsInString(reservations);
         }
 
         private string GetReservationsInString(List<Reservation> reservations)
