@@ -60,6 +60,14 @@
     <Folder Include="StoredProcedures" />
     <Folder Include="PRE-Deployment" />
     <Folder Include="POST-Deployment" />
+    <Folder Include="StoredProcedures\Books" />
+    <Folder Include="StoredProcedures\Authors" />
+    <Folder Include="StoredProcedures\Tags" />
+    <Folder Include="StoredProcedures\Users" />
+    <Folder Include="StoredProcedures\Reservations" />
+    <Folder Include="Custom-Types" />
+    <Folder Include="StoredProcedures\BookTag" />
+    <Folder Include="StoredProcedures\AuthorBook" />
   </ItemGroup>
   <ItemGroup>
     <None Include="OnlineLibraryDB.publish.xml" />
@@ -75,6 +83,34 @@
     <Build Include="Tables\Reservations.sql" />
     <PostDeploy Include="POST-Deployment\Script.PostDeploymentSeed.sql" />
     <PreDeploy Include="PRE-Deployment\Script.PreDeploymentDeleteSeed.sql" />
+    <Build Include="StoredProcedures\Tags\sp_CreateTag.sql" />
+    <Build Include="StoredProcedures\Authors\sp_CreateAuthor.sql" />
+    <Build Include="StoredProcedures\Users\sp_CreateUser.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_CreateReservation.sql" />
+    <Build Include="StoredProcedures\Books\sp_CreateBook.sql" />
+    <Build Include="StoredProcedures\Tags\sp_GetAllTags.sql" />
+    <Build Include="StoredProcedures\Authors\sp_GetAllAuthors.sql" />
+    <Build Include="StoredProcedures\Users\sp_GetAllUsers.sql" />
+    <Build Include="StoredProcedures\Books\sp_GetAllBooksForCSV.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_GetAllReservations.sql" />
+    <Build Include="StoredProcedures\Tags\sp_GetTagsByIdList.sql" />
+    <Build Include="Custom-Types\IdList.sql" />
+    <Build Include="StoredProcedures\Authors\sp_GetAuthorsByIdList.sql" />
+    <Build Include="StoredProcedures\Books\sp_GetBookById.sql" />
+    <Build Include="StoredProcedures\Books\sp_GetSortPaginBooks.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_GetBookReservations.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_GetUserReservation.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_CloseReservation.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_GetLastBookAndUserReservation.sql" />
+    <Build Include="StoredProcedures\BookTag\sp_CreateBookTag.sql" />
+    <Build Include="StoredProcedures\AuthorBook\sp_CreateAuthorBook.sql" />
+    <Build Include="StoredProcedures\BookTag\sp_DeleteBookTag.sql" />
+    <Build Include="StoredProcedures\AuthorBook\sp_DeleteAuthorBook.sql" />
+    <Build Include="StoredProcedures\Books\sp_UpdateBook.sql" />
+    <Build Include="StoredProcedures\BookTag\sp_GetBookTagEntitiesByBook.sql" />
+    <Build Include="StoredProcedures\Authors\sp_GetAuthorBookEntitiesByBook.sql" />
+    <Build Include="StoredProcedures\Users\sp_GetUserById.sql" />
+    <Build Include="StoredProcedures\Books\sp_GetFilterBooks.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="POST-Deployment\Post-Seed-Authors.sql" />
@@ -90,5 +126,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="POST-Deployment\Post-Seed-AuthorBook.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="POST-Deployment\Post-Seed-Reservations.sql" />
   </ItemGroup>
 </Project>
