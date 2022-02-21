@@ -3,7 +3,7 @@ using System.Text;
 
 namespace OnlineLibrary.BLL.Model
 {
-    public class BookAndAuthorToCSV
+    public class BookInfoToCSV
     {
         public int Id { get; set; }
 
@@ -27,12 +27,14 @@ namespace OnlineLibrary.BLL.Model
             }
         }
 
-        public string AuthorName { get; set; }
+        public string AuthorNames { get; set; }
+
+        public string TagNames { get; set; }
 
         public override string ToString()
         {
 
-            return new StringBuilder(Id.ToString()).Append(",").Append(Title).Append(",").Append(AuthorName).Append("\n").ToString();
+            return new StringBuilder(Id.ToString()).Append(",").Append(Title).Append(",").Append(AuthorNames).Append(",").Append(TagNames).Append("\n").ToString();
         }
     }
 }

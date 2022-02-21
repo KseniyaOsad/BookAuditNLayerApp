@@ -1,15 +1,14 @@
 ﻿using OnlineLibrary.BLL.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using OnlineLibrary.API.Filters;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace OnlineLibrary.API.Controllers
 {
     [Route("api/data-exports")]
     [ApiController]
-    [TypeFilter(typeof(GenericExceptionFilter))]
     public class DataExportController : ControllerBase
     {
         private readonly IDataExportService _dataExport;
@@ -18,8 +17,6 @@ namespace OnlineLibrary.API.Controllers
 
         private readonly string _path;
 
-        private const string _fileName = "book.csv";
-
         public DataExportController(IWebHostEnvironment hostEnvironment, IDataExportService iData, ILogger<DataExportController> logger)
         {
             _dataExport = iData;
@@ -27,18 +24,40 @@ namespace OnlineLibrary.API.Controllers
             _logger = logger;
         }
 
-        // GET: api/data-exports
-        [HttpGet]
-        public async Task<IActionResult> GetFileAsync()
+        // GET: api/data-exports/books
+        [HttpGet("books")]
+        public async Task<IActionResult> GetAllBooksAsync()
         {
-            await _dataExport.WriteCsvAsync(_path, _fileName);
-            _logger.LogInformation($"Writting data to csw file, {_fileName}.");
-            FileContentResult fileResult = new FileContentResult(await System.IO.File.ReadAllBytesAsync(_path + _fileName), "application/csv")
-            {
-                FileDownloadName = _fileName
-            };
-            _logger.LogInformation($"Read all bytes from csw file, {_fileName}.");
-            return fileResult;
+            string text = await _dataExport.GetAllBooksAsync();
+            _logger.LogInformation($"Get books info as string.");
+            return File(Encoding.UTF8.GetBytes(text), "text/csv", "Books.csv");
+        }
+
+        // GET: api/data-exports/reservations
+        [HttpGet("reservations")]
+        public async Task<IActionResult> GetAllReservationsAsync()
+        {
+            string text = await _dataExport.GetAllReservationsAsync();
+            _logger.LogInformation($"Get reservations info as string.");
+            return File(Encoding.UTF8.GetBytes(text), "text/csv", "Reservations.csv");
+        }
+
+        // GET: api/data-exports/reservations/book/{id}
+        [HttpGet("reservations/book/{id}")]
+        public async Task<IActionResult> GetBookReservationsAsync(int id)
+        {
+            string text =  await _dataExport.GetBookReservationsAsync(id);
+            _logger.LogInformation($"Get book reservations info as string. Book id = {id}");
+            return File(Encoding.UTF8.GetBytes(text), "text/csv", $"BookReservations_{id}.csv");
+        }
+
+        // GET: api/data-exports/reservations/user/{id}
+        [HttpGet("reservations/user/{id}")]
+        public async Task<IActionResult> GetUserReservationsAsync(int id)
+        {
+            string text = await _dataExport.GetUserReservationsAsync(id);
+            _logger.LogInformation($"Get  user reservations info as string. User id = {id}");
+            return File(Encoding.UTF8.GetBytes(text), "text/csv", $"UserReservations_{id}.csv");
         }
     }
 }

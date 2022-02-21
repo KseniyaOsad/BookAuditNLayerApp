@@ -6,18 +6,18 @@ using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.JsonPatch;
-using OnlineLibrary.API.Filters;
 using OnlineLibrary.Common.DBEntities.Enums;
 using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
+using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.Common.Extensions;
 
 namespace OnlineLibrary.API.Controllers
 {
     [Route("api/books")]
     [ApiController]
-    [TypeFilter(typeof(GenericExceptionFilter))]
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
@@ -50,10 +50,10 @@ namespace OnlineLibrary.API.Controllers
 
         // GET: api/books/[id]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetBookByIdAsync(int? id)
+        public async Task<IActionResult> GetBookByIdAsync(int id)
         {
             Book book = await _bookService.GetBookByIdAsync(id);
-            _logger.LogInformation($"Getting book by id. Book's id = {book?.Id}");
+            _logger.LogInformation($"Getting book by id. Book's id = {book.Id}");
             return Ok(book);
         }
 
@@ -73,7 +73,7 @@ namespace OnlineLibrary.API.Controllers
             _logger.LogInformation("Map createBook to book.");
 
             int id = await _bookService.CreateBookAsync(book);
-            _logger.LogInformation($"New book created. Book ID = {authors?.Count}");
+            _logger.LogInformation($"New book created. Book ID = {id}");
             return Ok(id);
         }
 

@@ -9,16 +9,12 @@ using OnlineLibrary.Common.Exceptions;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
 using OnlineLibrary.Common.Validators;
 using OnlineLibrary.DAL.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq.Expressions;
-using OnlineLibrary.Common.Extensions;
-using System.Linq;
 using OnlineLibrary.Common.DBEntities.Enums;
 using OnlineLibrary.Common.EntityProcessing;
-using OnlineLibrary.Common.EntityProcessing.Sorting;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.JsonPatch.Operations;
+using FluentValidation.Results;
 
 namespace OnlineLibraryApiTest.Services
 {
@@ -27,54 +23,189 @@ namespace OnlineLibraryApiTest.Services
     {
         private BookService _bookService;
 
-        private Mock<IUnitOfWork> _mockUnitOfWork;
-        
-        private Mock<IValidator<Book>> _mockBookValidator;
+        private Mock<IUnitOfWork> _mockUnitOfWork = new Mock<IUnitOfWork>();
 
-        private BookValidator _bookValidator;
+        private Mock<IValidator<Book>> _mockBookValidator = new Mock<IValidator<Book>>();
 
-        private Mock<IBookRepository> _mockBookRepository;
+        private BookValidator _bookValidator = new BookValidator();
 
-        private Mock<IAuthorRepository> _mockAuthorRepository;
+        private Mock<IBookRepository> _mockBookRepository = new Mock<IBookRepository>();
+
+        private Mock<IAuthorRepository> _mockAuthorRepository = new Mock<IAuthorRepository>();
 
         [TestInitialize]
         public void InitializeTest()
         {
-            _mockBookValidator = new Mock<IValidator<Book>>();
-            _bookValidator = new BookValidator();
-            _mockUnitOfWork = new Mock<IUnitOfWork>();
-            _mockBookRepository = new Mock<IBookRepository>();
-            _mockAuthorRepository = new Mock<IAuthorRepository>();
             _mockUnitOfWork.Setup(x => x.BookRepository).Returns(_mockBookRepository.Object);
             _mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(_mockAuthorRepository.Object);
         }
 
+        // Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing)
+
         [TestMethod]
-        [ExpectedException(typeof(OLNotFound))]
-        public async Task UpdatePatch_Book_NotFound()
+        public async Task Filter_Books_Ok()
+        {
+            _mockUnitOfWork.Setup(x => x.BookRepository.FilterBooksAsync(It.IsAny<BookProcessing>())).Returns(Task.FromResult(new PaginatedList<Book>()));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+
+            await _bookService.FilterBooksAsync(new BookProcessing());
+            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooksAsync(It.IsAny<BookProcessing>()), Times.Once);
+        }
+
+
+        // Task<Book> GetBookByIdAsync(int? bookId)
+
+        [TestMethod]
+        public async Task Get_BookById_NotFound()
         {
             Book book = null;
             _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(It.IsAny<int>())).Returns(Task.FromResult(book));
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            
-            await _bookService.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
-            _mockUnitOfWork.Verify(x => x.SaveAsync(), Times.Never);
+
+            await Assert.ThrowsExceptionAsync<OLNotFound>(() => _bookService.GetBookByIdAsync(1));
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetBookByIdAsync(It.IsAny<int>()), Times.Once);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(OLBadRequest))]
-        public async Task UpdatePatch_Book_NotValid()
+        public async Task Get_BookById_Ok()
         {
-            JsonPatchDocument<Book> testBook = new JsonPatchDocument<Book>();
-            Book book = new Book();
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(It.IsAny<int>())).Returns(Task.FromResult(book));
-            var results = _bookValidator.Validate(book);
-            _mockBookValidator.Setup(x=>x.Validate(It.IsAny<Book>())).Returns(results);
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(It.IsAny<int>())).Returns(Task.FromResult(new Book()));
             _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+           
+            await _bookService.GetBookByIdAsync(1);
 
-            await _bookService.UpdatePatchAsync(It.IsAny<int>(), testBook);
-            _mockUnitOfWork.Verify(x => x.SaveAsync(), Times.Never);
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetBookByIdAsync(It.IsAny<int>()), Times.Once);
         }
+
+        // Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book)
+        
+        [TestMethod]
+        public async Task UpdatePatch_Book_OLNotFound()
+        {
+            Book bookNull = null;
+            _mockBookValidator.Setup(x => x.Validate(It.IsAny<Book>()));
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(It.IsAny<int>())).Returns(Task.FromResult(bookNull));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            
+            await Assert.ThrowsExceptionAsync<OLNotFound>(() => _bookService.UpdatePatchAsync(1, new JsonPatchDocument<Book>()));
+
+            _mockBookValidator.Verify(x => x.Validate(It.IsAny<Book>()), Times.Never);
+            _mockUnitOfWork.Verify(x => x.BookRepository.UpdateBookAsync(It.IsAny<Book>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task UpdatePatch_Book_TryToUpdateId_BadRequest()
+        {
+            JsonPatchDocument<Book> book = new JsonPatchDocument<Book>();
+            book.Operations.Add(new Operation<Book>("replace", "/Id", "/books/1", 2));
+            _mockBookValidator.Setup(x => x.Validate(It.IsAny<Book>()));
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(1)).Returns(Task.FromResult(new Book() { Id = 1 }));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            
+            await Assert.ThrowsExceptionAsync<OLBadRequest>(() => _bookService.UpdatePatchAsync(1, book));
+            _mockBookValidator.Verify(x => x.Validate(It.IsAny<Book>()), Times.Never);
+            _mockUnitOfWork.Verify(x => x.BookRepository.UpdateBookAsync(It.IsAny<Book>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task UpdatePatch_Book_TryToUpdateUnExistAuthors_BadRequest()
+        {
+            JsonPatchDocument<Book> book = new JsonPatchDocument<Book>();
+            book.Operations.Add(new Operation<Book>("replace", "/authors", "/books/1", new List<Author>() { new Author() { Id = 1 } }));
+            _mockBookValidator.Setup(x => x.Validate(It.IsAny<Book>())).Returns(new ValidationResult());
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(1)).Returns(Task.FromResult(new Book() { Id = 1 }));
+            _mockUnitOfWork.Setup(x => x.AuthorRepository.GetAuthorsByIdListAsync(It.IsAny<List<int>>())).Returns(Task.FromResult(new List<Author>()));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            
+            await Assert.ThrowsExceptionAsync<OLBadRequest>(() => _bookService.UpdatePatchAsync(1, book));
+            
+            _mockBookValidator.Verify(x => x.Validate(It.IsAny<Book>()), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.UpdateBookAsync(It.IsAny<Book>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task UpdatePatch_Book_TryToUpdateUnExistTags_BadRequest()
+        {
+            JsonPatchDocument<Book> book = new JsonPatchDocument<Book>();
+            book.Operations.Add(new Operation<Book>("replace", "/tags", "/books/1", new List<Tag>() { new Tag() { Id = 1 } }));
+            _mockBookValidator.Setup(x => x.Validate(It.IsAny<Book>())).Returns(new ValidationResult());
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(1)).Returns(Task.FromResult(new Book() { Id = 1 }));
+            _mockUnitOfWork.Setup(x => x.TagRepository.GetTagsByIdListAsync(It.IsAny<List<int>>())).Returns(Task.FromResult(new List<Tag>()));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            
+            await Assert.ThrowsExceptionAsync<OLBadRequest>(() => _bookService.UpdatePatchAsync(1, book));
+            _mockBookValidator.Verify(x => x.Validate(It.IsAny<Book>()), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.UpdateBookAsync(It.IsAny<Book>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task UpdatePatch_Book_ValidationFalied_BadRequest()
+        {
+            JsonPatchDocument<Book> book = new JsonPatchDocument<Book>();
+            book.Operations.Add(new Operation<Book>("replace", "/tags", "/books/1", new List<Tag>() ));
+            _mockBookValidator.Setup(x => x.Validate(It.IsAny<Book>())).Returns(new ValidationResult(new List<ValidationFailure>() { new ValidationFailure("tags", "error") }));
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(1)).Returns(Task.FromResult(new Book() { Id = 1 }));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            
+            await Assert.ThrowsExceptionAsync<OLBadRequest>(() => _bookService.UpdatePatchAsync(1, book));
+            _mockBookValidator.Verify(x => x.Validate(It.IsAny<Book>()), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.UpdateBookAsync(It.IsAny<Book>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task UpdatePatch_Book_Ok()
+        {
+            JsonPatchDocument<Book> book = new JsonPatchDocument<Book>();
+            book.Operations.Add(new Operation<Book>("replace", "/name", "/books/1", "Alice"));
+            _mockBookValidator.Setup(x => x.Validate(It.IsAny<Book>())).Returns(new ValidationResult()); ;
+            Book originalBook = new Book() { Id = 1, Name = "NotAlice" };
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(1)).Returns(Task.FromResult(originalBook));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            await _bookService.UpdatePatchAsync(1, book);
+            Assert.AreEqual(originalBook.Name, "Alice");
+            _mockBookValidator.Verify(x => x.Validate(It.IsAny<Book>()), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.UpdateBookAsync(It.IsAny<Book>(), true, It.IsAny<bool>(), It.IsAny<bool>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task UpdatePatch_Archivate_Book_BookInReserve()
+        {
+            JsonPatchDocument<Book> book = new JsonPatchDocument<Book>();
+            book.Operations.Add(new Operation<Book>("replace", "/inArchive", "/books/1", "true"));
+            _mockBookValidator.Setup(x => x.Validate(It.IsAny<Book>())).Returns(new ValidationResult()); ;
+            Book originalBook = new Book() { Id = 1, Name = "Alice" };
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(1)).Returns(Task.FromResult(originalBook));
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.IsBookInReserve(It.IsAny<int>())).Returns(Task.FromResult(true));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+           
+            await Assert.ThrowsExceptionAsync<OLBadRequest>(() => _bookService.UpdatePatchAsync(1, book));
+
+            _mockBookValidator.Verify(x => x.Validate(It.IsAny<Book>()), Times.Once);
+            _mockUnitOfWork.Verify(x => x.BookRepository.UpdateBookAsync(It.IsAny<Book>(), true, It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+
+        }
+
+        // Task<int> CreateBookAsync(Book book)
+
+        [TestMethod]
+        public async Task Create_Book_OLInternalServerError()
+        {
+            _mockBookRepository.Setup(x => x.CreateBookAsync(It.IsAny<Book>()));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            await Assert.ThrowsExceptionAsync<OLInternalServerError>(() => _bookService.CreateBookAsync(new Book()));
+            _mockUnitOfWork.Verify(x => x.BookRepository.CreateBookAsync(It.IsAny<Book>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Create_Book_Ok()
+        {
+            _mockBookRepository.Setup(x => x.CreateBookAsync(It.IsAny<Book>()));
+            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
+            await _bookService.CreateBookAsync(new Book() { Id = 1});
+            _mockUnitOfWork.Verify(x => x.BookRepository.CreateBookAsync(It.IsAny<Book>()), Times.Once);
+        }
+
+        // Validate Book - it used in UpdatePatchAsync method
 
         [TestMethod]
         [DataRow(null, "   ", -2)]
@@ -89,189 +220,6 @@ namespace OnlineLibraryApiTest.Services
             result.ShouldHaveValidationErrorFor(x => x.Genre);
             result.ShouldHaveValidationErrorFor(x => x.Authors);
             result.ShouldHaveValidationErrorFor(x => x.Tags);
-        }
-
-        [TestMethod]
-        public async Task Get_AllBooks_WithPagination_ListIsEmpty_Ok()
-        {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync()).Returns(Task.FromResult(0));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            PaginatedList<Book> result = await _bookService.GetAllBooksAsync(It.IsAny<PaginationOptions>());
-            Assert.AreEqual(0, result.TotalCount);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-        }
-
-        [TestMethod]
-        [DataRow(1, 2)]
-        [DataRow(10, -2)]
-        [DataRow(10, 20)]
-        public async Task Get_AllBooks_WithPagination_Ok(int pNumber, int pageSize)
-        {
-            PaginationOptions pO = new PaginationOptions(pNumber, pageSize);
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync()).Returns(Task.FromResult(1));
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), pO.PageSize)).Returns(Task.FromResult(new List<Book>() { new Book() }));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            PaginatedList<Book> result = await _bookService.GetAllBooksAsync(pO);
-            Assert.AreEqual(1, result.TotalCount);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), pO.PageSize), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow("nme", -1)]
-        [DataRow("", null)]
-        [DataRow("name", 2)]
-        [DataRow(" ", 2)]
-        [DataRow(null, -2)]
-        public async Task Filter_Books_CheckOrdering_OrderPropertyIsIncorrect(string propertyToOrder, ListSortDirection sortDirection)
-        {
-            BookProcessing bookProcessing = new BookProcessing();
-            bookProcessing.Sorting = new SortingOptions() { SortDirection = sortDirection, PropertyToOrder = propertyToOrder };
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync(It.IsAny<Expression<Func<Book, bool>>>())).Returns(Task.FromResult(1));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            await _bookService.FilterBooksAsync(bookProcessing);
-            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooksAsync(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), "Id", ListSortDirection.Ascending), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow("Name", 1)]
-        [DataRow("Id", 0)]
-        [DataRow("Description", 0)]
-        [DataRow("Reserve", 0)]
-        [DataRow("InArchive", 1)]
-        [DataRow("Genre", 1)]
-        public async Task Filter_Books_CheckOrdering_Ok(string propertyToOrder, ListSortDirection sortDirection)
-        {
-            BookProcessing bookProcessing = new BookProcessing();
-            bookProcessing.Sorting = new SortingOptions() { SortDirection = sortDirection, PropertyToOrder = propertyToOrder };
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync(It.IsAny<Expression<Func<Book, bool>>>())).Returns(Task.FromResult(1));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            await _bookService.FilterBooksAsync(bookProcessing);
-            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooksAsync(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), propertyToOrder, sortDirection), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow("name")]
-        [DataRow("hi")]
-        [DataRow("Nme")]
-        public void Order_Book_OrderPropertyNotFound(string propertyToOrder)
-        {
-            IQueryable<Book> books = Enumerable.Empty<Book>().AsQueryable();
-            Assert.ThrowsException<ArgumentNullException>(()=> books.OrderBy(propertyToOrder, ListSortDirection.Ascending), "Expected exception");
-        }
-
-        [TestMethod]
-        [DataRow("Name")]
-        [DataRow("Id")]
-        [DataRow("Description")]
-        [DataRow("Reserve")]
-        [DataRow("InArchive")]
-        [DataRow("Genre")]
-        public void Order_Book_Ok(string propertyToOrder)
-        {
-            IQueryable<Book> books = Enumerable.Empty<Book>().AsQueryable();
-            // No exceptions while trying to sort.   
-            books.OrderBy(propertyToOrder, ListSortDirection.Ascending);
-        }
-
-        [TestMethod]
-        [DataRow( 1, 2)]
-        [DataRow(-1, 12)]
-        [DataRow( 10, 2)]
-        [DataRow(1, -2)]
-        [ExpectedException(typeof(OLNotFound))]
-        public async Task Filter_Books_WithPagination_ListIsEmpty( int pNumber, int pageSize)
-        {
-            BookProcessing bookProcessing = new BookProcessing();
-            bookProcessing.Pagination = new PaginationOptions(pNumber, pageSize);
-
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync(It.IsAny<Expression<Func<Book, bool>>>())).Returns(Task.FromResult(0));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            await _bookService.FilterBooksAsync(bookProcessing);
-            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooksAsync(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), "Id", ListSortDirection.Ascending), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task Filter_Books_WithPagination_OK()
-        {
-            BookProcessing bookProcessing = new BookProcessing();
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync(It.IsAny<Expression<Func<Book, bool>>>())).Returns(Task.FromResult(1));
-            _mockUnitOfWork.Setup(x => x.BookRepository.FilterBooksAsync(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<ListSortDirection>())).Returns(Task.FromResult(new List<Book>() { new Book() }));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-
-            PaginatedList<Book> result = await _bookService.FilterBooksAsync(bookProcessing);
-            Assert.AreEqual(1, result.TotalCount);
-            _mockUnitOfWork.Verify(x => x.BookRepository.FilterBooksAsync(It.IsAny<Expression<Func<Book, bool>>>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<ListSortDirection>()), Times.Once);
-        }
-        
-        [TestMethod]
-        [DataRow(0)]
-        [DataRow(-1)]
-        [DataRow(null)]
-        [ExpectedException(typeof(OLBadRequest))]
-        public async Task Get_BookById_IdIsIncorrect(int? id)
-        {
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            await _bookService.GetBookByIdAsync(id);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetBookByIdAsync(It.IsAny<int>()), Times.Never);
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        [DataRow(3)]
-        [ExpectedException(typeof(OLNotFound))]
-        public async Task Get_BookById_BookNotFound(int id)
-        {
-            Book book = null;
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(id)).Returns(Task.FromResult(book));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            await _bookService.GetBookByIdAsync(id);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetBookByIdAsync(id), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        [DataRow(3)]
-        public async Task Get_BookById_Ok(int id)
-        {
-            Book book = new Book();
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetBookByIdAsync(id)).Returns(Task.FromResult(book));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            Book actualBook = await _bookService.GetBookByIdAsync(id);
-            
-            Assert.AreEqual(book, actualBook);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetBookByIdAsync(id), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow("  ", "  ")]
-        [DataRow("s", null)]
-        [DataRow("", "s")]
-        [ExpectedException(typeof(OLInternalServerError))]
-        public async Task Create_Book_FieldsIsIncorrect(string name, string description)
-        {
-            _mockBookRepository.Setup(x => x.InsertBook(It.IsAny<Book>()));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            Book book = new Book() { Name = name, Description = description};
-            await  _bookService.CreateBookAsync(book);
-            _mockUnitOfWork.Verify(x => x.BookRepository.InsertBook(It.IsAny<Book>()), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(" s ", " s ")]
-        public async Task Create_Book_Ok(string name, string description)
-        {
-            _mockUnitOfWork.Setup(x => x.BookRepository.InsertBook(It.IsAny<Book>()));
-            _bookService = new BookService(_mockUnitOfWork.Object, _mockBookValidator.Object);
-            Book book = new Book() { Id = 1, Name = name, Description = description, Authors = new List<Author>() { new Author() }, Tags = new List<Tag>() { new Tag() }, Genre = Genre.Adventures };
-            await _bookService.CreateBookAsync(book);
-            _mockUnitOfWork.Verify(x => x.BookRepository.InsertBook(It.IsAny<Book>()), Times.Once);
-            _mockUnitOfWork.Verify(x => x.SaveAsync(), Times.Once);
-
         }
     }
 }

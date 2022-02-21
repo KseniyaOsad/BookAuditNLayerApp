@@ -1,16 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace OnlineLibrary.DAL.Interfaces
+﻿namespace OnlineLibrary.DAL.Interfaces
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork
     {
-        Task SaveAsync();
-
         IBookRepository BookRepository { get; }
 
         IAuthorRepository AuthorRepository { get; }
 
         ITagRepository TagRepository { get; }
+
+        IUserRepository UserRepository { get; }
+
+        IReservationRepository ReservationRepository { get; }
     }
 }

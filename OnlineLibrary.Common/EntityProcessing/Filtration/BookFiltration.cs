@@ -1,6 +1,4 @@
-﻿using OnlineLibrary.Common.EntityProcessing.Pagination;
-using System.ComponentModel;
-
+﻿
 namespace OnlineLibrary.Common.EntityProcessing.Filtration
 {
     public class BookFiltration
@@ -12,8 +10,6 @@ namespace OnlineLibrary.Common.EntityProcessing.Filtration
         public int? TagId { get; set; }
 
         public int? Archievation { get; set; }
-
-        public int? Reservation { get; set; }
 
     }
 }

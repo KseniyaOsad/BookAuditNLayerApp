@@ -8,7 +8,7 @@ namespace OnlineLibrary.DAL.Interfaces
     {
         Task<List<Tag>> GetAllTagsAsync();
 
-        void InsertTag(Tag tag);
+        Task CreateTagAsync(Tag tag);
 
         Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId);
     }

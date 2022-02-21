@@ -3,7 +3,6 @@ using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.BLL.Services;
 using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
-using OnlineLibrary.DAL.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +17,9 @@ using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using AutoMapper;
 using OnlineLibrary.API.Mapper;
+using OnlineLibrary.DAL.Repositories.Dapper;
+using OnlineLibrary.Common.Connection;
+using OnlineLibrary.API.Filters;
 
 namespace OnlineLibrary.API
 {
@@ -33,39 +35,44 @@ namespace OnlineLibrary.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
+            services.Configure<DBConnection>(Configuration.GetSection(DBConnection.ConnectionStrings));
+
             var mappingConfig = new MapperConfiguration(mc =>
             {
                 mc.AddProfile(new MappingProfile());
-                
             });
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
 
             //services.AddAutoMapper(typeof(MappingProfile));
 
-            services.AddControllers()
+            services.AddControllers(options => 
+                    options.Filters.Add<GenericExceptionFilter>()
+                )
                 .AddFluentValidation()
                 .AddNewtonsoftJson(OptionsBuilderConfigurationExtensions =>
             {
                 OptionsBuilderConfigurationExtensions.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
             services.AddDbContext<BookContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("BookContext")));
+                options.UseSqlServer(Configuration.GetConnectionString("BookContext"), b => b.MigrationsAssembly("OnlineLibrary.API")));
             services.AddTransient<IBookService, BookService>();
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<ITagService, TagService>();
             services.AddTransient<IDataExportService, DataExportService>();
-            services.AddTransient<IUnitOfWork, EFUnitOfWork>(setviceProvider =>
-            {
-                var context = setviceProvider.GetRequiredService<BookContext>();
-                return new EFUnitOfWork(context);
-            });
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IReservationService, ReservationService>();
+
+            services.AddTransient<IUnitOfWork, DapperUnitOfWork>();
 
             // Validators.
             services.AddTransient<IValidator<CreateBook>, CreateBookValidator>();
+            services.AddTransient<IValidator<ReservationModel>, ReservationModelValidator>();
             services.AddTransient<IValidator<Book>, BookValidator>();
             services.AddTransient<IValidator<Author>, AuthorValidator>();
             services.AddTransient<IValidator<Tag>, TagValidator>();
+            services.AddTransient<IValidator<User>, UserValidator>();
 
             // Swagger.
             services.AddSwaggerGen();

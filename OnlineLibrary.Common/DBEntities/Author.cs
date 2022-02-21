@@ -9,5 +9,12 @@ namespace OnlineLibrary.Common.DBEntities
         public string Name { get; set; }
 
         public List<Book> Books { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            Author author = obj as Author;
+            if (author == null) return false;
+            return author.Id == Id;
+        }
     }
 }

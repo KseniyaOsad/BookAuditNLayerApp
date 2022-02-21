@@ -15,61 +15,111 @@ namespace OnlineLibraryApiTest.Services
     {
         private DataExportService _dataExportService;
 
-        private Mock<IUnitOfWork> _mockUnitOfWork;
+        private Mock<IUnitOfWork> _mockUnitOfWork = new Mock<IUnitOfWork>();
 
-        private Mock<IBookRepository> _mockBookRepository;
+        private Mock<IBookRepository> _mockBookRepository = new Mock<IBookRepository>();
 
-        private Mock<IAuthorRepository> _mockAuthorRepository;
-
-        private const string _fileName = "book.csv";
-
-        private readonly string _path = @"C:\Users\theks\Desktop\C\OnlineLibrary\OnlineLibraryApiTest\Data\";
+        private Mock<IAuthorRepository> _mockAuthorRepository = new Mock<IAuthorRepository>();
 
         [TestInitialize]
         public void InitializeTest()
         {
-            _mockUnitOfWork = new Mock<IUnitOfWork>();
-            _mockBookRepository = new Mock<IBookRepository>();
-            _mockAuthorRepository = new Mock<IAuthorRepository>();
             _mockUnitOfWork.Setup(x => x.BookRepository).Returns(_mockBookRepository.Object);
             _mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(_mockAuthorRepository.Object);
         }
 
+        // PathIsINcorrect in different methods
+
+        // Task WriteBooksToCsvAsync(string path, string filename)
+
         [TestMethod]
-        [ExpectedException(typeof(OLNotFound))]
-        public async Task Write_toCSV_ListIsEmpty()
+        public async Task Write_Books_toCSV_ListIsEmpty()
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.FromResult(new List<Book>() {  }));
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksForCsvAsync()).Returns(Task.FromResult(new List<Book>() { }));
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
 
-            await _dataExportService.WriteCsvAsync("", "");
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            await Assert.ThrowsExceptionAsync<OLNotFound>(() => _dataExportService.GetAllBooksAsync());
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksForCsvAsync(), Times.Once);
         }
 
         [TestMethod]
-        [DataRow("", "")]
-        [DataRow("Hi", "")]
-        [DataRow("", null)]
-        [DataRow("Hi", "/Hi")]
-        [ExpectedException(typeof(OLInternalServerError))]
-        public async Task Write_toCSV_PathIsINcorrect(string path, string filename)
+        public async Task Write_Books_toCSV_OK()
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync()).Returns(Task.FromResult(1));
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.FromResult(new List<Book>() { new Book() }));
+            Book book = new Book() { Id = 1, Name = "test", Authors = new List<Author>() { new Author() { Name = "author" } }, Tags = new List<Tag>() { new Tag() { Name = "Tag" } } };
+            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksForCsvAsync()).Returns(Task.FromResult(new List<Book>() { book }));
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
 
-            await _dataExportService.WriteCsvAsync(path, filename);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+            await _dataExportService.GetAllBooksAsync();
+            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksForCsvAsync(), Times.Once);
+        }
+
+        // Task WriteReservationsToCsvAsync(string path, string filename)
+
+        [TestMethod]
+        public async Task Write_Reservations_toCSV_ListIsEmpty()
+        {
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetAllReservationsAsync()).Returns(Task.FromResult(new List<Reservation>() { }));
+            _dataExportService = new DataExportService(_mockUnitOfWork.Object);
+
+            await Assert.ThrowsExceptionAsync<OLNotFound>(() => _dataExportService.GetAllReservationsAsync());
+            _mockUnitOfWork.Verify(x => x.ReservationRepository.GetAllReservationsAsync(), Times.Once);
         }
 
         [TestMethod]
-        public async Task Write_toCSV_Ok()
+        public async Task Write_Reservations_toCSV_Ok()
         {
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksCountAsync()).Returns(Task.FromResult(1));
-            _mockUnitOfWork.Setup(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.FromResult(new List<Book>() { new Book() { Name = "Hello world", Authors = new List<Author> { new Author() { Name="me" } } } }));
+            Reservation reservation = new Reservation() { Id = 1, Book = new Book() { Id = 1, Name = "test" }, User = new User() { Id = 1, Name = "test" }, ReservationDate = DateTime.Now };
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetAllReservationsAsync()).Returns(Task.FromResult(new List<Reservation>() { reservation }));
             _dataExportService = new DataExportService(_mockUnitOfWork.Object);
-            await _dataExportService.WriteCsvAsync(_path, _fileName);
-            _mockUnitOfWork.Verify(x => x.BookRepository.GetAllBooksAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+
+            await _dataExportService.GetAllReservationsAsync();
+            _mockUnitOfWork.Verify(x => x.ReservationRepository.GetAllReservationsAsync(), Times.Once);
+        }
+
+        // Task WriteBookReservationsToCsvAsync(string path, string filename, int bookId)
+
+        [TestMethod]
+        public async Task Write_BookReservations_toCSV_ListIsEmpty()
+        {
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetBookReservationHistoryAsync(1)).Returns(Task.FromResult(new List<Reservation>() { }));
+            _dataExportService = new DataExportService(_mockUnitOfWork.Object);
+
+            await Assert.ThrowsExceptionAsync<OLNotFound>(() => _dataExportService.GetBookReservationsAsync(1));
+            _mockUnitOfWork.Verify(x => x.ReservationRepository.GetBookReservationHistoryAsync(1), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Write_BookReservations_toCSV_Ok()
+        {
+            Reservation reservation = new Reservation() { Id = 1, Book = new Book() { Id = 1, Name = "test" }, User = new User() { Id = 1, Name = "test" }, ReservationDate = DateTime.Now };
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetBookReservationHistoryAsync(1)).Returns(Task.FromResult(new List<Reservation>() { reservation }));
+            _dataExportService = new DataExportService(_mockUnitOfWork.Object);
+
+            await _dataExportService.GetBookReservationsAsync(1);
+            _mockUnitOfWork.Verify(x => x.ReservationRepository.GetBookReservationHistoryAsync(1), Times.Once);
+        }
+
+        // Task WriteUserReservationsToCsvAsync(string path, string filename, int userId)
+
+        [TestMethod]
+        public async Task Write_UserReservations_toCSV_ListIsEmpty()
+        {
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetUserReservationHistoryAsync(1)).Returns(Task.FromResult(new List<Reservation>() { }));
+            _dataExportService = new DataExportService(_mockUnitOfWork.Object);
+
+            await Assert.ThrowsExceptionAsync<OLNotFound>(() => _dataExportService.GetUserReservationsAsync(1));
+            _mockUnitOfWork.Verify(x => x.ReservationRepository.GetUserReservationHistoryAsync(1), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Write_UserReservations_toCSV_Ok()
+        {
+            Reservation reservation = new Reservation() { Id = 1, Book = new Book() { Id = 1, Name = "test" }, User = new User() { Id = 1, Name = "test" }, ReservationDate = DateTime.Now };
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetUserReservationHistoryAsync(1)).Returns(Task.FromResult(new List<Reservation>() { reservation }));
+            _dataExportService = new DataExportService(_mockUnitOfWork.Object);
+
+            await _dataExportService.GetUserReservationsAsync(1);
+            _mockUnitOfWork.Verify(x => x.ReservationRepository.GetUserReservationHistoryAsync(1), Times.Once);
         }
     }
 }

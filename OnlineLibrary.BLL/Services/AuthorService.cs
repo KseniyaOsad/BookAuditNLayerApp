@@ -20,9 +20,7 @@ namespace OnlineLibrary.BLL.Services
 
         public async Task<int> CreateAuthorAsync(Author author)
         {
-            ExceptionExtensions.Check<OLBadRequest>(author == null, "A null object came to the method");
-            _unitOfWork.AuthorRepository.InsertAuthor(author);
-            await _unitOfWork.SaveAsync();
+            await _unitOfWork.AuthorRepository.CreateAuthorAsync(author);
             ExceptionExtensions.Check<OLBadRequest>(author.Id == 0, "The author was not created");
             return author.Id;
         }
@@ -35,7 +33,7 @@ namespace OnlineLibrary.BLL.Services
         public async Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)
         {
             List<Author> authors = await _unitOfWork.AuthorRepository.GetAuthorsByIdListAsync(authorsId);
-            ExceptionExtensions.Check<OLNotFound>(authors == null || !authors.Any(), "Authors not found");
+            ExceptionExtensions.Check<OLNotFound>(!authors.Any(), "Authors not found");
             return authors;
         }
     }

@@ -1,39 +1,69 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
+using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace OnlineLibrary.DAL.Repositories
+namespace OnlineLibrary.DAL.Repositories.Dapper
 {
     public class TagRepository : ITagRepository
     {
-        BookContext _context;
+        private readonly string _connectionString;
 
-        public TagRepository(BookContext context)
+        public TagRepository(IOptions<DBConnection> connOptions)
         {
-            _context = context;
+            _connectionString = connOptions.Value.BookContext;
         }
 
-        public Task<List<Tag>> GetAllTagsAsync()
+        public async Task<List<Tag>> GetAllTagsAsync()
         {
-            return _context.Tag
-              .Include(t => t.Books)
-              .OrderBy(t => t.Name).ToListAsync();
+            IEnumerable<Tag> TagsAndBooks;
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT T.Id, T.Name, B.Id, B.Name, B.Description, B.Genre , B.InArchive , B.RegistrationDate, BT.TagsId, BT.BooksId
+                FROM Tags AS T 
+                LEFT JOIN BookTag  AS BT ON T.Id = BT.TagsId
+                LEFT JOIN Books    AS B  ON B.Id = BT.BooksId";
+                TagsAndBooks = await connection.QueryAsync<Tag, Book, Tag>(sql, (tag, book) =>
+                {
+                    tag.Books = book == null ? new List<Book>() : new List<Book>() { book };
+                    return tag;
+                });
+            }
+            return TagsAndBooks
+                .GroupBy(t => t.Id)
+                .Select(group =>
+                {
+                    var tag = group.First();
+                    if (group.Count() > 1)
+                    {
+                        tag.Books = group.Select(t => t.Books.Single()).ToList();
+                    }
+                    return tag;
+                })
+                .ToList();
         }
 
-        public Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
+        public async Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
         {
-            return  _context.Tag.Where(t => tagsId.Contains(t.Id)).ToListAsync();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT Id, Name FROM Tags WHERE Id IN @Ids";
+                return (await connection.QueryAsync<Tag>(sql, new { Ids = tagsId })).ToList();
+            }
         }
 
-        public void InsertTag(Tag tag)
+        public async Task CreateTagAsync(Tag tag)
         {
-            _context.Add(tag);
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = "INSERT INTO Tags (Name) Values (@Name); SELECT SCOPE_IDENTITY();";
+                tag.Id = await connection.ExecuteScalarAsync<int>(sql, tag);
+            }
         }
     }
 }

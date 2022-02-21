@@ -7,9 +7,7 @@ using OnlineLibrary.API.Controllers;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.Validators;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace OnlineLibraryApiTest.Controllers
@@ -25,16 +23,27 @@ namespace OnlineLibraryApiTest.Controllers
 
         private Mock<ILogger<TagController>> _mockILogger = new Mock<ILogger<TagController>>();
 
+        // Task<IActionResult> CreateAsync([FromBody] Tag tag)
+
         [TestMethod]
-        [DataRow("")]
-        [DataRow("  ")]
-        [DataRow(null)]
-        public void Validate_Tag_FieldIsIncorrect(string name)
+        [DataRow("A")]
+        [DataRow("B")]
+        public async Task Create_Tag_Ok(string name)
         {
             Tag tag = new Tag() { Name = name };
-            var result = _tagValidator.TestValidate(tag);
-            result.ShouldHaveValidationErrorFor(x => x.Name);
+
+            _mockTagService.Setup(x => x.CreateTagAsync(tag)).Returns(Task.FromResult(1));
+            _tagController = new TagController(_mockTagService.Object, _mockILogger.Object);
+
+            var result = await _tagController.CreateAsync(tag);
+            var okResult = result as OkObjectResult;
+
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(200, okResult.StatusCode);
+            _mockTagService.Verify(x => x.CreateTagAsync(tag), Times.Once);
         }
+
+        // Task<IActionResult> GetAllTagsAsync()
 
         [TestMethod]
         public async Task Get_AllTags_ListIsEmpty_Ok()
@@ -64,22 +73,18 @@ namespace OnlineLibraryApiTest.Controllers
             _mockTagService.Verify(x => x.GetAllTagsAsync(), Times.Once);
         }
 
+        // Validate Tag - it passed as [FromBody] in CreateAsync method
+
         [TestMethod]
-        [DataRow("A")]
-        [DataRow("B")]
-        public async Task Create_Tag_Ok(string name)
+        [DataRow("")]
+        [DataRow("  ")]
+        [DataRow(null)]
+        public void Validate_Tag_FieldIsIncorrect(string name)
         {
             Tag tag = new Tag() { Name = name };
-
-            _mockTagService.Setup(x => x.CreateTagAsync(tag)).Returns(Task.FromResult(1));
-            _tagController = new TagController(_mockTagService.Object, _mockILogger.Object);
-
-            var result = await _tagController.CreateAsync(tag);
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-            _mockTagService.Verify(x => x.CreateTagAsync(tag), Times.Once);
+            var result = _tagValidator.TestValidate(tag);
+            result.ShouldHaveValidationErrorFor(x => x.Name);
         }
+
     }
 }

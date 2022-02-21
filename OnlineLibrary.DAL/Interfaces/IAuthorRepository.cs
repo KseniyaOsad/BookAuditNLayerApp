@@ -8,7 +8,7 @@ namespace OnlineLibrary.DAL.Interfaces
     {
         Task<List<Author>> GetAllAuthorsAsync();
 
-        void InsertAuthor(Author author);
+        Task CreateAuthorAsync(Author author);
 
         Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId);
 

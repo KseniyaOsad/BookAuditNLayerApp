@@ -5,10 +5,8 @@ using OnlineLibrary.BLL.Model;
 using OnlineLibrary.DAL.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using OnlineLibrary.Common.Exceptions.Enum;
 using OnlineLibrary.Common.Exceptions;
 using System.Threading.Tasks;
 
@@ -23,35 +21,56 @@ namespace OnlineLibrary.BLL.Services
             unitOfWork = uow;
         }
 
-        public async Task WriteCsvAsync(string path, string filename)
+        public async Task<string> GetAllBooksAsync()
         {
-            int count = await unitOfWork.BookRepository.GetAllBooksCountAsync();
-            ExceptionExtensions.Check<OLNotFound>(count == 0, "Books don't exist");
-            List<Book> books = await unitOfWork.BookRepository.GetAllBooksAsync(0, count);
-            ExceptionExtensions.Check<OLInternalServerError>(path == null || filename == null || path.Trim() == "" || filename.Trim() == "", "File path is empty");
-            try
-            {
-                using (StreamWriter sw = new StreamWriter(path + filename, false))
-                {
-                    StringBuilder allTextToWrite = new StringBuilder();
-                    books.
-                        Select(
-                            b => allTextToWrite.Append(
-                                new BookAndAuthorToCSV()
-                                {
-                                    Id = b.Id,
-                                    Title = b.Name,
-                                    AuthorName = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray())
-                                }.ToString())
-                            ).ToList();
-                    await sw.WriteAsync(allTextToWrite.ToString());
-                    sw.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new OLInternalServerError("Failed to write file: " + ex.ToString());
-            }
+            List<Book> books = await unitOfWork.BookRepository.GetAllBooksForCsvAsync();
+            ExceptionExtensions.Check<OLNotFound>(!books.Any(), "Books don't exist");
+
+            StringBuilder allTextToWrite = new StringBuilder();
+            books.
+                Select(
+                    b => allTextToWrite.Append(
+                        new BookInfoToCSV()
+                        {
+                            Id = b.Id,
+                            Title = b.Name,
+                            AuthorNames = String.Join(" & ", b.Authors.Select(a => a.Name).ToArray()),
+                            TagNames = String.Join(" & ", b.Tags.Select(t => t.Name).ToArray())
+                        }.ToString())
+                    ).ToList();
+
+            return allTextToWrite.ToString();
+        }
+
+        public async Task<string> GetAllReservationsAsync()
+        {
+            List<Reservation> reservations = await unitOfWork.ReservationRepository.GetAllReservationsAsync();
+            ExceptionExtensions.Check<OLNotFound>(!reservations.Any(), "There are no reservations");
+            return GetReservationsInString(reservations);
+        }
+
+        public async Task<string> GetBookReservationsAsync(int bookId)
+        {
+            List<Reservation> reservations = await unitOfWork.ReservationRepository.GetBookReservationHistoryAsync(bookId);
+            ExceptionExtensions.Check<OLNotFound>(!reservations.Any(), $"This book has no reservation history. Book id = {bookId}");
+            return GetReservationsInString(reservations);
+        }
+
+        public async Task<string> GetUserReservationsAsync(int userId)
+        {
+            List<Reservation> reservations = await unitOfWork.ReservationRepository.GetUserReservationHistoryAsync(userId);
+            ExceptionExtensions.Check<OLNotFound>(!reservations.Any(), $"This user has no reservation history. User id = {userId}");
+            return GetReservationsInString(reservations);
+        }
+
+        private string GetReservationsInString(List<Reservation> reservations)
+        {
+            StringBuilder allTextToWrite = new StringBuilder();
+            reservations.Select(
+                    r => allTextToWrite.Append(
+                        r.ToString())
+                    ).ToList();
+            return allTextToWrite.ToString();
         }
     }
 }
