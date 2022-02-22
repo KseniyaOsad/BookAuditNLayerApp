@@ -6,5 +6,5 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 	INSERT INTO [dbo].[Users] (Name, Email, DateOfBirth) VALUES (@name, @email, @dateOfBirth);
-	RETURN SCOPE_IDENTITY();
+	SELECT SCOPE_IDENTITY();
 END

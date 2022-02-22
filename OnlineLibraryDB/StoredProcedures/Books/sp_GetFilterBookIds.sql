@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[sp_GetFilterBooks]
+﻿CREATE PROCEDURE [dbo].[sp_GetFilterBookIds]
 	@name nvarchar(250) = NULL,
 	@authorId int  = NULL,
     @tagId int  = NULL,

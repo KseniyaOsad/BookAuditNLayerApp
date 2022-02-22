@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[sp_GetBookById]
-	@bookId int
+	@id int
 AS
     SET NOCOUNT ON;
 	SELECT B.Id, B.Name, B.Description, B.InArchive, B.Genre, B.RegistrationDate ,T.Id, T.Name, A.Id, A.Name
@@ -12,4 +12,4 @@ AS
                             ON B.Id = BT.BooksId
                             LEFT JOIN [dbo].[Tags] AS T
                                 ON BT.TagsId = T.Id 
-                    WHERE B.Id = @bookId;
+                    WHERE B.Id = @id;

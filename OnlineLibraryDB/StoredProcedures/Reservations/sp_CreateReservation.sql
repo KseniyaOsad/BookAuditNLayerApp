@@ -7,4 +7,6 @@ BEGIN
 
 	INSERT INTO [dbo].[Reservations] (UserId, BookId) 
 	VALUES (@userId, @bookId);
+
+	SELECT SCOPE_IDENTITY();
 END

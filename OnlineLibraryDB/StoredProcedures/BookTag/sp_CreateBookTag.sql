@@ -1,6 +1,8 @@
 ﻿CREATE PROCEDURE [dbo].[sp_CreateBookTag]
-	@bookId int,
-	@tagId int
+	@bookTag [dbo].[t_BookTag] READONLY
 AS
 	SET NOCOUNT ON;
-	INSERT INTO [dbo].[BookTag] (BooksId, TagsId) VALUES (@bookId, @tagId);
+
+	INSERT INTO [dbo].[BookTag] (BooksId, TagsId) 
+	SELECT BookId AS BooksId, TagId AS TagsId 
+	FROM @bookTag;

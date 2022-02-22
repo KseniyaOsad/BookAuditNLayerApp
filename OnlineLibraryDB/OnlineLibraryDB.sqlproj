@@ -94,23 +94,25 @@
     <Build Include="StoredProcedures\Books\sp_GetAllBooksForCSV.sql" />
     <Build Include="StoredProcedures\Reservations\sp_GetAllReservations.sql" />
     <Build Include="StoredProcedures\Tags\sp_GetTagsByIdList.sql" />
-    <Build Include="Custom-Types\IdList.sql" />
+    <Build Include="Custom-Types\t_IdList.sql" />
     <Build Include="StoredProcedures\Authors\sp_GetAuthorsByIdList.sql" />
     <Build Include="StoredProcedures\Books\sp_GetBookById.sql" />
     <Build Include="StoredProcedures\Books\sp_GetSortPaginBooks.sql" />
     <Build Include="StoredProcedures\Reservations\sp_GetBookReservations.sql" />
     <Build Include="StoredProcedures\Reservations\sp_GetUserReservation.sql" />
     <Build Include="StoredProcedures\Reservations\sp_CloseReservation.sql" />
-    <Build Include="StoredProcedures\Reservations\sp_GetLastBookAndUserReservation.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_GetLastBookReservation.sql" />
     <Build Include="StoredProcedures\BookTag\sp_CreateBookTag.sql" />
     <Build Include="StoredProcedures\AuthorBook\sp_CreateAuthorBook.sql" />
     <Build Include="StoredProcedures\BookTag\sp_DeleteBookTag.sql" />
     <Build Include="StoredProcedures\AuthorBook\sp_DeleteAuthorBook.sql" />
     <Build Include="StoredProcedures\Books\sp_UpdateBook.sql" />
-    <Build Include="StoredProcedures\BookTag\sp_GetBookTagEntitiesByBook.sql" />
-    <Build Include="StoredProcedures\Authors\sp_GetAuthorBookEntitiesByBook.sql" />
+    <Build Include="StoredProcedures\BookTag\sp_GetTagIdsFromBookTagEntitiesByBook.sql" />
     <Build Include="StoredProcedures\Users\sp_GetUserById.sql" />
-    <Build Include="StoredProcedures\Books\sp_GetFilterBooks.sql" />
+    <Build Include="StoredProcedures\Books\sp_GetFilterBookIds.sql" />
+    <Build Include="StoredProcedures\AuthorBook\sp_GetAuthorIdsFromAuthorBookEntitiesByBook.sql" />
+    <Build Include="Custom-Types\t_AuthorBook.sql" />
+    <Build Include="Custom-Types\t_BookTag.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="POST-Deployment\Post-Seed-Authors.sql" />

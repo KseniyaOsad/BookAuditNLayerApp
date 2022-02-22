@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[sp_CreateBook]
 	@name NVARCHAR(250),
-	@description TEXT,
+	@description NVARCHAR(MAX),
 	@genre TINYINT
 AS
 BEGIN 
@@ -9,5 +9,5 @@ BEGIN
 	INSERT INTO [dbo].[Books] (Name, Description, Genre)
 	VALUES (@name, @description, @genre);
 	
-	RETURN SCOPE_IDENTITY();
+	SELECT SCOPE_IDENTITY();
 END

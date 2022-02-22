@@ -1,5 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[sp_GetSortPaginBooks]
-    @bookIds [dbo].[IdList] READONLY,
+    @bookIds [dbo].[t_IdList] READONLY,
+    @fromBooks bit = 0,
     @sortDirection nvarchar(100),
     @sortProperty nvarchar(100),
     @skip int,
@@ -8,10 +9,8 @@ AS
 BEGIN 
     SET NOCOUNT ON;
 
-    DECLARE @bookIdsExist BIT = 1;
-
-    IF NOT EXISTS(SELECT * FROM @bookIds)
-        SET @bookIdsExist = 0;
+    IF @fromBooks = 0 AND NOT EXISTS(SELECT * FROM @bookIds)
+        SET @fromBooks = 1;
 
     SET @sortProperty  = LOWER(@sortProperty);
     SET @sortDirection  = LOWER(@sortDirection);
@@ -21,7 +20,7 @@ BEGIN
                     (SELECT B.Id, B.Name, B.Description, B.InArchive, B.Genre, B.RegistrationDate 
                         FROM [dbo].[Books] AS B
                         WHERE 
-                        (@bookIdsExist = 0 OR  B.Id IN (SELECT Id FROM @bookIds))
+                        (@fromBooks = 1 OR  B.Id IN (SELECT Id FROM @bookIds))
                         ORDER BY 
                         CASE WHEN @sortProperty = 'name' AND @sortDirection = 'asc' THEN B.Name END ASC,
                         CASE WHEN @sortProperty = 'name' AND @sortDirection = 'desc' THEN B.Name END DESC,

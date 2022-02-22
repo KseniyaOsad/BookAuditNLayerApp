@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[sp_UpdateBook]
 	@name nvarchar(250),
-	@description text,
+	@description nvarchar(MAX),
 	@inArchive bit,
 	@genre tinyint,
 	@bookId int
