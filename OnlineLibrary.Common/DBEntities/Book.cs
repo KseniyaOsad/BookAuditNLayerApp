@@ -19,6 +19,8 @@ namespace OnlineLibrary.Common.DBEntities
         public List<Author> Authors { get; set; }
 
         public List<Tag> Tags { get; set; }
+      
+        public List<Reservation> Reservations { get; set; }
 
         public DateTime RegistrationDate { get; set; } = DateTime.Now;
 
