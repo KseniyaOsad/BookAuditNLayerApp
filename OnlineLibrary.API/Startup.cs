@@ -1,11 +1,9 @@
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.BLL.Services;
-using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -55,8 +53,6 @@ namespace OnlineLibrary.API
             {
                 OptionsBuilderConfigurationExtensions.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
-            services.AddDbContext<BookContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("BookContext"), b => b.MigrationsAssembly("OnlineLibrary.API")));
             services.AddTransient<IBookService, BookService>();
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<ITagService, TagService>();
