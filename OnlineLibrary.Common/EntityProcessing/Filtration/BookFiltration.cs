@@ -3,13 +3,41 @@ namespace OnlineLibrary.Common.EntityProcessing.Filtration
 {
     public class BookFiltration
     {
-        public string Name { get; set; }
+        private string name;
 
-        public int? AuthorId { get; set; }
+        public string Name
+        {
+            get => name;
+            set => name = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
 
-        public int? TagId { get; set; }
+        private int? authorId;
 
-        public int? Archievation { get; set; }
+        public int? AuthorId
+        {
+            get => authorId;
+            set => authorId = value < 1 ? null : value;
+        }
 
+        private int? tagId;
+
+        public int? TagId
+        {
+            get => tagId;
+            set => tagId = value < 1 ? null : value;
+        }
+
+        private int? archievation;
+
+        public int? Archievation
+        {
+            get => archievation;
+            set => archievation = value < 0 || value > 1 ? null : value;
+        }
+
+        public bool CheckFilterPropsNotNull()
+        {
+            return !string.IsNullOrWhiteSpace(Name) || AuthorId != null || TagId != null || Archievation != null;
+        }
     }
 }
