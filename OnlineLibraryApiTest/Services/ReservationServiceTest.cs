@@ -40,7 +40,7 @@ namespace OnlineLibraryApiTest.Services
         [TestMethod]
         public async Task Close_Reservation_BookIsNotInReserve()
         {
-            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetBookReservationLastRow(It.IsAny<int>())).Returns(Task.FromResult(new Reservation() { Id = 1, UserId = 1, ReturnDate = new DateTime() }));
+            _mockUnitOfWork.Setup(x => x.ReservationRepository.GetBookReservationLastRow(It.IsAny<int>())).Returns(Task.FromResult(new Reservation() { Id = 1, UserId = 1 , ReturnDate = new DateTime() }));
             _reservationService = new ReservationService(_mockUnitOfWork.Object);
             await Assert.ThrowsExceptionAsync<OLBadRequest>(() => _reservationService.CloseReservationAsync(new Reservation() { Book = new Book() { Id = 1 }, User = new User() { Id = 1 } }));
             

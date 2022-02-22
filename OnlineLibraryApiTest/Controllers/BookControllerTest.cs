@@ -42,7 +42,7 @@ namespace OnlineLibraryApiTest.Controllers
         public async Task Filter_Book_Ok()
         {
             BookProcessing bookProcessing = new BookProcessing();
-            _mockBookService.Setup(x => x.FilterBooksAsync(bookProcessing)).Returns(Task.FromResult(new PaginatedList<Book>() { }));
+            _mockBookService.Setup(x => x.FilterSortPaginBooksAsync(bookProcessing)).Returns(Task.FromResult(new PaginatedList<Book>() { }));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
 
             var result = await _bookController.FilterBookAsync(bookProcessing);
@@ -50,7 +50,7 @@ namespace OnlineLibraryApiTest.Controllers
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.FilterBooksAsync(bookProcessing), Times.Once);
+            _mockBookService.Verify(x => x.FilterSortPaginBooksAsync(bookProcessing), Times.Once);
         }
 
         // Task<IActionResult> GetBookByIdAsync(int? id)

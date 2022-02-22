@@ -11,8 +11,6 @@ using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
-using OnlineLibrary.Common.Exceptions;
-using OnlineLibrary.Common.Extensions;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -43,7 +41,7 @@ namespace OnlineLibrary.API.Controllers
         [HttpPost("search")]
         public async Task<IActionResult> FilterBookAsync([FromBody] BookProcessing bookProcessing)
         {
-            PaginatedList<Book> paginatedList = await _bookService.FilterBooksAsync(bookProcessing);
+            PaginatedList<Book> paginatedList = await _bookService.FilterSortPaginBooksAsync(bookProcessing);
             _logger.LogInformation($"Filter books. Books count = {paginatedList?.TotalCount}.");
             return Ok(paginatedList);
         }
