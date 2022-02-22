@@ -8,7 +8,7 @@ namespace OnlineLibrary.BLL.Interfaces
 {
     public interface IBookService
     {
-        Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing);
+        Task<PaginatedList<Book>> FilterSortPaginBooksAsync(BookProcessing bookProcessing);
 
         Task<Book> GetBookByIdAsync(int bookId);
 

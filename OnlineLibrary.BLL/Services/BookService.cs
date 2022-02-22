@@ -10,6 +10,7 @@ using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
 using System.Linq;
 using FluentValidation.Results;
+using System.Collections.Generic;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -25,9 +26,37 @@ namespace OnlineLibrary.BLL.Services
             _bookValidator = validator;
         }
 
-        public Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing)
+        private int CalculateSkip(int count, int pageNumber, int pageSize)
         {
-            return _unitOfWork.BookRepository.FilterBooksAsync(bookProcessing);
+            // If we need to show more data than we have, show the first page.
+            if (count < pageSize) return 0;
+
+            // If after skipping data there is some data, show it.
+            int skip = (pageNumber - 1) * pageSize;
+            if (count - skip >= 1) return skip;
+
+            // Else calculate how much we need to skip for obtaining the last page.
+            int remainder = count % pageSize;
+            if (remainder == 0) return count - pageSize;
+            return count - remainder;
+        }
+
+        public async Task<PaginatedList<Book>> FilterSortPaginBooksAsync(BookProcessing bookProcessing)
+        {
+            List<int> filteredBookIds = await _unitOfWork.BookRepository.FilterBooksAsync(bookProcessing.Filtration);
+            ExceptionExtensions.Check<OLNotFound>(!filteredBookIds.Any(), "Books not found");
+
+            int skip = CalculateSkip(filteredBookIds.Count(), bookProcessing.Pagination.PageNumber, bookProcessing.Pagination.PageSize);
+            bool fromBooks = false;
+            if (!bookProcessing.Filtration.CheckFilterPropsNotNull())
+            {
+                fromBooks = true;
+            }
+            List<Book> paginatedBooksList = await _unitOfWork.BookRepository.SortPaginBooksAsync(filteredBookIds, fromBooks, bookProcessing.Sorting, skip, bookProcessing.Pagination.PageSize);
+
+            ExceptionExtensions.Check<OLInternalServerError>(paginatedBooksList == null, "Can't load paginated books. Books not found.");
+            
+            return new PaginatedList<Book>(filteredBookIds.Count(), paginatedBooksList);
         }
 
         public async Task<Book> GetBookByIdAsync(int bookId)
@@ -66,7 +95,8 @@ namespace OnlineLibrary.BLL.Services
             {
                 if (book.Operations.Any(x => x.path.Contains("inArchive")))
                 {
-                    ExceptionExtensions.Check<OLBadRequest>( await _unitOfWork.ReservationRepository.IsBookInReserve(bookId), "You can't archivate this book. It is in reserve.");
+                    Reservation reservationRow = await _unitOfWork.ReservationRepository.GetBookReservationLastRow(bookId);
+                    ExceptionExtensions.Check<OLBadRequest>(reservationRow != null && reservationRow.ReturnDate == default, "You can't archivate this book. It is in reserve.");
                 }
                 updateBook = true;
             }
