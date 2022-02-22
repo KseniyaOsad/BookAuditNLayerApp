@@ -1,10 +1,13 @@
 ﻿using Dapper;
+using DapperParameters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.DAL.DTO;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,17 +26,12 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
         {
             IEnumerable<Tag> TagsAndBooks;
             using (var connection = new SqlConnection(_connectionString))
-            {
-                string sql = @"SELECT T.Id, T.Name, B.Id, B.Name, B.Description, B.Genre , B.InArchive , B.RegistrationDate, BT.TagsId, BT.BooksId
-                FROM Tags AS T 
-                LEFT JOIN BookTag  AS BT ON T.Id = BT.TagsId
-                LEFT JOIN Books    AS B  ON B.Id = BT.BooksId";
-                TagsAndBooks = await connection.QueryAsync<Tag, Book, Tag>(sql, (tag, book) =>
+                TagsAndBooks = await connection.QueryAsync<Tag, Book, Tag>("sp_GetAllTags", (tag, book) =>
                 {
                     tag.Books = book == null ? new List<Book>() : new List<Book>() { book };
                     return tag;
-                });
-            }
+                }, commandType: CommandType.StoredProcedure);
+            
             return TagsAndBooks
                 .GroupBy(t => t.Id)
                 .Select(group =>
@@ -50,20 +48,25 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 
         public async Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
         {
+            
             using (var connection = new SqlConnection(_connectionString))
             {
-                string sql = "SELECT Id, Name FROM Tags WHERE Id IN @Ids";
-                return (await connection.QueryAsync<Tag>(sql, new { Ids = tagsId })).ToList();
+                List<IdList> idLists = tagsId.Select(x=>new IdList(x)).ToList();
+                var parameters = new DynamicParameters();
+                parameters.AddTable("@ids", "t_IdList", idLists);
+
+                return (await connection.QueryAsync<Tag>("sp_GetTagsByIdList",
+                    parameters,
+                    commandType: CommandType.StoredProcedure)).ToList();
             }
         }
 
         public async Task CreateTagAsync(Tag tag)
         {
             using (var connection = new SqlConnection(_connectionString))
-            {
-                string sql = "INSERT INTO Tags (Name) Values (@Name); SELECT SCOPE_IDENTITY();";
-                tag.Id = await connection.ExecuteScalarAsync<int>(sql, tag);
-            }
+                tag.Id = await connection.ExecuteScalarAsync<int>("sp_CreateTag", 
+                    new { name = tag.Name },
+                    commandType: CommandType.StoredProcedure);
         }
     }
 }

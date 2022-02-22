@@ -18,6 +18,5 @@ namespace OnlineLibrary.DAL.Interfaces
 
         Task<Reservation> GetBookReservationLastRow(int bookId);
 
-        Task<bool> IsBookInReserve(int bookId);
     }
 }
