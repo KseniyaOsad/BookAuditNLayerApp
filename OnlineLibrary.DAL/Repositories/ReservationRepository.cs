@@ -1,10 +1,8 @@
 ﻿using Dapper;
-using DapperParameters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.DAL.DTO;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
 using System.Data;
@@ -99,22 +97,5 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
             }
         }
 
-        public async Task UpdateBookReservationsAsync(List<UpdateReservations> updateReservations)
-        {
-            List<ReservationDTO> deleteRes = updateReservations.Where(r => r.Status == DTO.Enums.UpdateStatus.Delete).Select(r => new ReservationDTO(r.Reservation)).ToList();
-            List<ReservationDTO> updateRes = updateReservations.Where(r => r.Status == DTO.Enums.UpdateStatus.Update).Select(r => new ReservationDTO(r.Reservation)).ToList();
-            List<ReservationDTO> createRes = updateReservations.Where(r => r.Status == DTO.Enums.UpdateStatus.Create).Select(r => new ReservationDTO(r.Reservation)).ToList();
-            var parameters = new DynamicParameters();
-            parameters.AddTable("@delete", "t_Reservation", deleteRes);
-            parameters.AddTable("@update", "t_Reservation", updateRes);
-            parameters.AddTable("@create", "t_Reservation", createRes);
-
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.ExecuteAsync("sp_UpdateBookReservations",
-                                parameters,
-                                commandType: CommandType.StoredProcedure);
-            }
-        }
     }
 }

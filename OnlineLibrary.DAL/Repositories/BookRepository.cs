@@ -272,5 +272,25 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
             book.Reservations = BookGroup.Where(b => b.Reservations != null).Select(b=>b.Reservations.Single()).ToList();
             return book;
         }
+
+        public async Task UpdateBookWithReservations(Book book)
+        {
+            List<ReservationDTO> reservations = book.Reservations.Select(r => new ReservationDTO(r)).ToList();
+            var parameters = new DynamicParameters();
+            parameters.AddTable("@reservations", "t_Reservation", reservations);
+            parameters.Add("@name", book.Name);
+            parameters.Add("@description", book.Description);
+            parameters.Add("@inArchive", book.InArchive);
+            parameters.Add("@genre", book.Genre);
+            parameters.Add("@bookId", book.Id);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.ExecuteAsync("sp_UpdateBookAndReservations",
+                                parameters,
+                                commandType: CommandType.StoredProcedure);
+            }
+
+        }
     }
 }

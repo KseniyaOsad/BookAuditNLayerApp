@@ -19,7 +19,5 @@ namespace OnlineLibrary.DAL.Interfaces
 
         Task<Reservation> GetBookReservationLastRow(int bookId);
 
-        Task UpdateBookReservationsAsync(List<UpdateReservations> updateReservations);
-
     }
 }

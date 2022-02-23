@@ -29,5 +29,7 @@ namespace OnlineLibrary.DAL.Interfaces
         Task<List<Book>> SortPaginBooksAsync(List<int> bookIds, bool fromBooks, SortingOptions sortingOptions, int skip, int pageSize);
 
         Task<Book> GetBookInfoAndBookReservationsAsync(int bookId);
+
+        Task UpdateBookWithReservations(Book book);
     }
 }

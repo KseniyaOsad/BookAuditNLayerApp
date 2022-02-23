@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 using System.Linq;
 using FluentValidation.Results;
 using System.Collections.Generic;
-using OnlineLibrary.DAL.DTO;
-using OnlineLibrary.DAL.DTO.Enums;
 using System;
 
 namespace OnlineLibrary.BLL.Services
@@ -23,11 +21,13 @@ namespace OnlineLibrary.BLL.Services
 
         private readonly IValidator<Book> _bookValidator;
 
+        private readonly IValidator<Reservation> _reservationValidator;
 
-        public BookService(IUnitOfWork uow, IValidator<Book> bookValidator)
+        public BookService(IUnitOfWork uow, IValidator<Book> bookValidator,IValidator<Reservation> reservationValidator)
         {
             _unitOfWork = uow;
             _bookValidator = bookValidator;
+            _reservationValidator = reservationValidator;
         }
 
         private int CalculateSkip(int count, int pageNumber, int pageSize)
@@ -109,7 +109,7 @@ namespace OnlineLibrary.BLL.Services
 
         public async Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book)
         {
-            ExceptionExtensions.Check<OLInternalServerError>(!book.Operations.All(x => x.op.Contains("REPLACE")), "this method supports only replace operations");
+            ExceptionExtensions.Check<OLInternalServerError>(!book.Operations.All(x => x.op.ToUpper().Contains("REPLACE")), "this method supports only replace operations");
 
             var originalBook = await _unitOfWork.BookRepository.GetBookByIdAsync(bookId);
             ExceptionExtensions.Check<OLNotFound>(originalBook == null, "Book not found");
@@ -156,78 +156,46 @@ namespace OnlineLibrary.BLL.Services
 
         public async Task UpdatePatchReservationAsync(int bookId, JsonPatchDocument<Book> bookJson)
         {
-            ExceptionExtensions.Check<OLInternalServerError>(!bookJson.Operations.All(x => x.op.Contains("REPLACE")), "this method supports only replace operations");
-            ExceptionExtensions.Check<OLNotFound>(!bookJson.Operations.Any(x => x.path.Contains("reservations")), "this test method only for updating reservations");
+            ExceptionExtensions.Check<OLInternalServerError>(!bookJson.Operations.All(x => x.op.ToUpper().Contains("REPLACE")), "this method supports only replace operations");
             var book = await _unitOfWork.BookRepository.GetBookInfoAndBookReservationsAsync(bookId);
             ExceptionExtensions.Check<OLNotFound>(book == null, "Book not found");
-            List<Reservation> actualReservations = book.Reservations;
             bookJson.ApplyTo(book);
+            ExceptionExtensions.Check<OLBadRequest>(bookId != book.Id, "You are trying to change the ID. it's not allowed.");
 
-            ExceptionExtensions.Check<OLBadRequest>(book.Reservations.Any(r=>r.BookId != default && r.BookId != bookId), $"You are trying to edit bookID it's not allowed, actual bookId = {bookId} ");
+            ValidationResult bookResult = _bookValidator.Validate(book);
+            ExceptionExtensions.Check<OLBadRequest>(!bookResult.IsValid, "The book has been changed incorrectly");
 
-            List<UpdateReservations> updateReservations = new List<UpdateReservations>();
+            // validate reservations if reservation count not 0
+            if(book.Reservations.Any())
+                await CheckReservationValidation(bookId, book.Reservations);
 
-            foreach (Reservation reserve in book.Reservations)
-            {
-                reserve.BookId = bookId;
-
-                // check if we trying to update or keep record
-                if (actualReservations != null && reserve.Id != default )
-                {
-                    // try to find record
-                    Reservation sameReservation = actualReservations.FirstOrDefault(r => r.Id == reserve.Id && r.BookId == reserve.BookId);
-                    ExceptionExtensions.Check<OLBadRequest>(sameReservation == null, $"You are trying to edit an record, but the record (with id = {reserve.Id} and bookId = {reserve.BookId}) does not exist");
-
-                    // make valid/check if valid
-                    reserve.ReservationDate = reserve.ReservationDate == default ? sameReservation.ReservationDate : reserve.ReservationDate;
-                    reserve.UserId = reserve.UserId == default ? sameReservation.UserId : reserve.UserId;
-                    ExceptionExtensions.Check<OLBadRequest>(reserve.UserId != sameReservation.UserId, $"You are trying to edit a user ({reserve.UserId}) it's not allowed. Actual = {sameReservation.UserId} ");
-
-                    // Record exist. Check status - update or keep
-                    if (sameReservation.Equals(reserve))
-                        updateReservations.Add(new UpdateReservations(reserve, UpdateStatus.Keep));
-                    else
-                        updateReservations.Add(new UpdateReservations(reserve, UpdateStatus.Update));
-                    // delete from actualReservations. whatever remains will be deleted 
-                    actualReservations.Remove(sameReservation);
-                }
-                else
-                {
-                    ExceptionExtensions.Check<OLBadRequest>(reserve.Id != default, $"You are trying to edit an record, but the record (with id = {reserve.Id} and bookId = {reserve.BookId}) does not exist");
-                    ExceptionExtensions.Check<OLBadRequest>(reserve.UserId < 1 || !(await _unitOfWork.UserRepository.IsUserExistAsync(reserve.UserId)), $"UserId incorrect {reserve.UserId}");
-                    reserve.ReservationDate = reserve.ReservationDate == default ? DateTime.UtcNow : reserve.ReservationDate;
-                    updateReservations.Add(new UpdateReservations(reserve, UpdateStatus.Create));
-                }
-
-                ExceptionExtensions.Check<OLBadRequest>(reserve.ReturnDate != null && reserve.ReturnDate < reserve.ReservationDate, $"Return date {reserve.ReturnDate} less then reservation date {reserve.ReservationDate}");
-            }
-
-            foreach (Reservation reserve in actualReservations)
-            {
-                updateReservations.Add(new UpdateReservations(reserve, UpdateStatus.Delete));
-            }
-
-            ExceptionExtensions.Check<OLBadRequest>(updateReservations.All(x => x.Status == UpdateStatus.Keep), $"nothing has changed");
-
-            VerifyIfUpdatedReservationsIsValid(updateReservations);
-            await _unitOfWork.ReservationRepository.UpdateBookReservationsAsync(updateReservations);
+            await _unitOfWork.BookRepository.UpdateBookWithReservations(book);
         }
 
-        private void VerifyIfUpdatedReservationsIsValid(List<UpdateReservations> updateReservations)
+        private async Task CheckReservationValidation(int bookId, List<Reservation> reservations)
         {
-            int count = updateReservations.Where(r => r.Reservation.ReturnDate == null && r.Status != UpdateStatus.Delete).Count();
+            ExceptionExtensions.Check<OLBadRequest>(!reservations.All(x=>x.BookId == bookId), $"Not in all reservations bookId = {bookId}");
+
+            int count = reservations.Where(r => r.ReturnDate == null).Count();
             ExceptionExtensions.Check<OLBadRequest>(count > 1, $"Only 1 person can read the book at a time. Actual readers - {count}");
 
-            Reservation[] reservations = updateReservations.Where(r => r.Status != UpdateStatus.Delete).Select(r => r.Reservation).ToArray();
-
-            for (int i = 0; i < reservations.Length - 1; i++)
+            foreach (Reservation reserve in reservations)
             {
-                if (reservations[i].ReturnDate == null) reservations[i].ReturnDate = DateTime.UtcNow;
+                ValidationResult reserveResult = _reservationValidator.Validate(reserve);
+                ExceptionExtensions.Check<OLBadRequest>(!reserveResult.IsValid, $"The reserve has been changed incorrectly. Reservation info {reserve}");
+                ExceptionExtensions.Check<OLBadRequest>(reserve.UserId < 1 || !(await _unitOfWork.UserRepository.IsUserExistAsync(reserve.UserId)), $"UserId incorrect {reserve.UserId}");
+            }
 
-                for (int y = i + 1; y < reservations.Length; y++)
+            Reservation[] reservationsArray = reservations.ToArray();
+
+            for (int i = 0; i < reservationsArray.Length - 1; i++)
+            {
+                if (reservationsArray[i].ReturnDate == null) reservationsArray[i].ReturnDate = DateTime.UtcNow;
+
+                for (int y = i + 1; y < reservationsArray.Length; y++)
                 {
-                    if (reservations[y].ReservationDate >= reservations[i].ReturnDate || reservations[y].ReturnDate <= reservations[i].ReservationDate) continue;
-                    ExceptionExtensions.Check<OLBadRequest>(true, $"dates overlap range1 - {reservations[i].ReservationDate} - {reservations[i].ReturnDate}, range2 - {reservations[y].ReservationDate} - {reservations[y].ReturnDate}");
+                    if (reservationsArray[y].ReservationDate >= reservationsArray[i].ReturnDate || reservationsArray[y].ReturnDate <= reservationsArray[i].ReservationDate) continue;
+                    ExceptionExtensions.Check<OLBadRequest>(true, $"dates overlap range1 - {reservationsArray[i].ReservationDate} - {reservationsArray[i].ReturnDate}, range2 - {reservationsArray[y].ReservationDate} - {reservationsArray[y].ReturnDate}");
                 }
             }
         }

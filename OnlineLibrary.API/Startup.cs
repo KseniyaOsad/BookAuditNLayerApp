@@ -69,6 +69,7 @@ namespace OnlineLibrary.API
             services.AddTransient<IValidator<Author>, AuthorValidator>();
             services.AddTransient<IValidator<Tag>, TagValidator>();
             services.AddTransient<IValidator<User>, UserValidator>();
+            services.AddTransient<IValidator<Reservation>, ReservationValidator>();
 
             // Swagger.
             services.AddSwaggerGen();
