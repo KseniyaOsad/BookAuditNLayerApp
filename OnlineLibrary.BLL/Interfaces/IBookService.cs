@@ -2,6 +2,7 @@
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
+using OnlineLibrary.DAL.DTO;
 using System.Threading.Tasks;
 
 namespace OnlineLibrary.BLL.Interfaces
@@ -14,11 +15,7 @@ namespace OnlineLibrary.BLL.Interfaces
 
         Task<int> CreateBookAsync(Book book);
 
-        Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book);
-
-        Task UpdatePatchReservationAsync(int bookId, JsonPatchDocument<Book> book);
-
-        Task<Book> GetBookInfoAndBookReservationsAsync(int bookId);
+        Task UpdatePatchAsync(int bookId, JsonPatchDocument<BookDTO> book);
 
     }
 }

@@ -18,6 +18,8 @@ using OnlineLibrary.API.Mapper;
 using OnlineLibrary.DAL.Repositories.Dapper;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.API.Filters;
+using OnlineLibrary.DAL.DTO;
+using OnlineLibrary.DAL.DTOValidators;
 
 namespace OnlineLibrary.API
 {
@@ -70,6 +72,7 @@ namespace OnlineLibrary.API
             services.AddTransient<IValidator<Tag>, TagValidator>();
             services.AddTransient<IValidator<User>, UserValidator>();
             services.AddTransient<IValidator<Reservation>, ReservationValidator>();
+            services.AddTransient<IValidator<BookDTO>, BookDTOValidator>();
 
             // Swagger.
             services.AddSwaggerGen();

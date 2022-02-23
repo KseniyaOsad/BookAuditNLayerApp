@@ -11,6 +11,7 @@ using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
+using OnlineLibrary.DAL.DTO;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -77,7 +78,7 @@ namespace OnlineLibrary.API.Controllers
 
         // Patch:  api/books/[id]
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdatePatchAsync(int Id, [FromBody] JsonPatchDocument<Book> book)
+        public async Task<IActionResult> UpdatePatchAsync(int Id, [FromBody] JsonPatchDocument<BookDTO> book)
         {
             await _bookService.UpdatePatchAsync(Id, book);
             _logger.LogInformation($"Update book. Book ID = {Id}");
@@ -89,24 +90,6 @@ namespace OnlineLibrary.API.Controllers
         public IActionResult GetAllGenres()
         {
             return Ok(Enum.GetNames(typeof(Genre)));
-        }
-
-        // remove it and add functionality to UpdatePatchAsync and related
-        [HttpPatch("reserv/{id}")]
-        public async Task<IActionResult> UpdatePatchReservationAsync(int Id, [FromBody] JsonPatchDocument<Book> book)
-        {
-            await _bookService.UpdatePatchReservationAsync(Id, book);
-            _logger.LogInformation($"Reservation Update book. Book ID = {Id}");
-            return Ok(await _bookService.GetBookInfoAndBookReservationsAsync(Id));
-        }
-
-        // remove it and add functionality to GetBookByIdAsync and related
-        [HttpGet("reserv/{id}")]
-        public async Task<IActionResult> GetBookByIdIncludeReservationAsync(int id)
-        {
-            Book book = await _bookService.GetBookInfoAndBookReservationsAsync(id);
-            _logger.LogInformation($"Getting book Include Reservation by id. Book's id = {book.Id}");
-            return Ok(book);
         }
     }
 }

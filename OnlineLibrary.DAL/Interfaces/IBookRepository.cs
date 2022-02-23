@@ -1,6 +1,7 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.EntityProcessing.Filtration;
 using OnlineLibrary.Common.EntityProcessing.Sorting;
+using OnlineLibrary.DAL.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,22 +15,10 @@ namespace OnlineLibrary.DAL.Interfaces
 
         Task CreateBookAsync(Book book);
 
-        Task UpdateBookAsync(Book book);
-
-        Task<List<int>> GetAuthorIdsByBookAsync(int bookId);
-
-        Task UpdateAuthorBookAsync(Book book, List<int> newAuthors, List<int> oldAuthors);
-
-        Task<List<int>> GetTagIdsByBookAsync(int bookId);
-
-        Task UpdateBookTagAsync(Book book, List<int> newTags, List<int> oldTags);
+        Task UpdateBookAsync(BookDTO book);
 
         Task<List<int>> FilterBooksAsync(BookFiltration bookFiltration);
 
         Task<List<Book>> SortPaginBooksAsync(List<int> bookIds, bool fromBooks, SortingOptions sortingOptions, int skip, int pageSize);
-
-        Task<Book> GetBookInfoAndBookReservationsAsync(int bookId);
-
-        Task UpdateBookWithReservations(Book book);
     }
 }

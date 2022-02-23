@@ -12,6 +12,7 @@ using System.Linq;
 using FluentValidation.Results;
 using System.Collections.Generic;
 using System;
+using OnlineLibrary.DAL.DTO;
 
 namespace OnlineLibrary.BLL.Services
 {
@@ -19,14 +20,14 @@ namespace OnlineLibrary.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        private readonly IValidator<Book> _bookValidator;
+        private readonly IValidator<BookDTO> _bookDTOValidator;
 
         private readonly IValidator<Reservation> _reservationValidator;
 
-        public BookService(IUnitOfWork uow, IValidator<Book> bookValidator,IValidator<Reservation> reservationValidator)
+        public BookService(IUnitOfWork uow, IValidator<BookDTO> bookValidator,IValidator<Reservation> reservationValidator)
         {
             _unitOfWork = uow;
-            _bookValidator = bookValidator;
+            _bookDTOValidator = bookValidator;
             _reservationValidator = reservationValidator;
         }
 
@@ -70,111 +71,49 @@ namespace OnlineLibrary.BLL.Services
             return book;
         }
 
-        private async Task UpdateAuthorBookAsync(Book book)
-        {
-            List<int> oldAuthors = await _unitOfWork.BookRepository.GetAuthorIdsByBookAsync(book.Id);
-
-            List<int> newAuthors = book.Authors.Select(a => a.Id).ToList();
-
-            foreach (var newAuthor in book.Authors)
-            {
-                if (oldAuthors.Contains(newAuthor.Id))
-                {
-                    oldAuthors.Remove(newAuthor.Id);
-                    newAuthors.Remove(newAuthor.Id);
-                }
-            }
-
-            if (oldAuthors.Any() || newAuthors.Any())
-                await _unitOfWork.BookRepository.UpdateAuthorBookAsync(book, newAuthors, oldAuthors);
-        }
-
-        private async Task UpdateBookTagAsync(Book book)
-        {
-            List<int> oldTags = await _unitOfWork.BookRepository.GetTagIdsByBookAsync(book.Id);
-
-            List<int> newTags = book.Tags.Select(t => t.Id).ToList();
-
-            foreach (var newTag in book.Tags)
-            {
-                if (oldTags.Contains(newTag.Id))
-                {
-                    oldTags.Remove(newTag.Id);
-                    newTags.Remove(newTag.Id);
-                }
-            }
-            if (oldTags.Any() || newTags.Any())
-                await _unitOfWork.BookRepository.UpdateBookTagAsync(book, newTags, oldTags);
-        }
-
-        public async Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book)
+        public async Task UpdatePatchAsync(int bookId, JsonPatchDocument<BookDTO> book)
         {
             ExceptionExtensions.Check<OLInternalServerError>(!book.Operations.All(x => x.op.ToUpper().Contains("REPLACE")), "this method supports only replace operations");
 
-            var originalBook = await _unitOfWork.BookRepository.GetBookByIdAsync(bookId);
+            var originalBook = new BookDTO(await _unitOfWork.BookRepository.GetBookByIdAsync(bookId));
             ExceptionExtensions.Check<OLNotFound>(originalBook == null, "Book not found");
             book.ApplyTo(originalBook);
             ExceptionExtensions.Check<OLBadRequest>(bookId != originalBook.Id, "You are trying to change the ID. it's not allowed.");
 
-            ValidationResult results = _bookValidator.Validate(originalBook);
-            ExceptionExtensions.Check<OLBadRequest>(!results.IsValid, "The book has been changed incorrectly");
+            ValidationResult bookResult = _bookDTOValidator.Validate(originalBook);
+            ExceptionExtensions.Check<OLBadRequest>(!bookResult.IsValid, "The book has been changed incorrectly");
+
+            // validate reservations 
+            await CheckReservationValidation(bookId, originalBook.Reservations);
             
-            // update AuthorBook if need
-            if (book.Operations.Any(x => x.path.Contains("authors")))
+            // check if we can change archivation
+            if (book.Operations.Any(x => x.path.ToUpper().Contains("INARCHIVE")))
+            {
+                ExceptionExtensions.Check<OLBadRequest>(originalBook.InArchive == true && originalBook.Reservations.Any(r => r.ReturnDate == null), "You can't archivate this book. It is in reserve.");
+            }
+
+            // validate AuthorBook if need
+            if (book.Operations.Any(x => x.path.ToUpper().Contains("AUTHORS")))
             {
                 originalBook.Authors = await _unitOfWork.AuthorRepository.GetAuthorsByIdListAsync(originalBook.Authors.Select(x => x.Id).ToList());
                 ExceptionExtensions.Check<OLBadRequest>(!originalBook.Authors.Any(), "You are trying to change the Authors. But this authors don't exists.");
-                await UpdateAuthorBookAsync(originalBook);
             }
 
-            // update BookTag if need
-            if (book.Operations.Any(x => x.path.Contains("tags")))
+            // validate BookTag if need
+            if (book.Operations.Any(x => x.path.ToUpper().Contains("TAGS")))
             {
                 originalBook.Tags = await _unitOfWork.TagRepository.GetTagsByIdListAsync(originalBook.Tags.Select(x => x.Id).ToList());
                 ExceptionExtensions.Check<OLBadRequest>(!originalBook.Tags.Any(), "You are trying to change the Tags. But this tags don't exists.");
-                await UpdateBookTagAsync(originalBook);
             }
-
-            // update book info if need
-            if (book.Operations.Any(x => !x.path.Contains("tags") && !x.path.Contains("authors")))
-            {
-                if (book.Operations.Any(x => x.path.Contains("inArchive")))
-                {
-                    Reservation reservationRow = await _unitOfWork.ReservationRepository.GetBookReservationLastRow(bookId);
-                    ExceptionExtensions.Check<OLBadRequest>(reservationRow != null && reservationRow.ReturnDate == default, "You can't archivate this book. It is in reserve.");
-                }
-                await _unitOfWork.BookRepository.UpdateBookAsync(originalBook);
-            }
-        }
-
-        public async Task<int> CreateBookAsync(Book book)
-        {
-            await _unitOfWork.BookRepository.CreateBookAsync(book);
-            ExceptionExtensions.Check<OLInternalServerError>(book.Id == 0, "The book was not created");
-            return book.Id;
-        }
-
-        public async Task UpdatePatchReservationAsync(int bookId, JsonPatchDocument<Book> bookJson)
-        {
-            ExceptionExtensions.Check<OLInternalServerError>(!bookJson.Operations.All(x => x.op.ToUpper().Contains("REPLACE")), "this method supports only replace operations");
-            var book = await _unitOfWork.BookRepository.GetBookInfoAndBookReservationsAsync(bookId);
-            ExceptionExtensions.Check<OLNotFound>(book == null, "Book not found");
-            bookJson.ApplyTo(book);
-            ExceptionExtensions.Check<OLBadRequest>(bookId != book.Id, "You are trying to change the ID. it's not allowed.");
-
-            ValidationResult bookResult = _bookValidator.Validate(book);
-            ExceptionExtensions.Check<OLBadRequest>(!bookResult.IsValid, "The book has been changed incorrectly");
-
-            // validate reservations if reservation count not 0
-            if(book.Reservations.Any())
-                await CheckReservationValidation(bookId, book.Reservations);
-
-            await _unitOfWork.BookRepository.UpdateBookWithReservations(book);
+            
+            await _unitOfWork.BookRepository.UpdateBookAsync(originalBook);
         }
 
         private async Task CheckReservationValidation(int bookId, List<Reservation> reservations)
         {
-            ExceptionExtensions.Check<OLBadRequest>(!reservations.All(x=>x.BookId == bookId), $"Not in all reservations bookId = {bookId}");
+            if (!reservations.Any()) return;
+
+            ExceptionExtensions.Check<OLBadRequest>(!reservations.All(x => x.BookId == bookId), $"Not in all reservations bookId = {bookId}");
 
             int count = reservations.Where(r => r.ReturnDate == null).Count();
             ExceptionExtensions.Check<OLBadRequest>(count > 1, $"Only 1 person can read the book at a time. Actual readers - {count}");
@@ -200,11 +139,12 @@ namespace OnlineLibrary.BLL.Services
             }
         }
 
-        public async Task<Book> GetBookInfoAndBookReservationsAsync(int bookId)
+        public async Task<int> CreateBookAsync(Book book)
         {
-            Book book = await _unitOfWork.BookRepository.GetBookInfoAndBookReservationsAsync(bookId);
-            ExceptionExtensions.Check<OLNotFound>(book == null, "Book not found");
-            return book;
+            await _unitOfWork.BookRepository.CreateBookAsync(book);
+            ExceptionExtensions.Check<OLInternalServerError>(book.Id == 0, "The book was not created");
+            return book.Id;
         }
+
     }
 }
