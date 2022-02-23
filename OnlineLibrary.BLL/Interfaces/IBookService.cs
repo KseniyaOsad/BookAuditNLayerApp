@@ -15,5 +15,10 @@ namespace OnlineLibrary.BLL.Interfaces
         Task<int> CreateBookAsync(Book book);
 
         Task UpdatePatchAsync(int bookId, JsonPatchDocument<Book> book);
+
+        Task UpdatePatchReservationAsync(int bookId, JsonPatchDocument<Book> book);
+
+        Task<Book> GetBookInfoAndBookReservationsAsync(int bookId);
+
     }
 }

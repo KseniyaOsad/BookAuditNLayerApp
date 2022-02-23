@@ -152,113 +152,125 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
             }
         }
 
-        private async Task UpdateAuthorBook(SqlConnection connection, Book book)
+        public async Task<List<int>> GetAuthorIdsByBookAsync(int bookId)
         {
-            // Find all existing authors in AuthorBook.
-            List<int> oldAuthors = (await connection.QueryAsync<int>("sp_GetAuthorIdsFromAuthorBookEntitiesByBook", 
-                new { bookId = book.Id },
-                commandType: CommandType.StoredProcedure)).ToList();
-            List<int> newAuthors = book.Authors.Select(a => a.Id).ToList();
-
-            foreach (var newAuthor in book.Authors)
-            {
-                if (oldAuthors.Contains(newAuthor.Id))
-                {
-                    oldAuthors.Remove(newAuthor.Id);
-                    newAuthors.Remove(newAuthor.Id);
-                }
-            }
-
-            // Create new row if needed.
-            if (newAuthors.Any())
-            {
-                List<AuthorBookIds> authorBookIds = newAuthors.Select(authorId => new AuthorBookIds(book.Id, authorId)).ToList();
-                var parameters = new DynamicParameters();
-                parameters.AddTable("@authorBook", "t_AuthorBook", authorBookIds);
-                await connection.ExecuteAsync("sp_CreateAuthorBook",
-                        parameters,
-                        commandType: CommandType.StoredProcedure);
-            }
-
-            // Delete old rows if needed.
-            if (oldAuthors.Any())
-            {
-                List<AuthorBookIds> authorBookIds = oldAuthors.Select(authorId => new AuthorBookIds(book.Id, authorId)).ToList();
-                var parameters = new DynamicParameters();
-                parameters.AddTable("@authorBook", "t_AuthorBook", authorBookIds);
-                await connection.ExecuteAsync("sp_DeleteAuthorBook",
-                    parameters,
-                    commandType: CommandType.StoredProcedure);
-            }
+            using (var connection = new SqlConnection(_connectionString))
+                return (await connection.QueryAsync<int>("sp_GetAuthorIdsFromAuthorBookEntitiesByBook",
+                        new { bookId = bookId },
+                        commandType: CommandType.StoredProcedure)).ToList();
         }
 
-        private async Task UpdateBookTag(SqlConnection connection, Book book)
+        public async Task<List<int>> GetTagIdsByBookAsync(int bookId)
         {
-            // Find all existing tags in BookTag.
-            List<int> oldTags = (await connection.QueryAsync<int>("sp_GetTagIdsFromBookTagEntitiesByBook", 
-                new { bookId = book.Id },
-                commandType: CommandType.StoredProcedure)).ToList();
-            List<int> newTags = book.Tags.Select(t=>t.Id).ToList();
-            foreach (var newTag in book.Tags)
-            {
-                if (oldTags.Contains(newTag.Id))
-                {
-                    oldTags.Remove(newTag.Id);
-                    newTags.Remove(newTag.Id);
-                }
-            }
-
-            // Create new row if needed.
-            if (newTags.Any())
-            {
-                List<BookTagIds> bookTagIds = newTags.Select(tagId => new BookTagIds(book.Id, tagId)).ToList();
-                var parameters = new DynamicParameters();
-                parameters.AddTable("@bookTag", "t_BookTag", bookTagIds);
-
-                await connection.ExecuteAsync("sp_CreateBookTag",
-                        parameters,
-                        commandType: CommandType.StoredProcedure);
-            }
-
-            // Delete old rows if needed.
-            if (oldTags.Any())
-            {
-                List<BookTagIds> bookTagIds = oldTags.Select(tagId => new BookTagIds(book.Id, tagId)).ToList();
-                var parameters = new DynamicParameters();
-                parameters.AddTable("@bookTag", "t_BookTag", bookTagIds);
-
-                await connection.ExecuteAsync("sp_DeleteBookTag",
-                    parameters,
-                    commandType: CommandType.StoredProcedure);
-            }
+            using (var connection = new SqlConnection(_connectionString))
+                return (await connection.QueryAsync<int>("sp_GetTagIdsFromBookTagEntitiesByBook",
+                        new { bookId = bookId },
+                        commandType: CommandType.StoredProcedure)).ToList();
         }
 
-        public async Task UpdateBookAsync(Book book, bool updateBook, bool updateAuthors, bool updateTags)
+        public async Task UpdateAuthorBookAsync(Book book, List<int> newAuthors, List<int> oldAuthors)
         {
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 using (var connection = new SqlConnection(_connectionString))
                 {
-                    // Update book params if we make some changes with it.
-                    if (updateBook)
+                    // Create new row if needed.
+                    if (newAuthors.Any())
                     {
-                        await connection.ExecuteAsync("sp_UpdateBook", new
-                        {
-                            name = book.Name,
-                            description = book.Description,
-                            inArchive = book.InArchive,
-                            genre = book.Genre,
-                            bookId = book.Id
-                        },
-                        commandType: CommandType.StoredProcedure);
+                        List<AuthorBookIds> authorBookIds = newAuthors.Select(authorId => new AuthorBookIds(book.Id, authorId)).ToList();
+                        var parameters = new DynamicParameters();
+                        parameters.AddTable("@authorBook", "t_AuthorBook", authorBookIds);
+
+                        await connection.ExecuteAsync("sp_CreateAuthorBook",
+                                parameters,
+                                commandType: CommandType.StoredProcedure);
                     }
 
-                    if (updateAuthors) await UpdateAuthorBook(connection, book);
-                    if (updateTags) await UpdateBookTag(connection, book);
-                    
+                    // Delete old rows if needed.
+                    if (oldAuthors.Any())
+                    {
+                        List<AuthorBookIds> authorBookIds = oldAuthors.Select(authorId => new AuthorBookIds(book.Id, authorId)).ToList();
+                        var parameters = new DynamicParameters();
+                        parameters.AddTable("@authorBook", "t_AuthorBook", authorBookIds);
+
+                        await connection.ExecuteAsync("sp_DeleteAuthorBook",
+                            parameters,
+                            commandType: CommandType.StoredProcedure);
+                    }
                     scope.Complete();
                 }
             }
+        }
+
+        public async Task UpdateBookTagAsync(Book book, List<int> newTags, List<int> oldTags)
+        {
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                using (var connection = new SqlConnection(_connectionString))
+                {
+                    // Create new row if needed.
+                    if (newTags.Any())
+                    {
+                        List<BookTagIds> bookTagIds = newTags.Select(tagId => new BookTagIds(book.Id, tagId)).ToList();
+                        var parameters = new DynamicParameters();
+                        parameters.AddTable("@bookTag", "t_BookTag", bookTagIds);
+
+                        await connection.ExecuteAsync("sp_CreateBookTag",
+                                parameters,
+                                commandType: CommandType.StoredProcedure);
+                    }
+
+                    // Delete old rows if needed.
+                    if (oldTags.Any())
+                    {
+                        List<BookTagIds> bookTagIds = oldTags.Select(tagId => new BookTagIds(book.Id, tagId)).ToList();
+                        var parameters = new DynamicParameters();
+                        parameters.AddTable("@bookTag", "t_BookTag", bookTagIds);
+
+                        await connection.ExecuteAsync("sp_DeleteBookTag",
+                            parameters,
+                            commandType: CommandType.StoredProcedure);
+                    }
+                    scope.Complete();
+                }
+            }
+        }
+
+        public async Task UpdateBookAsync(Book book)
+        {
+             using (var connection = new SqlConnection(_connectionString))
+             {
+                 await connection.ExecuteAsync("sp_UpdateBook", new
+                 {
+                     name = book.Name,
+                     description = book.Description,
+                     inArchive = book.InArchive,
+                     genre = book.Genre,
+                     bookId = book.Id
+                 },
+                 commandType: CommandType.StoredProcedure);
+             }
+        }
+
+        public async Task<Book> GetBookInfoAndBookReservationsAsync(int bookId)
+        {
+            IEnumerable<Book> BookGroup;
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                BookGroup = await connection.QueryAsync<Reservation, User, Book, Book>("sp_GetBookInfoAndBookReservations", (reservation, user, book) =>
+                {
+                    if (reservation != null)
+                        reservation.User = user;
+                    book.Reservations = reservation==null? null: new List<Reservation>() { reservation };
+                    return book;
+                },
+                new { bookId },
+                commandType: CommandType.StoredProcedure);
+            }
+            if (!BookGroup.Any()) return null;
+            Book book = BookGroup.First();
+            book.Reservations = BookGroup.Where(b => b.Reservations != null).Select(b=>b.Reservations.Single()).ToList();
+            return book;
         }
     }
 }

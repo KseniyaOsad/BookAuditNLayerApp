@@ -90,5 +90,23 @@ namespace OnlineLibrary.API.Controllers
         {
             return Ok(Enum.GetNames(typeof(Genre)));
         }
+
+        // remove it and add functionality to UpdatePatchAsync and related
+        [HttpPatch("reserv/{id}")]
+        public async Task<IActionResult> UpdatePatchReservationAsync(int Id, [FromBody] JsonPatchDocument<Book> book)
+        {
+            await _bookService.UpdatePatchReservationAsync(Id, book);
+            _logger.LogInformation($"Reservation Update book. Book ID = {Id}");
+            return Ok(await _bookService.GetBookInfoAndBookReservationsAsync(Id));
+        }
+
+        // remove it and add functionality to GetBookByIdAsync and related
+        [HttpGet("reserv/{id}")]
+        public async Task<IActionResult> GetBookByIdIncludeReservationAsync(int id)
+        {
+            Book book = await _bookService.GetBookInfoAndBookReservationsAsync(id);
+            _logger.LogInformation($"Getting book Include Reservation by id. Book's id = {book.Id}");
+            return Ok(book);
+        }
     }
 }

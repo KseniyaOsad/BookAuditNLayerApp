@@ -1,4 +1,5 @@
 ﻿using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.DAL.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -17,6 +18,8 @@ namespace OnlineLibrary.DAL.Interfaces
         Task CloseReservationAsync(Reservation reservation);
 
         Task<Reservation> GetBookReservationLastRow(int bookId);
+
+        Task UpdateBookReservationsAsync(List<UpdateReservations> updateReservations);
 
     }
 }

@@ -48,7 +48,6 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 
         public async Task<List<Tag>> GetTagsByIdListAsync(List<int> tagsId)
         {
-            
             using (var connection = new SqlConnection(_connectionString))
             {
                 List<IdList> idLists = tagsId.Select(x=>new IdList(x)).ToList();

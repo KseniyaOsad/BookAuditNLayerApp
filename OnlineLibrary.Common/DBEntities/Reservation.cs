@@ -15,7 +15,7 @@ namespace OnlineLibrary.Common.DBEntities
 
         public Book Book { get; set; }
 
-        public DateTime ReservationDate { get; set; } = DateTime.Now;
+        public DateTime ReservationDate { get; set; }
 
         public DateTime? ReturnDate { get; set; }
 
@@ -30,6 +30,18 @@ namespace OnlineLibrary.Common.DBEntities
                 .Append(ReservationDate).Append(",")
                 .Append(returnDate).Append("\n")
                 .ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            Reservation reservation = obj as Reservation;
+            if (reservation == null) return false;
+            return 
+                reservation.Id == Id 
+                && reservation.UserId == UserId 
+                && reservation.BookId == BookId
+                && DateTime.Equals(reservation.ReservationDate, ReservationDate)
+                && DateTime.Equals(reservation.ReturnDate, ReturnDate);
         }
     }
 }

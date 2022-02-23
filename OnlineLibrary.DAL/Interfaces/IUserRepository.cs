@@ -11,5 +11,7 @@ namespace OnlineLibrary.DAL.Interfaces
         Task CreateUserAsync(User user);
 
         Task<bool> IsUserExistAsync(int userId);
+
+        Task<List<User>> GetUsersByIdListAsync(List<int> usersId);
     }
 }

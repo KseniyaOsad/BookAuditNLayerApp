@@ -113,6 +113,10 @@
     <Build Include="StoredProcedures\AuthorBook\sp_GetAuthorIdsFromAuthorBookEntitiesByBook.sql" />
     <Build Include="Custom-Types\t_AuthorBook.sql" />
     <Build Include="Custom-Types\t_BookTag.sql" />
+    <Build Include="StoredProcedures\Books\sp_GetBookInfoAndBookReservations.sql" />
+    <Build Include="StoredProcedures\Users\sp_GetUsersByIdList.sql" />
+    <Build Include="StoredProcedures\Reservations\sp_UpdateBookReservations.sql" />
+    <Build Include="Custom-Types\t_Reservation.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="POST-Deployment\Post-Seed-Authors.sql" />

@@ -1,12 +1,11 @@
 ﻿using Dapper;
+using DapperParameters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.Common.Exceptions;
-using OnlineLibrary.Common.Extensions;
+using OnlineLibrary.DAL.DTO;
 using OnlineLibrary.DAL.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -27,7 +26,7 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                await connection.ExecuteAsync("sp_CloseReservation", 
+                await connection.ExecuteAsync("sp_CloseReservation",
                     new { bookId = reservation.Book.Id, userId = reservation.User.Id },
                     commandType: CommandType.StoredProcedure);
             }
@@ -37,7 +36,7 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                return await connection.QueryFirstOrDefaultAsync<Reservation>("sp_GetLastBookReservation", 
+                return await connection.QueryFirstOrDefaultAsync<Reservation>("sp_GetLastBookReservation",
                     new { bookId },
                     commandType: CommandType.StoredProcedure);
             }
@@ -77,7 +76,7 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                     reservation.Book = book;
                     reservation.User = user;
                     return reservation;
-                }, 
+                },
                 new { bookId },
                 commandType: CommandType.StoredProcedure)
                 ).ToList();
@@ -93,12 +92,29 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                     reservation.Book = book;
                     reservation.User = user;
                     return reservation;
-                }, 
+                },
                 new { userId },
                 commandType: CommandType.StoredProcedure)
                 ).ToList();
             }
         }
 
+        public async Task UpdateBookReservationsAsync(List<UpdateReservations> updateReservations)
+        {
+            List<ReservationDTO> deleteRes = updateReservations.Where(r => r.Status == DTO.Enums.UpdateStatus.Delete).Select(r => new ReservationDTO(r.Reservation)).ToList();
+            List<ReservationDTO> updateRes = updateReservations.Where(r => r.Status == DTO.Enums.UpdateStatus.Update).Select(r => new ReservationDTO(r.Reservation)).ToList();
+            List<ReservationDTO> createRes = updateReservations.Where(r => r.Status == DTO.Enums.UpdateStatus.Create).Select(r => new ReservationDTO(r.Reservation)).ToList();
+            var parameters = new DynamicParameters();
+            parameters.AddTable("@delete", "t_Reservation", deleteRes);
+            parameters.AddTable("@update", "t_Reservation", updateRes);
+            parameters.AddTable("@create", "t_Reservation", createRes);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.ExecuteAsync("sp_UpdateBookReservations",
+                                parameters,
+                                commandType: CommandType.StoredProcedure);
+            }
+        }
     }
 }
