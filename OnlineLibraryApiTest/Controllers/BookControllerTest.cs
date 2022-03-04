@@ -13,7 +13,7 @@ using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.DBEntities.Enums;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
-using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.DAL.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -96,15 +96,15 @@ namespace OnlineLibraryApiTest.Controllers
 
         // Task<IActionResult> UpdatePatchAsync(int Id, [FromBody] JsonPatchDocument<Book> book)
 
-        //[TestMethod]
-        //public async Task UpdatePatch_Book()
-        //{
-        //    _mockBookService.Setup(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()));
-        //    _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
-        //    await _bookController.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
-        //    _mockBookService.Verify(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), Times.Once);
-        //    _mockBookService.Verify(x => x.GetBookByIdAsync(It.IsAny<int>()), Times.Once);
-        //}
+        [TestMethod]
+        public async Task UpdatePatch_Book()
+        {
+            _mockBookService.Setup(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<BookDTO>>()));
+            _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
+            await _bookController.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<BookDTO>>());
+            _mockBookService.Verify(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<BookDTO>>()), Times.Once);
+            _mockBookService.Verify(x => x.GetBookByIdAsync(It.IsAny<int>()), Times.Once);
+        }
 
         // Validate CreateBook - it passed as [FromBody] in CreateAsync method
 
