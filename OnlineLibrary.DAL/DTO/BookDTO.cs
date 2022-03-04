@@ -6,18 +6,6 @@ namespace OnlineLibrary.DAL.DTO
 {
     public class BookDTO
     {
-        public BookDTO(Book book)
-        {
-            Id = book.Id;
-            Name = book.Name;
-            Description = book.Description;
-            InArchive = book.InArchive;
-            Genre = book.Genre;
-            Authors = book.Authors;
-            Tags = book.Tags;
-            Reservations = book.Reservations;
-        }
-
         public int Id { get; set; }
 
         public string? Name { get; set; }

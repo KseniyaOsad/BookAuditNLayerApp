@@ -8,7 +8,7 @@ namespace OnlineLibrary.Common.DBEntities
         public int Id { get; set; }
 
         public int UserId { get; set; }
-        
+
         public User User { get; set; }
 
         public int BookId { get; set; }
@@ -36,12 +36,7 @@ namespace OnlineLibrary.Common.DBEntities
         {
             Reservation reservation = obj as Reservation;
             if (reservation == null) return false;
-            return 
-                reservation.Id == Id 
-                && reservation.UserId == UserId 
-                && reservation.BookId == BookId
-                && DateTime.Equals(reservation.ReservationDate, ReservationDate)
-                && DateTime.Equals(reservation.ReturnDate, ReturnDate);
+            return reservation.Id == Id;
         }
     }
 }

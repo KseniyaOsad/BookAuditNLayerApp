@@ -1,13 +1,19 @@
 ﻿namespace OnlineLibrary.DAL.DTO
 {
-    class AuthorBookIds
+    class AuthorBookId
     {
-        public AuthorBookIds(int bookId, int authorId)
+        public AuthorBookId(int authorId)
+        {
+            AuthorId = authorId;
+        }
+        public AuthorBookId(int bookId, int authorId)
         {
             BookId = bookId;
             AuthorId = authorId;
         }
 
+        public int Id { get; set; }
+        
         public int BookId { get; set; }
 
         public int AuthorId { get; set; }

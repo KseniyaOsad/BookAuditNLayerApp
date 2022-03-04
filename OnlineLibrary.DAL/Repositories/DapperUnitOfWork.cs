@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.DAL.Interfaces;
 using System;
@@ -17,10 +18,10 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
         private Lazy<UserRepository> _userRepository;
 
         private Lazy<ReservationRepository> _reservationRepository;
-
-        public DapperUnitOfWork(IOptions<DBConnection> connOptions)
+        
+        public DapperUnitOfWork(IOptions<DBConnection> connOptions, IMapper mapper)
         {
-            _bookRepository = new Lazy<BookRepository>(() => new BookRepository(connOptions));
+            _bookRepository = new Lazy<BookRepository>(() => new BookRepository(connOptions, mapper));
             _authorRepository = new Lazy<AuthorRepository>(() => new AuthorRepository(connOptions));
             _tagRepository = new Lazy<TagRepository>(() => new TagRepository(connOptions));
             _userRepository = new Lazy<UserRepository>(() => new UserRepository(connOptions));

@@ -10,6 +10,8 @@ namespace OnlineLibrary.DAL.DTOValidators
             RuleFor(x => x.Name).NotEmpty().When(x=>x.Name != null);
             RuleFor(x => x.Description).NotEmpty().When(x => x.Description != null);
             RuleFor(x => x.Genre).NotEmpty().IsInEnum().When(x => x.Genre != null);
+            RuleFor(x => x.Authors).NotEmpty();
+            RuleFor(x => x.Tags).NotEmpty();
         }
     }
 }

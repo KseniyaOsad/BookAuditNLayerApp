@@ -24,15 +24,15 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 
         public async Task<List<Tag>> GetAllTagsAsync()
         {
-            IEnumerable<Tag> TagsAndBooks;
+            IEnumerable<Tag> tagsAndBooks;
             using (var connection = new SqlConnection(_connectionString))
-                TagsAndBooks = await connection.QueryAsync<Tag, Book, Tag>("sp_GetAllTags", (tag, book) =>
+                tagsAndBooks = await connection.QueryAsync<Tag, Book, Tag>("sp_GetAllTags", (tag, book) =>
                 {
                     tag.Books = book == null ? new List<Book>() : new List<Book>() { book };
                     return tag;
                 }, commandType: CommandType.StoredProcedure);
             
-            return TagsAndBooks
+            return tagsAndBooks
                 .GroupBy(t => t.Id)
                 .Select(group =>
                 {
