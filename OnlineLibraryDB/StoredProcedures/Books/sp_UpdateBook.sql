@@ -24,60 +24,45 @@ BEGIN
 		-- end updating book
 
 		-- update reservation
-		IF NOT EXISTS (SELECT 1 FROM @reservations)
-		BEGIN 
-			DELETE FROM [dbo].[Reservations] WHERE BookId = @bookId;
-		END
-		ELSE
-		BEGIN
-			-- delete all rows where Id not in select
-			DELETE FROM [dbo].[Reservations] 
-			WHERE Id NOT IN (SELECT Id FROM @reservations) AND BookId = @bookId;
-
-			-- update all reservations
-			UPDATE [dbo].[Reservations] 
-			SET ReservationDate = RES.ReservationDate, ReturnDate = RES.ReturnDate, UserId = RES.UserId
-			FROM @reservations AS RES
-			WHERE  
-				RES.Id IS NOT NULL
-				AND [dbo].[Reservations].Id = RES.Id 
-				AND [dbo].[Reservations].BookId = RES.BookId;
-			
-			--create new reservations
-			INSERT INTO [dbo].[Reservations] (BookId, UserId, ReservationDate, ReturnDate)  
-			SELECT BookId, UserId, ReservationDate, ReturnDate 
-			FROM @reservations 
-			WHERE Id = 0 OR Id IS NULL;
-		END
-		-- end updating reservation
+		MERGE [dbo].[Reservations]  AS tgt  
+			USING 
+					(SELECT Id ,UserId ,BookId , ReservationDate ,ReturnDate FROM @reservations) 
+					as src 
+					(Id ,UserId ,BookId ,ReservationDate ,ReturnDate)  
+			ON (tgt.Id = src.Id AND tgt.BookId = src.BookId)  
+			WHEN MATCHED THEN
+				UPDATE SET UserId = src.UserId, ReservationDate = src.ReservationDate, ReturnDate = src.ReturnDate  
+			WHEN NOT MATCHED THEN  
+				INSERT ( UserId ,BookId ,ReservationDate ,ReturnDate)  
+				VALUES (src.UserId ,src.BookId ,src.ReservationDate ,src.ReturnDate)  
+		WHEN NOT MATCHED BY SOURCE AND (tgt.BookId = BookId) THEN DELETE;
 
 		-- update authorBook
-		IF EXISTS (SELECT 1 FROM @authorBook)
-		BEGIN
-			-- delete all AuthorBook
-			DELETE FROM [dbo].[AuthorBook] 
-			WHERE BooksId = @bookId;
-
-			--create new AuthorBook
-			INSERT INTO [dbo].[AuthorBook]  (BooksId, AuthorsId)  
-			SELECT BookId AS BooksId, AuthorId AS AuthorsId
-			FROM @authorBook;
-		END
-		-- end updating authorBook
+		MERGE [dbo].[AuthorBook] AS tgt
+			USING 
+				(SELECT Id, BookId, AuthorId FROM @authorBook) AS src (Id, BooksId, AuthorsId)
+			ON (tgt.Id = src.Id AND tgt.BooksId = src.BooksId)
+			WHEN MATCHED THEN 
+				UPDATE SET AuthorsId = src.AuthorsId
+			WHEN NOT MATCHED THEN 
+				INSERT (BooksId, AuthorsId) 
+				VALUES (src.BooksId, src.AuthorsId)
+			WHEN NOT MATCHED BY SOURCE AND (tgt.BooksId = BooksId) THEN
+				DELETE;
 
 		-- update bookTag
-		IF EXISTS (SELECT 1 FROM @bookTag)
-		BEGIN
-			-- delete all bookTag
-			DELETE FROM [dbo].[BookTag] 
-			WHERE BooksId = @bookId;
-
-			--create new bookTag
-			INSERT INTO [dbo].[BookTag]  (BooksId, TagsId)  
-			SELECT BookId AS BooksId, TagId AS TagsId
-			FROM @bookTag;
-		END
-		-- end updating bookTag
-
+		MERGE [dbo].[BookTag] AS tgt
+			USING 
+				(SELECT Id, BookId, TagId FROM @bookTag)
+				AS src
+				(Id, BooksId, TagsId)
+			ON (tgt.Id = src.Id AND tgt.BooksId = src.BooksId)
+			WHEN MATCHED THEN 
+				UPDATE SET TagsId = src.TagsId 
+			WHEN NOT MATCHED THEN 
+				INSERT (BooksId, TagsId)
+				VALUES (src.BooksId, src.TagsId)
+			WHEN NOT MATCHED BY SOURCE AND (tgt.BooksId = BooksId) THEN
+				DELETE;
 	COMMIT; 
 END
