@@ -11,15 +11,16 @@ using Newtonsoft.Json;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using OnlineLibrary.Common.Validators;
-using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using AutoMapper;
-using OnlineLibrary.API.Mapper;
 using OnlineLibrary.DAL.Repositories.Dapper;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.API.Filters;
 using OnlineLibrary.DAL.DTO;
 using OnlineLibrary.DAL.DTOValidators;
+using OnlineLibrary.API.Mapper;
+using OnlineLibrary.API.Model;
+using OnlineLibrary.DAL.Mapper;
 
 namespace OnlineLibrary.API
 {
@@ -41,6 +42,7 @@ namespace OnlineLibrary.API
             var mappingConfig = new MapperConfiguration(mc =>
             {
                 mc.AddProfile(new MappingProfile());
+                mc.AddProfile(new MappingDTOProfile());
             });
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
