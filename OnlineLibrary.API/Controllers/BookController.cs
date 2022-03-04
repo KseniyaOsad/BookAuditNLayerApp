@@ -2,7 +2,6 @@
 using System;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.JsonPatch;
@@ -12,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
 using OnlineLibrary.DAL.DTO;
+using OnlineLibrary.API.Model;
 
 namespace OnlineLibrary.API.Controllers
 {

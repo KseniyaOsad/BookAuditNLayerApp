@@ -1,11 +1,12 @@
-﻿using Dapper;
+﻿using AutoMapper;
+using Dapper;
 using DapperParameters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.Common.EntityProcessing.Filtration;
-using OnlineLibrary.Common.EntityProcessing.Sorting;
+using OnlineLibrary.Common.EntityProcessing;
+using OnlineLibrary.Common.EntityProcessing.Pagination;
 using OnlineLibrary.DAL.Comparer;
 using OnlineLibrary.DAL.DTO;
 using OnlineLibrary.DAL.Interfaces;
@@ -20,41 +21,33 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
     public class BookRepository : IBookRepository
     {
         private readonly string _connectionString;
+        
+        private readonly IMapper _mapper;
 
-        public BookRepository(IOptions<DBConnection> connOptions)
+        public BookRepository(IOptions<DBConnection> connOptions, IMapper mapper)
         {
             _connectionString = connOptions.Value.BookContext;
+            _mapper = mapper;
         }
 
-        public async Task<List<int>> FilterBooksAsync(BookFiltration bookFiltration)
+        public async Task<PaginatedList<Book>> FilterSortPaginBooksAsync(BookProcessing bookProcessing)
         {
-            using (var connection = new SqlConnection(_connectionString))
-                return (await connection.QueryAsync<int>("sp_GetFilterBookIds",
-                    new
-                    {
-                        name = bookFiltration.Name,
-                        authorId = bookFiltration.AuthorId,
-                        tagId = bookFiltration.TagId,
-                        inArchive = bookFiltration.Archievation
-                    },
-                    commandType: CommandType.StoredProcedure)).ToList();
-        }
-
-        public async Task<List<Book>> SortPaginBooksAsync(List<int> bookIds, bool fromBooks, SortingOptions sortingOptions, int skip, int pageSize)
-        {
-            IEnumerable<Book> Books;
+            IEnumerable<Book> books;
+            PaginatedList<Book> result = new PaginatedList<Book>();
             using (var connection = new SqlConnection(_connectionString))
             {
-                List<IdList> idLists = bookIds.Select(x => new IdList(x)).ToList();
                 var parameters = new DynamicParameters();
-                parameters.AddTable("@bookIds", "t_IdList", idLists);
-                parameters.Add("@fromBooks", fromBooks);
-                parameters.Add("@sortDirection", sortingOptions.SortDirection);
-                parameters.Add("@sortProperty", sortingOptions.PropertyToOrder);
-                parameters.Add("@skip", skip);
-                parameters.Add("@pageSize", pageSize);
+                parameters.Add("@name", bookProcessing.Filtration.Name);
+                parameters.Add("@authorId", bookProcessing.Filtration.AuthorId);
+                parameters.Add("@tagId", bookProcessing.Filtration.TagId);
+                parameters.Add("@inArchive", bookProcessing.Filtration.Archievation);
+                parameters.Add("@sortDirection", bookProcessing.Sorting.SortDirection);
+                parameters.Add("@sortProperty", bookProcessing.Sorting.PropertyToOrder);
+                parameters.Add("@pageNumber", bookProcessing.Pagination.PageNumber);
+                parameters.Add("@pageSize", bookProcessing.Pagination.PageSize);
+                parameters.Add("@totalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                Books = await connection.QueryAsync<Book, Tag, Author, Book>("sp_GetSortPaginBooks", (book, tag, author) =>
+                books = await connection.QueryAsync<Book, Tag, Author, Book>("sp_GetFilterSortPaginBooks", (book, tag, author) =>
                 {
                     book.Authors = author == null ? null : new List<Author>() { author };
                     book.Tags = tag == null ? null : new List<Tag>() { tag };
@@ -62,9 +55,10 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                 },
                 parameters,
                 commandType: CommandType.StoredProcedure);
+
+                result.TotalCount = parameters.Get<int>("@totalCount");
             }
-            if (!Books.Any()) return null;
-            return Books
+            result.Results = books
                 .GroupBy(b => b.Id)
                 .Select(group =>
                 {
@@ -74,14 +68,15 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                     return book;
                 })
                 .ToList();
+            return result;
         }
 
         public async Task<List<Book>> GetAllBooksForCsvAsync()
         {
-            IEnumerable<Book> Books;
+            IEnumerable<Book> books;
             using (var connection = new SqlConnection(_connectionString))
             {
-                Books = await connection.QueryAsync<Book, Tag, Author, Book>("sp_GetAllBooksForCSV", (book, tag, author) =>
+                books = await connection.QueryAsync<Book, Tag, Author, Book>("sp_GetAllBooksForCSV", (book, tag, author) =>
                 {
                     book.Authors = author == null ? null : new List<Author>() { author };
                     book.Tags = tag == null ? null : new List<Tag>() { tag };
@@ -89,8 +84,8 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                 },
                 commandType: CommandType.StoredProcedure);
             }
-            if (!Books.Any()) return new List<Book>();
-            return Books
+            if (!books.Any()) return new List<Book>();
+            return books
                 .GroupBy(b => b.Id)
                 .Select(group =>
                 {
@@ -104,41 +99,28 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 
         public async Task CreateBookAsync(Book book)
         {
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using (var connection = new SqlConnection(_connectionString))
             {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    book.Id = await connection.ExecuteScalarAsync<int>("sp_CreateBook",
-                        new { name = book.Name, description = book.Description, genre = book.Genre },
-                        commandType: CommandType.StoredProcedure);
+                List<AuthorBookId> authorBookIds = book.Authors.Select(a => new AuthorBookId(a.Id)).ToList();
+                List<BookTagId> bookTagIds = book.Tags.Select(t => new BookTagId(t.Id)).ToList();
+                var parameters = new DynamicParameters();
+                parameters.AddTable("@authorBook", "t_AuthorBook", authorBookIds);
+                parameters.AddTable("@bookTag", "t_BookTag", bookTagIds);
+                parameters.Add("@name", book.Name);
+                parameters.Add("@description", book.Description);
+                parameters.Add("@genre", book.Genre);
 
-                    List<AuthorBookIds> authorBookIds = book.Authors.Select(a => new AuthorBookIds(book.Id, a.Id)).ToList();
-                    var parameters = new DynamicParameters();
-                    parameters.AddTable("@authorBook", "t_AuthorBook", authorBookIds);
-
-                    await connection.ExecuteAsync("sp_CreateAuthorBook",
-                        parameters,
-                        commandType: CommandType.StoredProcedure);
-
-                    List<BookTagIds> bookTagIds = book.Tags.Select(t => new BookTagIds(book.Id, t.Id)).ToList();
-                    parameters = new DynamicParameters();
-                    parameters.AddTable("@bookTag", "t_BookTag", bookTagIds);
-
-                    await connection.ExecuteAsync("sp_CreateBookTag",
-                        parameters,
-                        commandType: CommandType.StoredProcedure);
-
-                    scope.Complete();
-                }
+                book.Id = await connection.ExecuteScalarAsync<int>("sp_CreateBook",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
             }
         }
 
         public async Task UpdateBookAsync(BookDTO book)
         {
-
-            List<BookTagIds> bookTags = book.Tags.Select(tag => new BookTagIds(book.Id, tag.Id)).ToList();
-            List<AuthorBookIds> authorBooks = book.Authors.Select(author => new AuthorBookIds(book.Id, author.Id)).ToList();
-            List<ReservationDTO> reservations = book.Reservations.Select(r => new ReservationDTO(r)).ToList();
+            List<BookTagId> bookTags = book.Tags.Select(tag => new BookTagId(book.Id, tag.Id)).ToList();
+            List<AuthorBookId> authorBooks = book.Authors.Select(author => new AuthorBookId(book.Id, author.Id)).ToList();
+            List<ReservationDTO> reservations = book.Reservations.Select(r => _mapper.Map<Reservation, ReservationDTO>(r)).ToList();
             var parameters = new DynamicParameters();
             parameters.AddTable("@reservations", "t_Reservation", reservations);
             parameters.AddTable("@bookTag", "t_BookTag", bookTags);
@@ -159,10 +141,10 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 
         public async Task<Book> GetBookByIdAsync(int bookId)
         {
-            IEnumerable<Book> BookGroup;
+            IEnumerable<Book> bookGroup;
             using (var connection = new SqlConnection(_connectionString))
             {
-                BookGroup = await connection.QueryAsync<Book, Tag, Author, Reservation, User, Book>("sp_GetBookById", (book, tag, author, reservation, user) =>
+                bookGroup = await connection.QueryAsync<Book, Tag, Author, Reservation, User, Book>("sp_GetBookById", (book, tag, author, reservation, user) =>
                 {
                     if (reservation != null)
                         reservation.User = user;
@@ -173,11 +155,11 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
                 }, new { id = bookId },
                 commandType: CommandType.StoredProcedure);
             }
-            if (!BookGroup.Any()) return null;
-            Book book = BookGroup.First();
-            book.Reservations = BookGroup.Where(b => b.Reservations != null).Select(b => b.Reservations?.Single()).Distinct(new EntityComparer<Reservation>()).ToList() ?? new List<Reservation>();
-            book.Authors = BookGroup.Where(b => b.Authors != null).Select(b => b.Authors?.Single()).Distinct(new EntityComparer<Author>()).ToList() ?? new List<Author>();
-            book.Tags = BookGroup.Where(b => b.Tags != null).Select(b => b.Tags.Single()).Distinct(new EntityComparer<Tag>()).ToList() ?? new List<Tag>();
+            if (!bookGroup.Any()) return null;
+            Book book = bookGroup.First();
+            book.Reservations = bookGroup.Where(b => b.Reservations != null).Select(b => b.Reservations?.Single()).Distinct(new EntityComparer<Reservation>()).ToList() ?? new List<Reservation>();
+            book.Authors = bookGroup.Where(b => b.Authors != null).Select(b => b.Authors?.Single()).Distinct(new EntityComparer<Author>()).ToList() ?? new List<Author>();
+            book.Tags = bookGroup.Where(b => b.Tags != null).Select(b => b.Tags.Single()).Distinct(new EntityComparer<Tag>()).ToList() ?? new List<Tag>();
             return book;
         }
 
