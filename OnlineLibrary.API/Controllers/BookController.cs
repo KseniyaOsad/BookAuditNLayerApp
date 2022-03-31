@@ -2,7 +2,6 @@
 using System;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.Common.DBEntities;
-using OnlineLibrary.API.Model;
 using AutoMapper;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.JsonPatch;
@@ -11,8 +10,8 @@ using OnlineLibrary.Common.EntityProcessing;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
-using OnlineLibrary.Common.Exceptions;
-using OnlineLibrary.Common.Extensions;
+using OnlineLibrary.DAL.DTO;
+using OnlineLibrary.API.Model;
 
 namespace OnlineLibrary.API.Controllers
 {
@@ -43,7 +42,7 @@ namespace OnlineLibrary.API.Controllers
         [HttpPost("search")]
         public async Task<IActionResult> FilterBookAsync([FromBody] BookProcessing bookProcessing)
         {
-            PaginatedList<Book> paginatedList = await _bookService.FilterBooksAsync(bookProcessing);
+            PaginatedList<Book> paginatedList = await _bookService.FilterSortPaginBooksAsync(bookProcessing);
             _logger.LogInformation($"Filter books. Books count = {paginatedList?.TotalCount}.");
             return Ok(paginatedList);
         }
@@ -79,7 +78,7 @@ namespace OnlineLibrary.API.Controllers
 
         // Patch:  api/books/[id]
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdatePatchAsync(int Id, [FromBody] JsonPatchDocument<Book> book)
+        public async Task<IActionResult> UpdatePatchAsync(int Id, [FromBody] JsonPatchDocument<BookDTO> book)
         {
             await _bookService.UpdatePatchAsync(Id, book);
             _logger.LogInformation($"Update book. Book ID = {Id}");

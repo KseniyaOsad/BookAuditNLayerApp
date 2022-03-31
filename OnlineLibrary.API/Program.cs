@@ -1,9 +1,6 @@
-using OnlineLibrary.DAL.EF;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace OnlineLibrary.API
 {
@@ -11,29 +8,7 @@ namespace OnlineLibrary.API
     {
         public static void Main(string[] args)
         {
-            var host = CreateHostBuilder(args).Build();
-
-            CreateDbIfNotExists(host);
-
-            host.Run();
-        }
-
-        private static void CreateDbIfNotExists(IHost host)
-        {
-            using (var scope = host.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
-                try
-                {
-                    var context = services.GetRequiredService<BookContext>();
-                    context.Database.EnsureCreated();
-                }
-                catch (Exception ex)
-                {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred creating the DB.");
-                }
-            }
+            CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -45,7 +20,6 @@ namespace OnlineLibrary.API
                 .ConfigureLogging(builder =>
                 {
                     builder.AddLog4Net("log4net.config");
-                })
-                ;
+                });
     }
 }

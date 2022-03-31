@@ -22,7 +22,7 @@ namespace OnlineLibrary.BLL.Services
             Reservation reservationRow = await _unitOfWork.ReservationRepository.GetBookReservationLastRow(reservation.Book.Id);
             ExceptionExtensions.Check<OLNotFound>(reservationRow == null || reservationRow.UserId != reservation.User.Id, $"Reservation not found.");
             ExceptionExtensions.Check<OLBadRequest>(reservationRow.ReturnDate != default, $"Book isn't in reserve.");
-            await _unitOfWork.ReservationRepository.CloseReservationAsync(reservationRow);
+            await _unitOfWork.ReservationRepository.CloseReservationAsync(reservation);
         }
 
         public async Task<int> CreateReservationAsync(Reservation reservation)
@@ -33,6 +33,9 @@ namespace OnlineLibrary.BLL.Services
             reservation.Book = await _unitOfWork.BookRepository.GetBookByIdAsync(reservation.Book.Id);
             ExceptionExtensions.Check<OLNotFound>(reservation.Book == null, $"Book not found. Book id = {bookId}");
             ExceptionExtensions.Check<OLBadRequest>(reservation.Book.InArchive, $"Book is in Archive. Book id = {bookId}");
+
+            Reservation reservationRow = await _unitOfWork.ReservationRepository.GetBookReservationLastRow(bookId);
+            ExceptionExtensions.Check<OLBadRequest>(reservationRow != null && reservationRow.ReturnDate == default, $"Book in reserve.");
 
             await _unitOfWork.ReservationRepository.CreateReservationAsync(reservation);
             ExceptionExtensions.Check<OLInternalServerError>(reservation.Id == 0, "The reservation was not created");

@@ -1,10 +1,13 @@
 ﻿using Dapper;
+using DapperParameters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.Common.DBEntities;
+using OnlineLibrary.DAL.DTO;
 using OnlineLibrary.DAL.Interfaces;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,17 +26,12 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
         {
             IEnumerable<Author> AuthorsAndBooks;
             using (var connection = new SqlConnection(_connectionString))
-            {
-                string sql = @"SELECT A.Id, A.Name, B.Id, B.Name, B.Description, B.Genre , B.InArchive , B.RegistrationDate, AB.AuthorsId, AB.BooksId
-                FROM Authors AS A
-                LEFT JOIN AuthorBook  AS AB ON A.Id = AB.AuthorsId
-                LEFT JOIN Books       AS B  ON B.Id = AB.BooksId";
-                AuthorsAndBooks = await connection.QueryAsync<Author, Book, Author>(sql, (author, book) =>
+                AuthorsAndBooks = await connection.QueryAsync<Author, Book, Author>("sp_GetAllAuthors", (author, book) =>
                 {
                     author.Books = book == null ? new List<Book>() : new List<Book>() { book };
                     return author;
-                });
-            }
+                }, commandType: CommandType.StoredProcedure);
+
             return AuthorsAndBooks
                 .GroupBy(a => a.Id)
                 .Select(group =>
@@ -50,21 +48,22 @@ namespace OnlineLibrary.DAL.Repositories.Dapper
 
         public async Task<List<Author>> GetAuthorsByIdListAsync(List<int> authorsId)
         {
-            string sql = "SELECT Id, Name FROM Authors WHERE Id IN @Ids;";
             using (var connection = new SqlConnection(_connectionString))
             {
-                return (await connection.QueryAsync<Author>(sql, new { Ids = authorsId })).ToList();
+                List<IdList> idLists = authorsId.Select(x => new IdList(x)).ToList();
+                var parameters = new DynamicParameters();
+                parameters.AddTable("@ids", "t_IdList", idLists);
+                return (await connection.QueryAsync<Author>("sp_GetAuthorsByIdList",
+                    parameters,
+                    commandType: CommandType.StoredProcedure)).ToList();
             }
         }
 
         public async Task CreateAuthorAsync(Author author)
         {
-            string sql = "INSERT INTO Authors (Name) Values (@Name); SELECT SCOPE_IDENTITY();";
-
             using (var connection = new SqlConnection(_connectionString))
-            {
-                author.Id = await connection.ExecuteScalarAsync<int>(sql, author);
-            }
+                author.Id = await connection.ExecuteScalarAsync<int>("sp_CreateAuthor", new { name = author.Name }, 
+                    commandType: CommandType.StoredProcedure);
         }
     }
 }

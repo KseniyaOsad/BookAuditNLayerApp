@@ -13,7 +13,7 @@ using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.DBEntities.Enums;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
-using OnlineLibrary.Common.Exceptions;
+using OnlineLibrary.DAL.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -42,7 +42,7 @@ namespace OnlineLibraryApiTest.Controllers
         public async Task Filter_Book_Ok()
         {
             BookProcessing bookProcessing = new BookProcessing();
-            _mockBookService.Setup(x => x.FilterBooksAsync(bookProcessing)).Returns(Task.FromResult(new PaginatedList<Book>() { }));
+            _mockBookService.Setup(x => x.FilterSortPaginBooksAsync(bookProcessing)).Returns(Task.FromResult(new PaginatedList<Book>() { }));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
 
             var result = await _bookController.FilterBookAsync(bookProcessing);
@@ -50,7 +50,7 @@ namespace OnlineLibraryApiTest.Controllers
 
             Assert.IsNotNull(okResult);
             Assert.AreEqual(200, okResult.StatusCode);
-            _mockBookService.Verify(x => x.FilterBooksAsync(bookProcessing), Times.Once);
+            _mockBookService.Verify(x => x.FilterSortPaginBooksAsync(bookProcessing), Times.Once);
         }
 
         // Task<IActionResult> GetBookByIdAsync(int? id)
@@ -99,10 +99,10 @@ namespace OnlineLibraryApiTest.Controllers
         [TestMethod]
         public async Task UpdatePatch_Book()
         {
-            _mockBookService.Setup(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()));
+            _mockBookService.Setup(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<BookDTO>>()));
             _bookController = new BookController(_mockBookService.Object, _mockAuthorService.Object, _mockTagService.Object, _mockMapper.Object, _mockILogger.Object);
-            await _bookController.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>());
-            _mockBookService.Verify(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<Book>>()), Times.Once);
+            await _bookController.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<BookDTO>>());
+            _mockBookService.Verify(x => x.UpdatePatchAsync(It.IsAny<int>(), It.IsAny<JsonPatchDocument<BookDTO>>()), Times.Once);
             _mockBookService.Verify(x => x.GetBookByIdAsync(It.IsAny<int>()), Times.Once);
         }
 

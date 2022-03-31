@@ -1,6 +1,7 @@
 ﻿using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.Common.EntityProcessing;
 using OnlineLibrary.Common.EntityProcessing.Pagination;
+using OnlineLibrary.DAL.DTO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,10 +15,9 @@ namespace OnlineLibrary.DAL.Interfaces
 
         Task CreateBookAsync(Book book);
 
-        Task UpdateBookAsync(Book book, bool updateBook, bool updateAuthors, bool updateTags);
+        Task UpdateBookAsync(BookDTO book);
 
-        Task<PaginatedList<Book>> FilterBooksAsync(BookProcessing bookProcessing);
+        Task<PaginatedList<Book>> FilterSortPaginBooksAsync(BookProcessing bookProcessing);
 
-        Task<bool> IsBookExistAsync(int userId);
     }
 }

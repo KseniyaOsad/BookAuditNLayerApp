@@ -1,11 +1,9 @@
 using OnlineLibrary.Common.DBEntities;
 using OnlineLibrary.BLL.Interfaces;
 using OnlineLibrary.BLL.Services;
-using OnlineLibrary.DAL.EF;
 using OnlineLibrary.DAL.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,13 +11,16 @@ using Newtonsoft.Json;
 using FluentValidation.AspNetCore;
 using FluentValidation;
 using OnlineLibrary.Common.Validators;
-using OnlineLibrary.API.Model;
 using OnlineLibrary.API.Validator;
 using AutoMapper;
-using OnlineLibrary.API.Mapper;
 using OnlineLibrary.DAL.Repositories.Dapper;
 using OnlineLibrary.Common.Connection;
 using OnlineLibrary.API.Filters;
+using OnlineLibrary.DAL.DTO;
+using OnlineLibrary.DAL.DTOValidators;
+using OnlineLibrary.API.Mapper;
+using OnlineLibrary.API.Model;
+using OnlineLibrary.DAL.Mapper;
 
 namespace OnlineLibrary.API
 {
@@ -41,6 +42,7 @@ namespace OnlineLibrary.API
             var mappingConfig = new MapperConfiguration(mc =>
             {
                 mc.AddProfile(new MappingProfile());
+                mc.AddProfile(new MappingDTOProfile());
             });
             IMapper mapper = mappingConfig.CreateMapper();
             services.AddSingleton(mapper);
@@ -55,8 +57,6 @@ namespace OnlineLibrary.API
             {
                 OptionsBuilderConfigurationExtensions.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
-            services.AddDbContext<BookContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("BookContext"), b => b.MigrationsAssembly("OnlineLibrary.API")));
             services.AddTransient<IBookService, BookService>();
             services.AddTransient<IAuthorService, AuthorService>();
             services.AddTransient<ITagService, TagService>();
@@ -73,6 +73,8 @@ namespace OnlineLibrary.API
             services.AddTransient<IValidator<Author>, AuthorValidator>();
             services.AddTransient<IValidator<Tag>, TagValidator>();
             services.AddTransient<IValidator<User>, UserValidator>();
+            services.AddTransient<IValidator<Reservation>, ReservationValidator>();
+            services.AddTransient<IValidator<BookDTO>, BookDTOValidator>();
 
             // Swagger.
             services.AddSwaggerGen();

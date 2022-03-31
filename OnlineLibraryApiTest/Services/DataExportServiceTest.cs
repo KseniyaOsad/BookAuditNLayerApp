@@ -28,8 +28,6 @@ namespace OnlineLibraryApiTest.Services
             _mockUnitOfWork.Setup(x => x.AuthorRepository).Returns(_mockAuthorRepository.Object);
         }
 
-        // PathIsINcorrect in different methods
-
         // Task WriteBooksToCsvAsync(string path, string filename)
 
         [TestMethod]
